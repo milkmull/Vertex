@@ -36,60 +36,60 @@
 
 inline constexpr float_to_string_test_case<double, char> double_to_string_test_cases[] = {
     // Test special cases (zero, inf, nan) and an ordinary case. Also test negative signs.
-    {0.0, str::float_format::scientific, 0, "0e0"},
-    {-0.0, str::float_format::scientific, 0, "-0e0"},
-    {double_inf, str::float_format::scientific, "inf"},
-    {-double_inf, str::float_format::scientific, "-inf"},
-    {double_nan, str::float_format::scientific, "nan"},
-    {-double_nan, str::float_format::scientific, "-nan(ind)"},
+    {0.0, strconv::float_format::scientific, 0, "0e0"},
+    {-0.0, strconv::float_format::scientific, 0, "-0e0"},
+    {double_inf, strconv::float_format::scientific, "inf"},
+    {-double_inf, strconv::float_format::scientific, "-inf"},
+    {double_nan, strconv::float_format::scientific, "nan"},
+    {-double_nan, strconv::float_format::scientific, "-nan(ind)"},
 #if defined(VX_HAS_NAN_PAYLOAD)
-    {double_nan_payload, str::float_format::scientific, "nan"},
-    {-double_nan_payload, str::float_format::scientific, "-nan"},
+    {double_nan_payload, strconv::float_format::scientific, "nan"},
+    {-double_nan_payload, strconv::float_format::scientific, "-nan"},
 #endif
-    {2.018, str::float_format::scientific, 3, "2.018e0"},
-    {-2.018, str::float_format::scientific, 3, "-2.018e0"},
+    {2.018, strconv::float_format::scientific, 3, "2.018e0"},
+    {-2.018, strconv::float_format::scientific, 3, "-2.018e0"},
 
     // Ditto for fixed, which doesn't emit exponents.
-    {0.0, str::float_format::fixed, 0, "0"},
-    {-0.0, str::float_format::fixed, 0, "-0"},
-    {double_inf, str::float_format::fixed, "inf"},
-    {-double_inf, str::float_format::fixed, "-inf"},
-    {double_nan, str::float_format::fixed, "nan"},
-    {-double_nan, str::float_format::fixed, "-nan(ind)"},
+    {0.0, strconv::float_format::fixed, 0, "0"},
+    {-0.0, strconv::float_format::fixed, 0, "-0"},
+    {double_inf, strconv::float_format::fixed, "inf"},
+    {-double_inf, strconv::float_format::fixed, "-inf"},
+    {double_nan, strconv::float_format::fixed, "nan"},
+    {-double_nan, strconv::float_format::fixed, "-nan(ind)"},
 #if defined(VX_HAS_NAN_PAYLOAD)
-    {double_nan_payload, str::float_format::fixed, "nan"},
-    {-double_nan_payload, str::float_format::fixed, "-nan"},
+    {double_nan_payload, strconv::float_format::fixed, "nan"},
+    {-double_nan_payload, strconv::float_format::fixed, "-nan"},
 #endif
-    {2.018, str::float_format::fixed, 3, "2.018"},
-    {-2.018, str::float_format::fixed, 3, "-2.018"},
+    {2.018, strconv::float_format::fixed, 3, "2.018"},
+    {-2.018, strconv::float_format::fixed, 3, "-2.018"},
 
     // Ditto for general, which selects fixed for the scientific exponent 0.
-    {0.0, str::float_format::general, "0.000000"},
-    {-0.0, str::float_format::general, "-0.000000"},
-    {double_inf, str::float_format::general, "inf"},
-    {-double_inf, str::float_format::general, "-inf"},
-    {double_nan, str::float_format::general, "nan"},
-    {-double_nan, str::float_format::general, "-nan(ind)"},
+    {0.0, strconv::float_format::general, "0.000000"},
+    {-0.0, strconv::float_format::general, "-0.000000"},
+    {double_inf, strconv::float_format::general, "inf"},
+    {-double_inf, strconv::float_format::general, "-inf"},
+    {double_nan, strconv::float_format::general, "nan"},
+    {-double_nan, strconv::float_format::general, "-nan(ind)"},
 #if defined(VX_HAS_NAN_PAYLOAD)
-    {double_nan_payload, str::float_format::general, "nan"},
-    {-double_nan_payload, str::float_format::general, "-nan"},
+    {double_nan_payload, strconv::float_format::general, "nan"},
+    {-double_nan_payload, strconv::float_format::general, "-nan"},
 #endif
-    {2.018, str::float_format::general, "2.018000"},
-    {-2.018, str::float_format::general, "-2.018000"},
+    {2.018, strconv::float_format::general, "2.018000"},
+    {-2.018, strconv::float_format::general, "-2.018000"},
 
     // Ditto for hex.
-    {0.0, str::float_format::hex, 0, "0p0"},
-    {-0.0, str::float_format::hex, 0, "-0p0"},
-    {double_inf, str::float_format::hex, "inf"},
-    {-double_inf, str::float_format::hex, "-inf"},
-    {double_nan, str::float_format::hex, "nan"},
-    {-double_nan, str::float_format::hex, "-nan(ind)"},
+    {0.0, strconv::float_format::hex, 0, "0p0"},
+    {-0.0, strconv::float_format::hex, 0, "-0p0"},
+    {double_inf, strconv::float_format::hex, "inf"},
+    {-double_inf, strconv::float_format::hex, "-inf"},
+    {double_nan, strconv::float_format::hex, "nan"},
+    {-double_nan, strconv::float_format::hex, "-nan(ind)"},
 #if defined(VX_HAS_NAN_PAYLOAD)
-    {double_nan_payload, str::float_format::hex, "nan"},
-    {-double_nan_payload, str::float_format::hex, "-nan"},
+    {double_nan_payload, strconv::float_format::hex, "nan"},
+    {-double_nan_payload, strconv::float_format::hex, "-nan"},
 #endif
-    {0x1.729p+0, str::float_format::hex, 3, "1.729p0"},
-    {-0x1.729p+0, str::float_format::hex, 3, "-1.729p0"}
+    {0x1.729p+0, strconv::float_format::hex, 3, "1.729p0"},
+    {-0x1.729p+0, strconv::float_format::hex, 3, "-1.729p0"}
 };
 
 // clang-format on

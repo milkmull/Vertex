@@ -157,7 +157,7 @@ enum class sign_option
     space
 };
 
-namespace _format_priv {
+namespace _fmt_priv {
 
 inline constexpr size_t calulate_field_width(
     const size_t remaining_size,
@@ -173,37 +173,38 @@ inline constexpr size_t calulate_field_width(
     return remaining_size;
 }
 
-} // namespace _format_priv
+} // namespace _fmt_priv
 
 template <typename C>
 struct basic_format_spec
 {
+    C type = C{};
     C fill = C(' ');
     alignment align = alignment::none;
-
     size_t width = 0;
+};
+
+template <typename C>
+struct basic_string_format_spec : basic_format_spec<C>
+{
     size_t precision = 0;
     bool has_precision = false;
+};
 
+template <typename C>
+struct basic_integer_format_spec : basic_format_spec<C>
+{
     bool alternate = false;
     bool zero_pad = false;
     sign_option sign = sign_option::none;
-
-    C type = C{};
-
-    size_t calulate_width(const size_t remaining_size) const noexcept
-    {
-        return _format_priv::calulate_field_width(remaining_size, width);
-    }
 };
 
-using format_spec = basic_format_spec<char>;
-using wformat_spec = basic_format_spec<wchar_t>;
-#if defined(__cpp_lib_char8_t)
-using u8format_spec = basic_format_spec<char8_t>;
-#endif // defined(__cpp_lib_char8_t)
-using u16format_spec = basic_format_spec<char16_t>;
-using u32format_spec = basic_format_spec<char32_t>;
+template <typename C>
+struct basic_float_format_spec : basic_integer_format_spec<C>
+{
+    size_t precision = 0;
+    bool has_precision = false;
+};
 
 //==============================================================================
 // formatter
@@ -229,7 +230,7 @@ using u32format_spec = basic_format_spec<char32_t>;
 //   struct vx::format::formatter<my_type, C>
 //   {
 //       format_error format(
-//           basic_output_context<C>& out,
+//           basic_format_context<C>& out,
 //           const my_type& value,
 //           const basic_format_spec<C>& spec) const
 //       {
@@ -250,7 +251,7 @@ using u32format_spec = basic_format_spec<char32_t>;
 //       VX_REQUIRES_TYPE(std::is_enum<T>::value)>
 //   {
 //       format_error format(
-//           basic_output_context<C>& out,
+//           basic_format_context<C>& out,
 //           const T& value,
 //           const basic_format_spec<C>& spec) const
 //       {
@@ -263,14 +264,14 @@ using u32format_spec = basic_format_spec<char32_t>;
 //   formatter<T,C,Enable> must provide:
 //
 //       format(
-//           basic_output_context<C>&,
+//           basic_format_context<C>&,
 //           const T&,
 //           const basic_format_spec<C>&)
 //
 //   The formatter:
 //
 //     - Must return format_error.
-//     - Must write output only through basic_output_context.
+//     - Must write output only through basic_format_context.
 //     - Must respect the supplied format specification.
 //     - Must not access the output buffer directly.
 //
@@ -287,7 +288,7 @@ struct formatter;
 // output context
 //==============================================================================
 
-namespace _format_priv {
+namespace _fmt_priv {
 
 struct padding_info
 {
@@ -354,11 +355,6 @@ struct output_buffer
         const basic_format_spec<C>& spec,
         alignment default_align) noexcept
     {
-        if (spec.has_precision && write_data_size > spec.precision)
-        {
-            write_data_size = spec.precision;
-        }
-
         const size_t width = (spec.width > write_data_size) ? spec.width : write_data_size;
         const size_t remaining = size - count;
         _SIZE_RET_IF(width > remaining, format_error::buffer_too_small);
@@ -382,14 +378,14 @@ struct output_buffer
     }
 };
 
-} // namespace _format_priv
+} // namespace _fmt_priv
 
 template <typename C>
-class basic_output_context
+class basic_format_context
 {
 public:
 
-    explicit basic_output_context(_format_priv::output_buffer<C>& out) noexcept
+    explicit basic_format_context(_fmt_priv::output_buffer<C>& out) noexcept
         : m_out(out)
     {}
 
@@ -450,36 +446,302 @@ public:
     format_error write_padded(
         const C* data,
         size_t size,
-        const basic_format_spec<C>& spec,
+        const basic_integer_format_spec<C>& spec,
         alignment default_align) const noexcept
     {
         return m_out.write_padded(data, size, spec, default_align);
     }
 
+    format_error write_padded(
+        const C* data,
+        size_t size,
+        const basic_string_format_spec<C>& spec,
+        alignment default_align) const noexcept
+    {
+        if (spec.has_precision && size > spec.precision)
+        {
+            size = spec.precision;
+        }
+
+        return m_out.write_padded(data, size, spec, default_align);
+    }
+
+
 private:
 
-    _format_priv::output_buffer<C>& m_out;
+    _fmt_priv::output_buffer<C>& m_out;
 };
 
-using output_context = basic_output_context<char>;
-using woutput_context = basic_output_context<wchar_t>;
-#if defined(__cpp_lib_char8_t)
-using u8output_context = basic_output_context<char8_t>;
-#endif // defined(__cpp_lib_char8_t)
-using u16output_context = basic_output_context<char16_t>;
-using u32output_context = basic_output_context<char32_t>;
+using format_context = basic_format_context<char>;
 
 //==============================================================================
 // parsing
 //==============================================================================
 
-namespace _format_priv {
+namespace _fmt_priv {
+
+template <typename C>
+struct basic_format_token;
+
+template <typename C>
+class basic_format_parser;
 
 enum : char
 {
     open_brace = '{',
     closed_brace = '}'
 };
+
+template <typename C>
+size_t parse_uint_impl(size_t& value, const C* data, const size_t size) noexcept
+{
+    using U = typename std::remove_reference<decltype(value)>::type;
+    const auto res = strconv::_strconv_priv::parse_integer_impl<U, C, false>(
+        data,
+        size,
+        value,
+        10);
+
+    return (res.err != strconv::from_string_error::none)
+        ? 0
+        : res.count;
+}
+
+} // namespace _fmt_priv
+
+template <typename C>
+class basic_parse_context
+{
+private:
+
+    friend _fmt_priv::basic_format_token<C>;
+    friend _fmt_priv::basic_format_parser<C>;
+
+    basic_parse_context() noexcept
+        : m_data(nullptr)
+        , m_size(0)
+    {}
+
+public:
+
+    constexpr size_t size() const noexcept
+    {
+        return m_size;
+    }
+
+    constexpr const C* data() const noexcept
+    {
+        return m_data;
+    }
+
+    constexpr auto begin() const noexcept
+    {
+        return pointer_iterator{ m_data };
+    }
+
+    constexpr auto end() const noexcept
+    {
+        return pointer_iterator{ m_data + m_size };
+    }
+
+private:
+
+    constexpr bool parse_uint(size_t& value, size_t& i) const noexcept
+    {
+        const C* ptr = m_data + i;
+        const size_t size = m_size - i;
+
+        const size_t count = _fmt_priv::parse_uint_impl<C>(value, ptr, size);
+        i += count;
+
+        return (count != 0);
+    }
+
+    static constexpr bool parse_alignment(const C c, alignment& align) noexcept
+    {
+        switch (c)
+        {
+            case C('<'):
+            {
+                align = alignment::left;
+                return true;
+            }
+            case C('>'):
+            {
+                align = alignment::right;
+                return true;
+            }
+            case C('^'):
+            {
+                align = alignment::center;
+                return true;
+            }
+            default:
+            {
+                return false;
+            }
+        }
+    }
+
+    constexpr void parse_basic_fill_alignment(size_t& i, C& fill, alignment& align) const noexcept
+    {
+        // fill + alignment
+        if (i + 1 < m_size)
+        {
+            if (parse_alignment(m_data[i + 1], align))
+            {
+                fill = m_data[i];
+                i += 2;
+                return;
+            }
+        }
+
+        if (parse_alignment(m_data[i], align))
+        {
+            ++i;
+        }
+    }
+
+    constexpr bool check_basic_numeric_flags(size_t& i) const noexcept
+    {
+        return (m_data[i] == C('+')) || (m_data[i] == C(' ')) || (m_data[i] == C('#')) || (m_data[i] == C('0'));
+    }
+
+    constexpr void parse_basic_numeric_flags(size_t& i, bool& alternate, bool& zero_pad, sign_option& sign) const noexcept
+    {
+        if (i < m_size)
+        {
+            if (m_data[i] == C('+'))
+            {
+                sign = sign_option::force;
+                ++i;
+            }
+            else if (m_data[i] == C(' '))
+            {
+                sign = sign_option::space;
+                ++i;
+            }
+        }
+
+        if (i < m_size && m_data[i] == C('#'))
+        {
+            alternate = true;
+            ++i;
+        }
+
+        if (i < m_size && m_data[i] == C('0'))
+        {
+            zero_pad = true;
+            ++i;
+        }
+    }
+
+    constexpr void parse_basic_width(size_t& i, size_t& width) const noexcept
+    {
+        if (i < m_size)
+        {
+            size_t value = 0;
+            if (parse_uint(value, i))
+            {
+                width = value;
+            }
+        }
+    }
+
+    constexpr bool parse_basic_precision(size_t& i, size_t& precision, bool& has_precision) const noexcept
+    {
+        if ((i < m_size) && (m_data[i] == C('.')))
+        {
+            ++i;
+
+            const bool parse_result = parse_uint(precision, i);
+            _FORMAT_RET_IF((!parse_result), false);
+            has_precision = true;
+            return true;
+        }
+
+        return true;
+    }
+
+    constexpr void parse_basic_type(size_t& i, C& type) const noexcept
+    {
+        if ((i < m_size) && (m_data[i] != C(_fmt_priv::closed_brace)))
+        {
+            type = m_data[i];
+            ++i;
+        }
+    }
+
+public:
+
+    constexpr format_error parse_basic_spec(basic_format_spec<C>& spec) const noexcept
+    {
+        size_t i = 0;
+
+        parse_basic_fill_alignment(i, spec.fill, spec.align);
+        _FORMAT_RET_IF((check_basic_numeric_flags(i)), format_error::invalid_format);
+        parse_basic_width(i, spec.width);
+        parse_basic_type(i, spec.type);
+
+        _FORMAT_RET_IF((m_data[i] != C(_fmt_priv::closed_brace)), format_error::invalid_format);
+        return format_error::none;
+    }
+
+    constexpr format_error parse_basic_string_spec(basic_string_format_spec<C>& spec) const noexcept
+    {
+        size_t i = 0;
+
+        parse_basic_fill_alignment(i, spec.fill, spec.align);
+        parse_basic_width(i, spec.width);
+        if (!parse_basic_precision(i, spec.precision, spec.has_precision))
+        {
+            return format_error::invalid_format;
+        }
+        parse_basic_type(i, spec.type);
+
+        _FORMAT_RET_IF((m_data[i] != C(_fmt_priv::closed_brace)), format_error::invalid_format);
+        return format_error::none;
+    }
+
+    constexpr format_error parse_basic_integer_spec(basic_integer_format_spec<C>& spec) const noexcept
+    {
+        size_t i = 0;
+
+        parse_basic_fill_alignment(i, spec.fill, spec.align);
+        parse_basic_numeric_flags(i, spec.alternate, spec.zero_pad, spec.sign);
+        parse_basic_width(i, spec.width);
+        parse_basic_type(i, spec.type);
+
+        _FORMAT_RET_IF((m_data[i] != C(_fmt_priv::closed_brace)), format_error::invalid_format);
+        return format_error::none;
+    }
+
+    constexpr format_error parse_basic_float_spec(basic_float_format_spec<C>& spec) const noexcept
+    {
+        size_t i = 0;
+
+        parse_basic_fill_alignment(i, spec.fill, spec.align);
+        parse_basic_numeric_flags(i, spec.alternate, spec.zero_pad, spec.sign);
+        parse_basic_width(i, spec.width);
+        if (!parse_basic_precision(i, spec.precision, spec.has_precision))
+        {
+            return format_error::invalid_format;
+        }
+        parse_basic_type(i, spec.type);
+
+        _FORMAT_RET_IF((m_data[i] != C(_fmt_priv::closed_brace)), format_error::invalid_format);
+        return format_error::none;
+    }
+
+private:
+
+    const C* m_data;
+    size_t m_size;
+};
+
+using parse_context = basic_parse_context<char>;
+
+namespace _fmt_priv {
 
 enum class token_type
 {
@@ -500,7 +762,7 @@ struct basic_format_token
     bool has_index = false;
     size_t index = 0;
 
-    basic_format_spec<C> spec;
+    basic_parse_context<C> ctx;
 };
 
 //==============================================================================
@@ -595,6 +857,9 @@ public:
         // {}
         if (current() == C(closed_brace))
         {
+            tok.ctx.m_data = m_data + m_index;
+            tok.ctx.m_size = 1;
+
             advance(1);
 
             tok.type = token_type::replacement;
@@ -615,6 +880,9 @@ public:
         // {0} or {0:...}
         if (current() == C(closed_brace))
         {
+            tok.ctx.m_data = m_data + m_index;
+            tok.ctx.m_size = 1;
+
             advance(1);
 
             tok.type = token_type::replacement;
@@ -625,16 +893,27 @@ public:
         _FORMAT_RET_IF((current() != C(':')), format_error::invalid_format);
         advance(1);
 
-        const auto err = parse_spec(tok.spec);
-        if (err != format_error::none)
+        const size_t spec_start_index = m_index;
+        size_t spec_end_index = 0;
+
+        while (!empty())
         {
-            return err;
+            if (current() == C(closed_brace))
+            {
+                spec_end_index = m_index;
+                break;
+            }
+
+            advance(1);
         }
 
-        _FORMAT_RET_IF((empty() || current() != C(closed_brace)), format_error::invalid_format);
+        _FORMAT_RET_IF(spec_end_index == 0, format_error::invalid_format);
         advance(1);
 
+        tok.ctx.m_data = m_data + spec_start_index;
+        tok.ctx.m_size = spec_end_index - spec_start_index;
         tok.type = token_type::replacement;
+
         return format_error::none;
     }
 
@@ -676,150 +955,10 @@ private:
         const C* ptr = m_data + m_index;
         const size_t size = m_size - m_index;
 
-        using U = typename std::remove_reference<decltype(value)>::type;
-        const auto res = str::_string_convert_priv::parse_integer_impl<U, C, false>(
-            ptr,
-            size,
-            value,
-            10);
+        const size_t count = parse_uint_impl<C>(value, ptr, size);
+        m_index += count;
 
-        if (res.err != str::from_string_error::none)
-        {
-            return false;
-        }
-
-        m_index += res.count;
-        return true;
-    }
-
-    template <typename C>
-    format_error parse_spec(basic_format_spec<C>& spec) noexcept
-    {
-        // fill + alignment
-        if (has_size(1))
-        {
-            switch (peek(1))
-            {
-                case C('<'):
-                {
-                    spec.align = alignment::left;
-                    break;
-                }
-                case C('>'):
-                {
-                    spec.align = alignment::right;
-                    break;
-                }
-                case C('^'):
-                {
-                    spec.align = alignment::center;
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
-            }
-
-            if (spec.align != alignment::none)
-            {
-                spec.fill = current();
-                advance(2);
-            }
-        }
-
-        // alignment
-        if (!empty() && spec.align == alignment::none)
-        {
-            switch (current())
-            {
-                case C('<'):
-                {
-                    spec.align = alignment::left;
-                    advance(1);
-                    break;
-                }
-                case C('>'):
-                {
-                    spec.align = alignment::right;
-                    advance(1);
-                    break;
-                }
-                case C('^'):
-                {
-                    spec.align = alignment::center;
-                    advance(1);
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
-            }
-        }
-
-        // flags
-        while (!empty())
-        {
-            const C c = current();
-
-            if (c == C('#'))
-            {
-                spec.alternate = true;
-                advance(1);
-            }
-            else if (c == C('0'))
-            {
-                spec.zero_pad = true;
-                advance(1);
-            }
-            else if (c == C('+'))
-            {
-                spec.sign = sign_option::force;
-                advance(1);
-            }
-            else if (c == C(' '))
-            {
-                spec.sign = sign_option::space;
-                advance(1);
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        // width
-        if (!empty())
-        {
-            size_t value = 0;
-            if (parse_uint(value))
-            {
-                spec.width = value;
-            }
-        }
-
-        // precision
-        if (!empty() && current() == C('.'))
-        {
-            advance(1);
-            if (!parse_uint(spec.precision))
-            {
-                return format_error::invalid_format;
-            }
-
-            spec.has_precision = true;
-        }
-
-        // type
-        if (!empty() && current() != C(closed_brace))
-        {
-            spec.type = current();
-            advance(1);
-            _FORMAT_RET_IF((!empty() && current() != C(closed_brace)), format_error::invalid_format);
-        }
-
-        return format_error::none;
+        return (count != 0);
     }
 
 private:
@@ -838,13 +977,13 @@ template <typename C>
 using format_fn =
     format_error (*)(
         output_buffer<C>&,
-        const basic_format_spec<C>&,
+        const basic_parse_context<C>&,
         const void*);
 
 template <typename T, typename C>
 format_error invoke_formatter(
     output_buffer<C>& out,
-    const basic_format_spec<C>& spec,
+    const basic_parse_context<C>& parse_ctx,
     const void* ptr)
 {
     // preserves array-ness, e.g. const char[6]
@@ -852,11 +991,18 @@ format_error invoke_formatter(
     using DT = typename std::decay<T>::type;
 
     formatter<DT, C> f;
-    basic_output_context<C> ctx{ out };
+
+    const auto err = f.parse(parse_ctx);
+    if (err != format_error::none)
+    {
+        return err;
+    }
+
+    basic_format_context<C> format_ctx{ out };
 
     // reinterpret as the *actual* stored object type, not the decayed one
     const U& ref = *static_cast<const U*>(ptr);
-    return f.format(ctx, ref, spec);
+    return f.format(format_ctx, ref);
 }
 
 template <typename C, typename... Args>
@@ -917,7 +1063,7 @@ format_result format_impl(
 
                 _FORMAT_RET_IF((index >= argc), (format_result{ format_error::invalid_argument, 0 }));
 
-                const auto fmt_err = funcs[index](buffer, tok.spec, values[index]);
+                const auto fmt_err = funcs[index](buffer, tok.ctx, values[index]);
                 if (fmt_err != format_error::none)
                 {
                     return { fmt_err, 0 };
@@ -933,7 +1079,7 @@ format_result format_impl(
     }
 }
 
-} // namespace _format_priv
+} // namespace _fmt_priv
 
 //==============================================================================
 
@@ -945,7 +1091,7 @@ format_result format(
     size_t fmt_size,
     Args&&... args) noexcept
 {
-    return _format_priv::format_impl(
+    return _fmt_priv::format_impl(
         out,
         out_size,
         fmt,
@@ -954,129 +1100,10 @@ format_result format(
 }
 
 //==============================================================================
-// formatters
+// integer formatters
 //==============================================================================
 
-template <typename C1, typename C2>
-struct formatter<C1, C2, VX_REQUIRES_TYPE(type_traits::is_char<C1>::value)>
-{
-    format_error format(
-        basic_output_context<C2>& out,
-        const C1& value,
-        const basic_format_spec<C2>& spec) const noexcept
-    {
-        VX_STATIC_ASSERT_MSG(sizeof(C1) <= sizeof(C2), "Narrowing conversion not allowed");
-
-        _FORMAT_RET_IF((spec.has_precision), format_error::invalid_format);
-
-        switch (spec.type)
-        {
-            case C2('\0'):
-            case C2('c'):
-            {
-                VX_IF_CONSTEXPR (std::is_same<C1, C2>::value)
-                {
-                    return out.write_padded(&value, 1, spec, alignment::left);
-                }
-                else
-                {
-                    const C2 dest_value = static_cast<C2>(value);
-                    return out.write_padded(&dest_value, 1, spec, alignment::left);
-                }
-            }
-            default:
-            {
-                using U = typename std::make_unsigned<C2>::type;
-                return formatter<U, C2>{}.format(
-                    out,
-                    static_cast<U>(value),
-                    spec);
-            }
-        }
-    }
-};
-
-//==============================================================================
-
-namespace _format_priv {
-
-template <typename C>
-struct string_formatter
-{
-    format_error format(
-        basic_output_context<C>& out,
-        const C* value,
-        const size_t size,
-        const basic_format_spec<C>& spec) const noexcept
-    {
-        _FORMAT_RET_IF((spec.sign != sign_option::none), format_error::invalid_format);
-        _FORMAT_RET_IF((spec.alternate), format_error::invalid_format);
-        _FORMAT_RET_IF((spec.type != 0 && spec.type != C('s')), format_error::invalid_format);
-
-        return out.write_padded(
-            value,
-            size,
-            spec,
-            alignment::left);
-    }
-};
-
-} // namespace _format_priv
-
-template <typename C>
-struct formatter<const C*, C>
-{
-    format_error format(
-        basic_output_context<C>& out,
-        const C* value,
-        const basic_format_spec<C>& spec) const noexcept
-    {
-        const size_t size = str::length(value);
-        return _format_priv::string_formatter<C>{}.format(
-            out,
-            value,
-            size,
-            spec);
-    }
-};
-
-template <typename C, size_t N>
-struct formatter<C[N], C>
-{
-    format_error format(
-        basic_output_context<C>& out,
-        const C (&value)[N],
-        const basic_format_spec<C>& spec) const noexcept
-    {
-        return _format_priv::string_formatter<C>{}.format(
-            out,
-            value,
-            N,
-            spec);
-    }
-};
-
-//==============================================================================
-
-template <typename S, typename C>
-struct formatter<S, C, VX_REQUIRES_TYPE(str::is_string_of<S, C>::value)>
-{
-    format_error format(
-        basic_output_context<C>& out,
-        const S& value,
-        const basic_format_spec<C>& spec) const noexcept
-    {
-        return _format_priv::string_formatter<C>{}.format(
-            out,
-            value.data(),
-            value.size(),
-            spec);
-    }
-};
-
-//==============================================================================
-
-namespace _format_priv {
+namespace _fmt_priv {
 
 template <typename C>
 format_error pad_number(
@@ -1086,7 +1113,7 @@ format_error pad_number(
     const C* prefix,
     const size_t prefix_size,
     const size_t remaining_size,
-    const basic_format_spec<C>& spec) noexcept
+    const basic_integer_format_spec<C>& spec) noexcept
 {
     const size_t total_size = written + prefix_size;
     const size_t width = (spec.width > total_size) ? spec.width : total_size;
@@ -1135,23 +1162,69 @@ format_error pad_number(
     return format_error::none;
 }
 
-} // namespace _format_priv
+template <typename C>
+format_error pad_pointer(
+    // pointer to beginning of written data
+    C* ptr,
+    size_t& written,
+    const C* prefix,
+    const size_t prefix_size,
+    const size_t remaining_size,
+    const basic_format_spec<C>& spec) noexcept
+{
+    const size_t total_size = written + prefix_size;
+    const size_t width = (spec.width > total_size) ? spec.width : total_size;
+    _SIZE_RET_IF(width > remaining_size, format_error::buffer_too_small);
+
+    const size_t total_padding = width - total_size;
+    const auto padding = align_padding(total_padding, spec.align);
+
+    const size_t right_shift = padding.left + prefix_size;
+
+    if (right_shift)
+    {
+        C* first_digit = ptr;
+
+        // open a gap of `right_shift` chars right after the sign; digits slide past it
+        mem::move_range(first_digit + right_shift, first_digit, written);
+
+        // [fill...][prefix][digits]
+        C* insert = first_digit + right_shift - prefix_size;
+        mem::copy_range(insert, prefix, prefix_size);
+        mem::fill_range(ptr, padding.left, spec.fill);
+    }
+
+    mem::fill_range(ptr + right_shift + written, padding.right, spec.fill);
+
+    written += right_shift + padding.right;
+    return format_error::none;
+}
+
+} // namespace _fmt_priv
 
 template <typename I, typename C>
-struct formatter<I, C, VX_REQUIRES_TYPE(std::is_integral<I>::value && !type_traits::is_char<I>::value && !std::is_same<I, bool>::value)>
+struct formatter<I, C, VX_REQUIRES_TYPE(std::is_integral<I>::value && !type_traits::is_char<I>::value && !std::is_same<I, bool>::value)> : basic_integer_format_spec<C>
 {
-    format_error format(
-        basic_output_context<C>& out,
-        const I& value,
-        const basic_format_spec<C>& spec) const noexcept
+private:
+
+    using base = basic_integer_format_spec<C>;
+
+public:
+
+    format_error parse(const basic_parse_context<C>& ctx)
     {
-        _FORMAT_RET_IF((spec.has_precision), format_error::invalid_format);
+        return ctx.parse_basic_integer_spec(*this);
+    }
 
-        str::integer_to_string_format_options fmt{};
-        fmt.force_sign = spec.sign == sign_option::force;
-        fmt.uppercase = spec.type == C('X') || spec.type == C('B');
+    format_error format(
+        basic_format_context<C>& ctx,
+        const I& value) const noexcept
+    {
+        strconv::integer_to_string_format_options fmt{};
+        fmt.force_sign = base::sign == sign_option::force;
+        fmt.uppercase = base::type == C('X') || base::type == C('B');
 
-        switch (spec.type)
+        switch (base::type)
         {
             case C('\0'):
             case C('d'):
@@ -1184,60 +1257,98 @@ struct formatter<I, C, VX_REQUIRES_TYPE(std::is_integral<I>::value && !type_trai
         C prefix[3];
         size_t prefix_size = 0;
         {
-            if (spec.sign == sign_option::space && value >= 0)
+            if (base::sign == sign_option::space && value >= 0)
             {
                 prefix[prefix_size++] = C(' ');
             }
-            if (spec.alternate && fmt.base != 10)
+            if (base::alternate && fmt.base != 10)
             {
                 prefix[prefix_size++] = C('0');
 
                 if (fmt.base != 8)
                 {
-                    prefix[prefix_size++] = spec.type;
+                    prefix[prefix_size++] = base::type;
                 }
             }
         }
 
-        const size_t remaining = out.remaining();
-        C* ptr = out.current();
+        const size_t remaining = ctx.remaining();
+        C* ptr = ctx.current();
 
-        const auto res = str::to_string<I, C>(value, ptr, remaining, fmt);
-        _SIZE_RET_IF((res.err == str::to_string_error::buffer_too_small), format_error::buffer_too_small);
+        const auto res = strconv::to_string<I, C>(value, ptr, remaining, fmt);
+        _SIZE_RET_IF((res.err == strconv::to_string_error::buffer_too_small), format_error::buffer_too_small);
 
         size_t written = res.count;
 
-        const auto fmt_err = _format_priv::pad_number<C>(
+        const auto fmt_err = _fmt_priv::pad_number<C>(
             ptr,
             written,
             prefix,
             prefix_size,
             remaining,
-            spec);
+            *this);
 
         if (fmt_err == format_error::none)
         {
-            out.commit(written);
+            ctx.commit(written);
         }
 
         return fmt_err;
     }
 };
 
-template <typename C>
-struct formatter<bool, C>
+template <typename C1, typename C2>
+struct formatter<C1, C2, VX_REQUIRES_TYPE(type_traits::is_char<C1>::value)> : formatter<typename std::make_unsigned<C2>::type, C2>
 {
-    format_error format(
-        basic_output_context<C>& out,
-        const bool& value,
-        const basic_format_spec<C>& spec) const noexcept
-    {
-        if (spec.has_precision)
-        {
-            return format_error::invalid_format;
-        }
+private:
 
-        switch (spec.type)
+    using base = formatter<typename std::make_unsigned<C2>::type, C2>;
+
+public:
+
+    format_error format(
+        basic_format_context<C2>& ctx,
+        const C1& value) const noexcept
+    {
+        VX_STATIC_ASSERT_MSG(sizeof(C1) <= sizeof(C2), "Narrowing conversion not allowed");
+
+        switch (base::type)
+        {
+            case C2('\0'):
+            case C2('c'):
+            {
+                VX_IF_CONSTEXPR (std::is_same<C1, C2>::value)
+                {
+                    return ctx.write_padded(&value, 1, *this, alignment::left);
+                }
+                else
+                {
+                    const C2 dest_value = static_cast<C2>(value);
+                    return ctx.write_padded(&dest_value, 1, *this, alignment::left);
+                }
+            }
+            default:
+            {
+                return base::format(ctx, value);
+            }
+        }
+    }
+};
+
+template <typename C>
+struct formatter<bool, C> : formatter<unsigned int, C>
+{
+private:
+
+    using base = formatter<unsigned int, C>;
+
+public:
+
+    format_error format(
+        basic_format_context<C>& ctx,
+        const bool& value) const noexcept
+    {
+        switch (base::type)
         {
             case C('\0'):
             case C('s'):
@@ -1247,27 +1358,24 @@ struct formatter<bool, C>
 
                 if (value)
                 {
-                    return out.write_padded(
+                    return ctx.write_padded(
                         true_str,
                         mem::array_size(true_str),
-                        spec,
+                        *this,
                         alignment::left);
                 }
                 else
                 {
-                    return out.write_padded(
+                    return ctx.write_padded(
                         false_str,
                         mem::array_size(false_str),
-                        spec,
+                        *this,
                         alignment::left);
                 }
             }
             case C('d'):
             {
-                return formatter<unsigned int, C>{}.format(
-                    out,
-                    static_cast<unsigned int>(value),
-                    spec);
+                return base::format(ctx, value);
             }
             default:
             {
@@ -1277,28 +1385,142 @@ struct formatter<bool, C>
     }
 };
 
-template <typename F, typename C>
-struct formatter<F, C, VX_REQUIRES_TYPE(std::is_floating_point<F>::value)>
-{
-    format_error format(
-        basic_output_context<C>& out,
-        const F& value,
-        const basic_format_spec<C>& spec) const noexcept
-    {
-        str::float_to_string_format_options<C> fmt{};
-        fmt.force_sign = spec.sign == sign_option::force;
-        fmt.force_exp_sign = spec.alternate;
+//==============================================================================
+// string formatters
+//==============================================================================
 
-        if (spec.has_precision)
+namespace _fmt_priv {
+
+template <typename C>
+struct string_formatter : basic_string_format_spec<C>
+{
+private:
+
+    using base = basic_string_format_spec<C>;
+
+public:
+
+    format_error parse(const basic_parse_context<C>& ctx) noexcept
+    {
+        return ctx.parse_basic_string_spec(*this);
+    }
+
+    format_error format(
+        basic_format_context<C>& ctx,
+        const C* value,
+        const size_t size) const noexcept
+    {
+        _FORMAT_RET_IF((base::type != 0 && base::type != C('s')), format_error::invalid_format);
+
+        return ctx.write_padded(
+            value,
+            size,
+            *this,
+            alignment::left);
+    }
+};
+
+} // namespace _fmt_priv
+
+template <typename C>
+struct formatter<const C*, C> : _fmt_priv::string_formatter<C>
+{
+private:
+
+    using base = _fmt_priv::string_formatter<C>;
+
+public:
+
+    format_error format(
+        basic_format_context<C>& ctx,
+        const C* value) const noexcept
+    {
+        const size_t size = str::length(value);
+        return base::format(
+            ctx,
+            value,
+            size);
+    }
+};
+
+template <typename C, size_t N>
+struct formatter<C[N], C> : _fmt_priv::string_formatter<C>
+{
+private:
+
+    using base = _fmt_priv::string_formatter<C>;
+
+public:
+
+    format_error format(
+        basic_format_context<C>& ctx,
+        const C (&value)[N]) const noexcept
+    {
+        return base::format(
+            ctx,
+            value,
+            N,
+            *this);
+    }
+};
+
+//==============================================================================
+
+template <typename S, typename C>
+struct formatter<S, C, VX_REQUIRES_TYPE(str::is_string_of<S, C>::value)> : _fmt_priv::string_formatter<C>
+{
+private:
+
+    using base = _fmt_priv::string_formatter<C>;
+
+public:
+
+    format_error format(
+        basic_format_context<C>& ctx,
+        const S& value) const noexcept
+    {
+        return base::format(
+            ctx,
+            value.data(),
+            value.size());
+    }
+};
+
+//==============================================================================
+// float formatters
+//==============================================================================
+
+template <typename F, typename C>
+struct formatter<F, C, VX_REQUIRES_TYPE(std::is_floating_point<F>::value)> : basic_float_format_spec<C>
+{
+private:
+
+    using base = basic_float_format_spec<C>;
+
+public:
+
+    constexpr format_error parse(const basic_parse_context<C>& ctx) noexcept
+    {
+        return ctx.parse_basic_float_spec(*this);
+    }
+
+    format_error format(
+        basic_format_context<C>& ctx,
+        const F& value) const noexcept
+    {
+        strconv::float_to_string_format_options<C> fmt{};
+        fmt.force_sign = base::sign == sign_option::force;
+        fmt.force_exp_sign = base::alternate;
+
+        if (base::has_precision)
         {
-            fmt.precision = static_cast<decltype(fmt.precision)>(spec.precision);
+            fmt.precision = static_cast<decltype(fmt.precision)>(base::precision);
         }
 
-        const C type = spec.type;
-        const bool is_uppercase = str::is_upper(type);
+        const bool is_uppercase = str::is_upper(base::type);
         const C lower_type = is_uppercase
-            ? str::to_lower_ascii_unchecked(type)
-            : type;
+            ? str::to_lower_ascii_unchecked(base::type)
+            : base::type;
 
         switch (lower_type)
         {
@@ -1311,7 +1533,7 @@ struct formatter<F, C, VX_REQUIRES_TYPE(std::is_floating_point<F>::value)>
             case C('e'):
             case C('a'):
             {
-                fmt.format = static_cast<str::float_format>(lower_type);
+                fmt.format = static_cast<strconv::float_format>(lower_type);
                 break;
             }
             default:
@@ -1322,21 +1544,21 @@ struct formatter<F, C, VX_REQUIRES_TYPE(std::is_floating_point<F>::value)>
 
         fmt.uppercase = is_uppercase;
 
-        const size_t remaining = out.remaining();
-        C* ptr = out.current();
+        const size_t remaining = ctx.remaining();
+        C* ptr = ctx.current();
 
-        const auto res = str::to_string<F, C>(value, ptr, remaining, fmt);
-        _SIZE_RET_IF((res.err == str::to_string_error::buffer_too_small), format_error::buffer_too_small);
-        _FORMAT_RET_IF((res.err != str::to_string_error::none), format_error::invalid_format);
+        const auto res = strconv::to_string<F, C>(value, ptr, remaining, fmt);
+        _SIZE_RET_IF((res.err == strconv::to_string_error::buffer_too_small), format_error::buffer_too_small);
+        _FORMAT_RET_IF((res.err != strconv::to_string_error::none), format_error::invalid_format);
 
         C prefix[3];
         size_t prefix_size = 0;
         {
-            if (spec.sign == sign_option::space && !signbit(value))
+            if (base::sign == sign_option::space && !signbit(value))
             {
                 prefix[prefix_size++] = C(' ');
             }
-            if (fmt.format == str::float_format::hex)
+            if (fmt.format == strconv::float_format::hex)
             {
                 prefix[prefix_size++] = C('0');
                 prefix[prefix_size++] = fmt.uppercase ? C('X') : C('x');
@@ -1345,17 +1567,17 @@ struct formatter<F, C, VX_REQUIRES_TYPE(std::is_floating_point<F>::value)>
 
         size_t written = res.count;
 
-        const auto fmt_err = _format_priv::pad_number<C>(
+        const auto fmt_err = _fmt_priv::pad_number<C>(
             ptr,
             written,
             prefix,
             prefix_size,
             remaining,
-            spec);
+            *this);
 
         if (fmt_err == format_error::none)
         {
-            out.commit(written);
+            ctx.commit(written);
         }
 
         return fmt_err;
@@ -1363,49 +1585,54 @@ struct formatter<F, C, VX_REQUIRES_TYPE(std::is_floating_point<F>::value)>
 };
 
 //==============================================================================
+// pointer formatters
+//==============================================================================
 
 template <typename C>
-struct formatter<const void*, C>
+struct formatter<const void*, C> : basic_format_spec<C>
 {
-    format_error format(
-        basic_output_context<C>& out,
-        const void* value,
-        const basic_format_spec<C>& spec) const noexcept
-    {
-        _FORMAT_RET_IF((spec.has_precision), format_error::invalid_format);
-        _FORMAT_RET_IF((spec.sign != sign_option::none), format_error::invalid_format);
-        _FORMAT_RET_IF((spec.alternate), format_error::invalid_format);
-        _FORMAT_RET_IF((spec.type != 0 && spec.type != C('p')), format_error::invalid_format);
+private:
 
-        str::integer_to_string_format_options fmt{};
+    using base = basic_format_spec<C>;
+
+public:
+
+    constexpr format_error parse(const basic_parse_context<C>& ctx) noexcept
+    {
+        return ctx.parse_basic_spec(*this);
+    }
+
+    format_error format(
+        basic_format_context<C>& ctx,
+        const void* value) const noexcept
+    {
+        _FORMAT_RET_IF((base::type != 0 && base::type != C('p')), format_error::invalid_format);
+
+        strconv::integer_to_string_format_options fmt{};
         fmt.base = 16;
-        fmt.uppercase = spec.alternate;
 
         const uintptr_t addr = reinterpret_cast<uintptr_t>(value);
 
-        const size_t remaining = out.remaining();
-        C* ptr = out.current();
+        const size_t remaining = ctx.remaining();
+        C* ptr = ctx.current();
 
-        const auto res = str::to_string<uintptr_t, C>(addr, ptr, remaining, fmt);
-        _SIZE_RET_IF((res.err == str::to_string_error::buffer_too_small), format_error::buffer_too_small);
+        const auto res = strconv::to_string<uintptr_t, C>(addr, ptr, remaining, fmt);
+        _SIZE_RET_IF((res.err == strconv::to_string_error::buffer_too_small), format_error::buffer_too_small);
 
-        const C prefix[] = {
-            C('0'),
-            fmt.uppercase ? C('X') : C('x')
-        };
+        constexpr C prefix[] = { C('0'), C('x') };
 
         size_t written = res.count;
-        const auto fmt_err = _format_priv::pad_number<C>(
+        const auto fmt_err = _fmt_priv::pad_pointer<C>(
             ptr,
             written,
             prefix,
             mem::array_size(prefix),
             remaining,
-            spec);
+            *this);
 
         if (fmt_err == format_error::none)
         {
-            out.commit(written);
+            ctx.commit(written);
         }
 
         return fmt_err;
@@ -1413,41 +1640,53 @@ struct formatter<const void*, C>
 };
 
 template <typename C>
-struct formatter<void*, C>
+struct formatter<void*, C> : formatter<const void*, C>
 {
+private:
+
+    using base = formatter<const void*, C>;
+
+public:
+
     format_error format(
-        basic_output_context<C>& out,
-        void* value,
-        const basic_format_spec<C>& spec) const noexcept
+        basic_format_context<C>& ctx,
+        void* value) const noexcept
     {
-        return formatter<const void*, C>{}.format(out, value, spec);
+        return base::format(ctx, value);
     }
 };
 
 template <typename T, typename C>
-struct formatter<T*, C, VX_REQUIRES_TYPE(!type_traits::is_char<T>::value)>
+struct formatter<T*, C, VX_REQUIRES_TYPE(!type_traits::is_char<T>::value)> : formatter<const void*, C>
 {
+private:
+
+    using base = formatter<const void*, C>;
+
+public:
+
     format_error format(
-        basic_output_context<C>& out,
-        T* value,
-        const basic_format_spec<C>& spec) const noexcept
+        basic_format_context<C>& ctx,
+        T* value) const noexcept
     {
-        return formatter<const void*, C>{}.format(out, static_cast<const void*>(value), spec);
+        return base::format(ctx, value);
     }
 };
 
 template <typename C>
-struct formatter<std::nullptr_t, C>
+struct formatter<std::nullptr_t, C> : formatter<const void*, C>
 {
+private:
+
+    using base = formatter<const void*, C>;
+
+public:
+
     format_error format(
-        basic_output_context<C>& out,
-        std::nullptr_t,
-        const basic_format_spec<C>& spec) const noexcept
+        basic_format_context<C>& ctx,
+        std::nullptr_t) const noexcept
     {
-        return formatter<const void*, C>{}.format(
-            out,
-            nullptr,
-            spec);
+        return base::format(ctx, nullptr);
     }
 };
 

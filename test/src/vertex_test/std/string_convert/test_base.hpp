@@ -13,10 +13,10 @@
 
 using namespace vx;
 
-constexpr str::from_string_error fse_inv_arg = str::from_string_error::invalid_argument;
-constexpr str::from_string_error fse_out_ran = str::from_string_error::out_of_range;
-constexpr str::from_string_error fse_none = str::from_string_error::none;
-constexpr str::to_string_error tse_none = str::to_string_error::none;
+constexpr strconv::from_string_error fse_inv_arg = strconv::from_string_error::invalid_argument;
+constexpr strconv::from_string_error fse_out_ran = strconv::from_string_error::out_of_range;
+constexpr strconv::from_string_error fse_none = strconv::from_string_error::none;
+constexpr strconv::to_string_error tse_none = strconv::to_string_error::none;
 
 inline constexpr float float_inf = std::numeric_limits<float>::infinity();
 inline constexpr float float_nan = std::numeric_limits<float>::quiet_NaN();
@@ -34,30 +34,30 @@ inline constexpr double double_nan_payload = __builtin_nan("1729");
 template <typename F, typename C>
 struct float_from_string_test_case
 {
-    constexpr float_from_string_test_case(const C* input_, str::float_format fmt_, size_t count, str::from_string_error err_, F value)
+    constexpr float_from_string_test_case(const C* input_, strconv::float_format fmt_, size_t count, strconv::from_string_error err_, F value)
         : input(input_), fmt{ fmt_ }, correct_count(count), correct_err(err_), correct_value(value)
     {}
 
     const C* input;
-    str::float_from_string_format_options<C> fmt;
+    strconv::float_from_string_format_options<C> fmt;
     size_t correct_count;
-    str::from_string_error correct_err;
+    strconv::from_string_error correct_err;
     F correct_value;
 };
 
 template <typename F, typename C>
 struct float_to_string_test_case
 {
-    constexpr float_to_string_test_case(F value_, str::float_format fmt_, const C* correct_)
+    constexpr float_to_string_test_case(F value_, strconv::float_format fmt_, const C* correct_)
         : value(value_), fmt{ fmt_ }, correct(correct_)
     {}
 
-    constexpr float_to_string_test_case(F value_, str::float_format fmt_, int precision, const C* correct_)
+    constexpr float_to_string_test_case(F value_, strconv::float_format fmt_, int precision, const C* correct_)
         : value(value_), fmt{ fmt_, static_cast<size_t>(precision) }, correct(correct_)
     {}
 
     F value;
-    str::float_to_string_format_options<C> fmt;
+    strconv::float_to_string_format_options<C> fmt;
     const C* correct;
 };
 

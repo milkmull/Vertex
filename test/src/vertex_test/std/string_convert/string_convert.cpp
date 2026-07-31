@@ -103,13 +103,13 @@ void test_common_to_string(const T value, const Options& fmt, const str::basic_s
         VX_CHECK(n <= static_cast<size_t>(buf_end - first));
         buf.fill(fill_char);
 
-        str::to_string_result res = str::to_string(value, first, n, fmt);
+        strconv::to_string_result res = strconv::to_string(value, first, n, fmt);
         C* const last = first + n;
 
         if (n < correct.size())
         {
             VX_CHECK(res.count == 0);
-            VX_CHECK(res.err == str::to_string_error::buffer_too_small);
+            VX_CHECK(res.err == strconv::to_string_error::buffer_too_small);
             VX_CHECK(all_of(buf_begin, buf_prefix, fill_char));
             // [first, last) is unspecified
             VX_CHECK(all_of(last, buf_suffix, fill_char));
@@ -117,7 +117,7 @@ void test_common_to_string(const T value, const Options& fmt, const str::basic_s
         else
         {
             VX_CHECK(res.count == correct.size());
-            VX_CHECK(res.err == str::to_string_error::none);
+            VX_CHECK(res.err == strconv::to_string_error::none);
             VX_CHECK(all_of(buf_begin, buf_prefix, fill_char));
             VX_CHECK(str::compare(first, res.count, correct.data(), correct.size()) == 0);
             VX_CHECK(all_of(first + res.count, buf_suffix, fill_char));
@@ -128,14 +128,14 @@ void test_common_to_string(const T value, const Options& fmt, const str::basic_s
 //==============================================================================
 
 template <typename I, typename C>
-void test_integer_to_string(const I value, const str::integer_to_string_format_options& fmt, const str::basic_string_view<C> correct)
+void test_integer_to_string(const I value, const strconv::integer_to_string_format_options& fmt, const str::basic_string_view<C> correct)
 {
     test_common_to_string(value, fmt, correct);
 
     // Also test successful from_string() scenarios.
     {
         I out = 0;
-        const str::from_string_result res = str::from_string(correct.data(), correct.size(), out, fmt.base);
+        const strconv::from_string_result res = strconv::from_string(correct.data(), correct.size(), out, fmt.base);
 
         VX_CHECK(res.count == correct.size());
         VX_CHECK(res.err == fse_none);
@@ -146,7 +146,7 @@ void test_integer_to_string(const I value, const str::integer_to_string_format_o
 template <typename I, typename C>
 bool test_integer_to_string()
 {
-    str::integer_to_string_format_options fmt;
+    strconv::integer_to_string_format_options fmt;
 
     for (int base = 2; base <= 36; ++base)
     {
@@ -216,7 +216,7 @@ void test_from_string(
     const str::basic_string_view<C> input,
     const Options& fmt,
     const size_t correct_count,
-    const str::from_string_error correct_err,
+    const strconv::from_string_error correct_err,
     optional<T> correct_value = {},
     const test_from_string_mode mode = test_from_string_mode::normal)
 {
@@ -236,12 +236,12 @@ void test_from_string(
 
     constexpr T unmodified = 111;
     T out = unmodified;
-    const str::from_string_result res = str::from_string(input.data(), input.size(), out, fmt);
+    const strconv::from_string_result res = strconv::from_string(input.data(), input.size(), out, fmt);
 
     VX_CHECK(res.count == correct_count);
     VX_CHECK(res.err == correct_err);
 
-    if (correct_err == fse_none || (std::is_floating_point<T>::value && correct_err == str::from_string_error::out_of_range))
+    if (correct_err == fse_none || (std::is_floating_point<T>::value && correct_err == strconv::from_string_error::out_of_range))
     {
         VX_IF_CONSTEXPR (std::is_floating_point<T>::value)
         {
@@ -464,7 +464,7 @@ template <typename I, typename C>
 void test_integer_format_options()
 {
     VX_SECTION("format options");
-    str::integer_to_string_format_options fmt;
+    strconv::integer_to_string_format_options fmt;
 
     // uppercase: letter digits (bases > 10) use A-Z instead of a-z
     {
@@ -550,7 +550,7 @@ void test_integer_format_options()
     // a default-constructed integer_to_string_format_options (base 10, no uppercase, no forced
     // sign) round-trips a plain value exactly as-is
     {
-        const str::integer_to_string_format_options default_fmt;
+        const strconv::integer_to_string_format_options default_fmt;
         test_integer_to_string<I, C>(static_cast<I>(123), default_fmt, LIT("123"));
     }
 }
@@ -637,13 +637,13 @@ void test_hex_encode_buffer_sizes(const uint8_t* data, size_t data_size, const s
         VX_CHECK(n <= static_cast<size_t>(buf_end - first));
         buf.fill(fill_char);
 
-        const str::to_string_result res = str::to_hex_string<C>(data, data_size, first, n, uppercase);
+        const strconv::to_string_result res = strconv::to_hex_string<C>(data, data_size, first, n, uppercase);
         C* const last = first + n;
 
         if (n < correct.size())
         {
             VX_CHECK(res.count == 0);
-            VX_CHECK(res.err == str::to_string_error::buffer_too_small);
+            VX_CHECK(res.err == strconv::to_string_error::buffer_too_small);
             VX_CHECK(all_of(buf_begin, buf_prefix, fill_char));
             // [first, last) is unspecified
             VX_CHECK(all_of(last, buf_suffix, fill_char));
@@ -651,7 +651,7 @@ void test_hex_encode_buffer_sizes(const uint8_t* data, size_t data_size, const s
         else
         {
             VX_CHECK(res.count == correct.size());
-            VX_CHECK(res.err == str::to_string_error::none);
+            VX_CHECK(res.err == strconv::to_string_error::none);
             VX_CHECK(all_of(buf_begin, buf_prefix, fill_char));
             VX_CHECK(str::compare(first, res.count, correct.data(), correct.size()) == 0);
             VX_CHECK(all_of(first + res.count, buf_suffix, fill_char));
@@ -682,13 +682,13 @@ void test_hex_decode_buffer_sizes(const str::basic_string_view<C> hex, const uin
         VX_CHECK(n <= static_cast<size_t>(buf_end - first));
         buf.fill(fill_byte);
 
-        const str::from_string_result res = str::from_hex_string(hex.data(), hex.size(), first, n);
+        const strconv::from_string_result res = strconv::from_hex_string(hex.data(), hex.size(), first, n);
         uint8_t* const last = first + n;
 
         if (n < correct_size)
         {
             VX_CHECK(res.count == 0);
-            VX_CHECK(res.err == str::from_string_error::buffer_too_small);
+            VX_CHECK(res.err == strconv::from_string_error::buffer_too_small);
             VX_CHECK(all_of(buf_begin, buf_prefix, fill_byte));
             // [first, last) is unspecified
             VX_CHECK(all_of(last, buf_suffix, fill_byte));
@@ -696,7 +696,7 @@ void test_hex_decode_buffer_sizes(const str::basic_string_view<C> hex, const uin
         else
         {
             VX_CHECK(res.count == correct_size);
-            VX_CHECK(res.err == str::from_string_error::none);
+            VX_CHECK(res.err == strconv::from_string_error::none);
             VX_CHECK(all_of(buf_begin, buf_prefix, fill_byte));
             VX_CHECK(correct_size == 0 || bytes_equal(first, correct, correct_size));
             VX_CHECK(all_of(first + res.count, buf_suffix, fill_byte));
@@ -718,10 +718,10 @@ void test_hex_case(const uint8_t* data, size_t data_size, const str::basic_strin
     // the string-returning overload always produces lowercase output
     {
         str::basic_string<C> out;
-        const str::to_string_result res = str::to_hex_string(data, data_size, out);
+        const strconv::to_string_result res = strconv::to_hex_string(data, data_size, out);
 
         VX_CHECK(res.count == lower.size());
-        VX_CHECK(res.err == str::to_string_error::none);
+        VX_CHECK(res.err == strconv::to_string_error::none);
         VX_CHECK(out.size() == lower.size());
         VX_CHECK(str::compare(out.data(), out.size(), lower.data(), lower.size()) == 0);
     }
@@ -733,31 +733,31 @@ void test_hex_decode_errors()
     // an invalid character anywhere in a pair is rejected
     {
         uint8_t out[4];
-        const str::from_string_result res = str::from_hex_string(LIT("zz"), str::length(LIT("zz")), out, sizeof(out));
+        const strconv::from_string_result res = strconv::from_hex_string(LIT("zz"), str::length(LIT("zz")), out, sizeof(out));
         VX_CHECK(res.count == 0);
-        VX_CHECK(res.err == str::from_string_error::invalid_argument);
+        VX_CHECK(res.err == strconv::from_string_error::invalid_argument);
     }
     {
         uint8_t out[4];
-        const str::from_string_result res = str::from_hex_string(LIT("1z"), str::length(LIT("1z")), out, sizeof(out));
+        const strconv::from_string_result res = strconv::from_hex_string(LIT("1z"), str::length(LIT("1z")), out, sizeof(out));
         VX_CHECK(res.count == 0);
-        VX_CHECK(res.err == str::from_string_error::invalid_argument);
+        VX_CHECK(res.err == strconv::from_string_error::invalid_argument);
     }
 
     // an invalid trailing half-byte is also rejected
     {
         uint8_t out[4];
-        const str::from_string_result res = str::from_hex_string(LIT("z"), str::length(LIT("z")), out, sizeof(out));
+        const strconv::from_string_result res = strconv::from_hex_string(LIT("z"), str::length(LIT("z")), out, sizeof(out));
         VX_CHECK(res.count == 0);
-        VX_CHECK(res.err == str::from_string_error::invalid_argument);
+        VX_CHECK(res.err == strconv::from_string_error::invalid_argument);
     }
 
     // odd-length input: the trailing nibble becomes its own byte, unshifted
     {
         uint8_t out[4] = {};
-        const str::from_string_result res = str::from_hex_string(LIT("123"), str::length(LIT("123")), out, sizeof(out));
+        const strconv::from_string_result res = strconv::from_hex_string(LIT("123"), str::length(LIT("123")), out, sizeof(out));
         VX_CHECK(res.count == 2);
-        VX_CHECK(res.err == str::from_string_error::none);
+        VX_CHECK(res.err == strconv::from_string_error::none);
         VX_CHECK(out[0] == 0x12);
         VX_CHECK(out[1] == 0x03);
     }
@@ -765,9 +765,9 @@ void test_hex_decode_errors()
     // mixed-case digits decode identically to same-case digits
     {
         uint8_t out[4] = {};
-        const str::from_string_result res = str::from_hex_string(LIT("AbCd"), str::length(LIT("AbCd")), out, sizeof(out));
+        const strconv::from_string_result res = strconv::from_hex_string(LIT("AbCd"), str::length(LIT("AbCd")), out, sizeof(out));
         VX_CHECK(res.count == 2);
-        VX_CHECK(res.err == str::from_string_error::none);
+        VX_CHECK(res.err == strconv::from_string_error::none);
         VX_CHECK(out[0] == 0xAB);
         VX_CHECK(out[1] == 0xCD);
     }
@@ -775,17 +775,17 @@ void test_hex_decode_errors()
     // empty input needs no buffer space and succeeds trivially
     {
         uint8_t out[4] = {};
-        const str::from_string_result res = str::from_hex_string(LIT(""), str::length(LIT("")), out, 0);
+        const strconv::from_string_result res = strconv::from_hex_string(LIT(""), str::length(LIT("")), out, 0);
         VX_CHECK(res.count == 0);
-        VX_CHECK(res.err == str::from_string_error::none);
+        VX_CHECK(res.err == strconv::from_string_error::none);
     }
 
     // buffer_too_small is reported even for otherwise well-formed input
     {
         uint8_t out[1];
-        const str::from_string_result res = str::from_hex_string(LIT("aabb"), str::length(LIT("aabb")), out, sizeof(out));
+        const strconv::from_string_result res = strconv::from_hex_string(LIT("aabb"), str::length(LIT("aabb")), out, sizeof(out));
         VX_CHECK(res.count == 0);
-        VX_CHECK(res.err == str::from_string_error::buffer_too_small);
+        VX_CHECK(res.err == strconv::from_string_error::buffer_too_small);
     }
 }
 
@@ -798,8 +798,8 @@ void test_hex_uppercase_option()
         C buf_default[6];
         C buf_explicit[6];
 
-        const str::to_string_result res_default = str::to_hex_string<C>(data, sizeof(data), buf_default, 6);
-        const str::to_string_result res_explicit = str::to_hex_string<C>(data, sizeof(data), buf_explicit, 6, false);
+        const strconv::to_string_result res_default = strconv::to_hex_string<C>(data, sizeof(data), buf_default, 6);
+        const strconv::to_string_result res_explicit = strconv::to_hex_string<C>(data, sizeof(data), buf_explicit, 6, false);
 
         VX_CHECK(res_default.count == res_explicit.count);
         VX_CHECK(res_default.err == res_explicit.err);
@@ -830,13 +830,13 @@ void test_hex_uppercase_option()
         static const uint8_t data[] = { 0xAB, 0xCD };
         C buf[3];
 
-        const str::to_string_result lo = str::to_hex_string<C>(data, sizeof(data), buf, 3, false);
-        const str::to_string_result hi = str::to_hex_string<C>(data, sizeof(data), buf, 3, true);
+        const strconv::to_string_result lo = strconv::to_hex_string<C>(data, sizeof(data), buf, 3, false);
+        const strconv::to_string_result hi = strconv::to_hex_string<C>(data, sizeof(data), buf, 3, true);
 
         VX_CHECK(lo.count == 0);
-        VX_CHECK(lo.err == str::to_string_error::buffer_too_small);
+        VX_CHECK(lo.err == strconv::to_string_error::buffer_too_small);
         VX_CHECK(hi.count == 0);
-        VX_CHECK(hi.err == str::to_string_error::buffer_too_small);
+        VX_CHECK(hi.err == strconv::to_string_error::buffer_too_small);
     }
 }
 
@@ -887,9 +887,9 @@ VX_TEST_CASE(test_all_hex)
 //==============================================================================
 
 template <typename F, typename C>
-void test_float_from_string(const str::float_format format)
+void test_float_from_string(const strconv::float_format format)
 {
-    str::float_from_string_format_options<C> fmt;
+    strconv::float_from_string_format_options<C> fmt;
     fmt.format = format;
 
     using string_t = str::basic_string<C>;
@@ -927,7 +927,7 @@ void test_float_from_string(const str::float_format format)
     test_from_string<F, C>(LIT("+na"), fmt, 0, fse_inv_arg); // '+' followed by bogus incomplete nan
     test_from_string<F, C>(LIT("++1"), fmt, 0, fse_inv_arg); // '+' can't be repeated
 
-    if (fmt.format != str::float_format::hex)
+    if (fmt.format != strconv::float_format::hex)
     {                                                            // "e5" are valid hexits
         test_from_string<F, C>(LIT("e5"), fmt, 0, fse_inv_arg);  // exponent-part without digits is bogus
         test_from_string<F, C>(LIT("-e5"), fmt, 0, fse_inv_arg); // '-' followed by bogus exponent-part
@@ -1000,7 +1000,7 @@ void test_float_from_string(const str::float_format format)
 
     switch (fmt.format)
     {
-        case str::float_format::general:
+        case strconv::float_format::general:
         {
             test_from_string<F, C>(LIT("1729"), fmt, 4, fse_none, F{ 1729 });
             test_from_string<F, C>(LIT("1729e3"), fmt, 6, fse_none, F{ 1729000 });
@@ -1051,19 +1051,19 @@ void test_float_from_string(const str::float_format format)
             test_from_string<F, C>(string_t(LIT("+.")) + string_t(500, '0') + LIT("1"), fmt, 503, fse_out_ran, F{ 0 });
             break;
         }
-        case str::float_format::scientific:
+        case strconv::float_format::scientific:
         {
             test_from_string<F, C>(LIT("1729"), fmt, 0, fse_inv_arg);
             test_from_string<F, C>(LIT("1729e3"), fmt, 6, fse_none, F{ 1729000 });
             break;
         }
-        case str::float_format::fixed:
+        case strconv::float_format::fixed:
         {
             test_from_string<F, C>(LIT("1729"), fmt, 4, fse_none, F{ 1729 });
             test_from_string<F, C>(LIT("1729e3"), fmt, 4, fse_none, F{ 1729 });
             break;
         }
-        case str::float_format::hex:
+        case strconv::float_format::hex:
         {
             test_from_string<F, C>(LIT("0x123"), fmt, 1, fse_none, F{ 0 });
             test_from_string<F, C>(LIT("a0"), fmt, 2, fse_none, F{ 160 });
@@ -1124,7 +1124,7 @@ void run_float_test_cases(const float_to_string_test_case<F, char> (&cases)[N])
     for (const auto& t : cases)
     {
         const auto tmp = str::string_cast<C>(t.correct);
-        const str::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
+        const strconv::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
         test_common_to_string<F, C>(t.value, fmt, tmp);
     }
 }
@@ -1327,7 +1327,7 @@ void run_float_test_cases_uppercase(const float_to_string_test_case<F, char> (&c
         auto expected = str::string_cast<C>(t.correct);
         apply_uppercase_transform<C>(expected);
 
-        str::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
+        strconv::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
         fmt.uppercase = true;
 
         test_common_to_string<F, C>(t.value, fmt, str::basic_string_view<C>(expected.data(), expected.size()));
@@ -1342,7 +1342,7 @@ void run_float_test_cases_force_sign(const float_to_string_test_case<F, char> (&
         const auto base = str::string_cast<C>(t.correct);
         const auto expected = apply_force_sign_transform<C>(base);
 
-        str::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
+        strconv::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
         fmt.force_sign = true;
 
         test_common_to_string<F, C>(t.value, fmt, str::basic_string_view<C>(expected.data(), expected.size()));
@@ -1357,7 +1357,7 @@ void run_float_test_cases_decimal_point(const float_to_string_test_case<F, char>
         const auto base = str::string_cast<C>(t.correct);
         const auto expected = apply_decimal_point_transform<C>(base, dp);
 
-        str::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
+        strconv::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
         fmt.decimal_point = dp;
 
         test_common_to_string<F, C>(t.value, fmt, str::basic_string_view<C>(expected.data(), expected.size()));
@@ -1372,7 +1372,7 @@ void run_float_test_cases_force_exp_sign(const float_to_string_test_case<F, char
         const auto base = str::string_cast<C>(t.correct);
         const auto expected = apply_force_exp_sign_transform<C>(base, marker_lower, marker_upper);
 
-        str::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
+        strconv::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
         fmt.force_exp_sign = true;
 
         test_common_to_string<F, C>(t.value, fmt, str::basic_string_view<C>(expected.data(), expected.size()));
@@ -1405,7 +1405,7 @@ void test_float_format_options()
     // worry about), so round=true must round up to "0.19" while round=false must
     // truncate to "0.18".
     {
-        str::float_to_string_format_options<C> fmt{ str::float_format::fixed, 2 };
+        strconv::float_to_string_format_options<C> fmt{ strconv::float_format::fixed, 2 };
 
         fmt.round = true;
         test_common_to_string<F, C>(static_cast<F>(0.1875), fmt, LIT("0.19"));
@@ -1420,11 +1420,11 @@ void test_float_type()
 {
     VX_SECTION("general")
     {
-        const str::float_format formats[] = {
-            str::float_format::general,
-            str::float_format::scientific,
-            str::float_format::fixed,
-            str::float_format::hex
+        const strconv::float_format formats[] = {
+            strconv::float_format::general,
+            strconv::float_format::scientific,
+            strconv::float_format::fixed,
+            strconv::float_format::hex
         };
 
         for (const auto& fmt : formats)
@@ -1434,7 +1434,7 @@ void test_float_type()
     }
 
     using tester_data = float_tester_data<F>;
-    const str::float_from_string_format_options<C> general_fmt{ str::float_format::general };
+    const strconv::float_from_string_format_options<C> general_fmt{ strconv::float_format::general };
 
     VX_SECTION("from string rounding")
     {
@@ -1442,7 +1442,7 @@ void test_float_type()
         for (const auto& t : tester_data::from_string_test_cases_1)
         {
             const auto tmp = str::string_cast<C>(t.input);
-            const str::float_from_string_format_options<C> fmt{ t.fmt.format, static_cast<C>(t.fmt.decimal_point) };
+            const strconv::float_from_string_format_options<C> fmt{ t.fmt.format, static_cast<C>(t.fmt.decimal_point) };
             test_from_string<F, C>(tmp, fmt, t.correct_count, t.correct_err, t.correct_value);
         }
 

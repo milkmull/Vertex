@@ -11,7 +11,7 @@
 #include "vertex/util/bit.hpp"
 
 namespace vx {
-namespace str {
+namespace strconv {
 
 //==============================================================================
 // result types
@@ -48,7 +48,7 @@ struct from_string_result
 
 //==============================================================================
 
-namespace _string_convert_priv {
+namespace _strconv_priv {
 
 template <typename C>
 constexpr C make_case_mask(bool uppercase) noexcept
@@ -67,7 +67,7 @@ constexpr C alnum_to_upper(C c) noexcept
     return str::to_upper_ascii_unchecked(c);
 }
 
-} // namespace _string_convert_priv
+} // namespace _strconv_priv
 
 //==============================================================================
 // hex
@@ -88,14 +88,14 @@ to_string_result to_hex_string(const void* data, const size_t size, C* buf, cons
         const C c1 = hex::digits[(bytes[i] >> 4) & 0xF]; // High nibble
         const C c2 = hex::digits[(bytes[i] >> 0) & 0xF]; // Low nibble
 
-        *buf++ = uppercase ? _string_convert_priv::alnum_to_upper(c1) : c1;
-        *buf++ = uppercase ? _string_convert_priv::alnum_to_upper(c2) : c2;
+        *buf++ = uppercase ? _strconv_priv::alnum_to_upper(c1) : c1;
+        *buf++ = uppercase ? _strconv_priv::alnum_to_upper(c2) : c2;
     }
 
     return { needed, to_string_error::none };
 }
 
-template <typename S, VX_REQUIRES(is_mutable_string_like<S>::value)>
+template <typename S, VX_REQUIRES(str::is_mutable_string_like<S>::value)>
 to_string_result to_hex_string(const void* data, const size_t size, S& out) noexcept
 {
     using C = typename S::value_type;
@@ -168,7 +168,7 @@ constexpr unsigned char char_to_digit(C c, int base = 10) noexcept
     }
     else
     {
-        c = to_lower_ascii_unchecked(c);
+        c = str::to_lower_ascii_unchecked(c);
         if (static_cast<C>('a') <= c && c <= static_cast<C>('z'))
         {
             digit = static_cast<unsigned char>(c - static_cast<C>('a')) + 10;
@@ -178,7 +178,7 @@ constexpr unsigned char char_to_digit(C c, int base = 10) noexcept
     return (digit < base) ? digit : invalid_digit;
 }
 
-namespace _string_convert_priv {
+namespace _strconv_priv {
 
 #if 0
 
@@ -295,7 +295,7 @@ inline constexpr char get_integer_digit(U x) noexcept
 #endif // VX_STRING_CONVERT_TO_STRING_BASE_36_SUPPORT
 }
 
-} // namespace _string_convert_priv
+} // namespace _strconv_priv
 
 //==============================================================================
 // integer
@@ -335,7 +335,7 @@ constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size,
         }
     }
 
-    const size_t n_digits = _string_convert_priv::digit_count(uvalue, ubase);
+    const size_t n_digits = _strconv_priv::digit_count(uvalue, ubase);
     const size_t needed = n_digits + static_cast<size_t>(sign != 0);
     if (buf_size < needed)
     {
@@ -346,8 +346,8 @@ constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size,
 
     do
     {
-        const char c = _string_convert_priv::get_integer_digit(uvalue % ubase);
-        buf[--i] = static_cast<C>(fmt.uppercase ? _string_convert_priv::alnum_to_upper(c) : c);
+        const char c = _strconv_priv::get_integer_digit(uvalue % ubase);
+        buf[--i] = static_cast<C>(fmt.uppercase ? _strconv_priv::alnum_to_upper(c) : c);
         uvalue /= ubase;
 
     } while (uvalue);
@@ -362,7 +362,7 @@ constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size,
 
 //==============================================================================
 
-namespace _string_convert_priv {
+namespace _strconv_priv {
 
 template <typename I, typename C, bool Sign = true>
 constexpr from_string_result parse_integer_impl(const C* s, size_t size, I& value, const int base) noexcept
@@ -466,12 +466,12 @@ constexpr from_string_result parse_integer_impl(const C* s, size_t size, I& valu
     return { i, from_string_error::none };
 }
 
-} // namespace _string_convert_priv
+} // namespace _strconv_priv
 
 template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
 constexpr from_string_result parse_integer(const C* s, size_t size, I& value, const int base = 10) noexcept
 {
-    return _string_convert_priv::parse_integer_impl<I, C>(s, size, value, base);
+    return _strconv_priv::parse_integer_impl<I, C>(s, size, value, base);
 }
 
 //==============================================================================
@@ -486,7 +486,7 @@ enum class float_format : char
     hex = 'a',
 };
 
-namespace _string_convert_priv {
+namespace _strconv_priv {
 
 enum : uint32_t
 {
@@ -501,13 +501,13 @@ enum : uint32_t
     max_float_precision = 1'000'000
 };
 
-} // namespace _string_convert_priv
+} // namespace _strconv_priv
 
 template <typename C = char>
 struct float_to_string_format_options
 {
     float_format format = float_format::general;
-    uint32_t precision = _string_convert_priv::precision_unspecified;
+    uint32_t precision = _strconv_priv::precision_unspecified;
 
     VX_STATIC_ASSERT_MSG(type_traits::is_char<C>::value, "C must be a character type");
     C decimal_point = static_cast<C>('.');
@@ -533,7 +533,7 @@ struct float_from_string_format_options
 
 // https://github.com/microsoft/STL/blob/f3ae96af460b8fcb7d77c46fc1ad7d312900d1e7/stl/inc/xcharconv_ryu.h#L2390
 
-namespace _string_convert_priv {
+namespace _strconv_priv {
 
 constexpr size_t digit_count_max3(const int value) noexcept
 {
@@ -2356,7 +2356,7 @@ constexpr size_t write_float_hex_impl(const float_bits<F>& fb, C* buf, const siz
         {
             last_digit = static_cast<uint32_t>((frac >> topshift) & 0xF);
             const char c = hex::digits[last_digit];
-            buf[2 + i] = static_cast<C>(fmt.uppercase ? _string_convert_priv::alnum_to_upper(c) : c);
+            buf[2 + i] = static_cast<C>(fmt.uppercase ? _strconv_priv::alnum_to_upper(c) : c);
             frac <<= 4;
         }
 
@@ -2432,7 +2432,7 @@ constexpr float_format resolve_general_format(const float_bits<F>& fb) noexcept
     return (e10 < -4 || e10 >= float_scientific_default_precision) ? float_format::scientific : float_format::fixed;
 }
 
-} // namespace _string_convert_priv
+} // namespace _strconv_priv
 
 //==============================================================================
 // general
@@ -2443,11 +2443,11 @@ constexpr to_string_result write_float_fixed(const F value, C* buf, size_t buf_s
 {
     VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
 
-    const _string_convert_priv::float_bits<F> bits{ value };
+    const _strconv_priv::float_bits<F> bits{ value };
     size_t n = 0;
 
-    using float_write_status = _string_convert_priv::float_write_status;
-    const float_write_status status = _string_convert_priv::write_float_start<F, C>(bits, buf, buf_size, fmt.force_sign, fmt.uppercase, n);
+    using float_write_status = _strconv_priv::float_write_status;
+    const float_write_status status = _strconv_priv::write_float_start<F, C>(bits, buf, buf_size, fmt.force_sign, fmt.uppercase, n);
     if (status == float_write_status::failed)
     {
         return { 0, to_string_error::buffer_too_small };
@@ -2460,7 +2460,7 @@ constexpr to_string_result write_float_fixed(const F value, C* buf, size_t buf_s
     buf += n;
     buf_size -= n;
 
-    const size_t written = _string_convert_priv::write_float_fixed_impl<F, C>(bits, buf, buf_size, fmt);
+    const size_t written = _strconv_priv::write_float_fixed_impl<F, C>(bits, buf, buf_size, fmt);
     if (written == 0)
     {
         return { 0, to_string_error::buffer_too_small };
@@ -2474,11 +2474,11 @@ constexpr to_string_result write_float_scientific(const F value, C* buf, size_t 
 {
     VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
 
-    const _string_convert_priv::float_bits<F> bits{ value };
+    const _strconv_priv::float_bits<F> bits{ value };
     size_t n = 0;
 
-    using float_write_status = _string_convert_priv::float_write_status;
-    const float_write_status status = _string_convert_priv::write_float_start<F, C>(bits, buf, buf_size, fmt.force_sign, fmt.uppercase, n);
+    using float_write_status = _strconv_priv::float_write_status;
+    const float_write_status status = _strconv_priv::write_float_start<F, C>(bits, buf, buf_size, fmt.force_sign, fmt.uppercase, n);
     if (status == float_write_status::failed)
     {
         return { 0, to_string_error::buffer_too_small };
@@ -2491,7 +2491,7 @@ constexpr to_string_result write_float_scientific(const F value, C* buf, size_t 
     buf += n;
     buf_size -= n;
 
-    const size_t written = _string_convert_priv::write_float_scientific_impl<F, C>(bits, buf, buf_size, fmt);
+    const size_t written = _strconv_priv::write_float_scientific_impl<F, C>(bits, buf, buf_size, fmt);
     if (written == 0)
     {
         return { 0, to_string_error::buffer_too_small };
@@ -2505,11 +2505,11 @@ constexpr to_string_result write_float_hex(const F value, C* buf, size_t buf_siz
 {
     VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
 
-    const _string_convert_priv::float_bits<F> bits{ value };
+    const _strconv_priv::float_bits<F> bits{ value };
     size_t n = 0;
 
-    using float_write_status = _string_convert_priv::float_write_status;
-    const float_write_status status = _string_convert_priv::write_float_start<F, C>(bits, buf, buf_size, fmt.force_sign, fmt.uppercase, n);
+    using float_write_status = _strconv_priv::float_write_status;
+    const float_write_status status = _strconv_priv::write_float_start<F, C>(bits, buf, buf_size, fmt.force_sign, fmt.uppercase, n);
     if (status == float_write_status::failed)
     {
         return { 0, to_string_error::buffer_too_small };
@@ -2522,7 +2522,7 @@ constexpr to_string_result write_float_hex(const F value, C* buf, size_t buf_siz
     buf += n;
     buf_size -= n;
 
-    const size_t written = _string_convert_priv::write_float_hex_impl<F, C>(bits, buf, buf_size, fmt);
+    const size_t written = _strconv_priv::write_float_hex_impl<F, C>(bits, buf, buf_size, fmt);
     if (written == 0)
     {
         return { 0, to_string_error::buffer_too_small };
@@ -2536,17 +2536,17 @@ constexpr to_string_result write_float(const F value, C* buf, size_t buf_size, c
 {
     VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
 
-    if (fmt.precision != _string_convert_priv::precision_unspecified && fmt.precision > _string_convert_priv::max_float_precision)
+    if (fmt.precision != _strconv_priv::precision_unspecified && fmt.precision > _strconv_priv::max_float_precision)
     {
         return { 0, to_string_error::precision_too_large };
     }
 
-    const _string_convert_priv::float_bits<F> bits{ value };
+    const _strconv_priv::float_bits<F> bits{ value };
     size_t header = 0;
     size_t body = 0;
 
-    using float_write_status = _string_convert_priv::float_write_status;
-    const float_write_status status = _string_convert_priv::write_float_start<F, C>(bits, buf, buf_size, fmt.force_sign, fmt.uppercase, header);
+    using float_write_status = _strconv_priv::float_write_status;
+    const float_write_status status = _strconv_priv::write_float_start<F, C>(bits, buf, buf_size, fmt.force_sign, fmt.uppercase, header);
     if (status == float_write_status::failed)
     {
         return { 0, to_string_error::buffer_too_small };
@@ -2559,7 +2559,7 @@ constexpr to_string_result write_float(const F value, C* buf, size_t buf_size, c
     float_format format = fmt.format;
     if (format == float_format::general)
     {
-        format = _string_convert_priv::resolve_general_format(bits);
+        format = _strconv_priv::resolve_general_format(bits);
     }
 
     buf += header;
@@ -2570,17 +2570,17 @@ constexpr to_string_result write_float(const F value, C* buf, size_t buf_size, c
         default:
         case float_format::fixed:
         {
-            body = _string_convert_priv::write_float_fixed_impl(bits, buf, buf_size, fmt);
+            body = _strconv_priv::write_float_fixed_impl(bits, buf, buf_size, fmt);
             break;
         }
         case float_format::scientific:
         {
-            body = _string_convert_priv::write_float_scientific_impl(bits, buf, buf_size, fmt);
+            body = _strconv_priv::write_float_scientific_impl(bits, buf, buf_size, fmt);
             break;
         }
         case float_format::hex:
         {
-            body = _string_convert_priv::write_float_hex_impl(bits, buf, buf_size, fmt);
+            body = _strconv_priv::write_float_hex_impl(bits, buf, buf_size, fmt);
             break;
         }
     }
@@ -2597,7 +2597,7 @@ constexpr to_string_result write_float(const F value, C* buf, size_t buf_size, c
 // fixed float parsing
 //==============================================================================
 
-namespace _string_convert_priv {
+namespace _strconv_priv {
 
 struct float_reading_traits_base
 {
@@ -3694,7 +3694,7 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
     return { i, err };
 }
 
-} // namespace _string_convert_priv
+} // namespace _strconv_priv
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
 constexpr from_string_result parse_float(const C* str, size_t str_size, F& value, const float_from_string_format_options<C>& fmt = {}) noexcept
@@ -3732,17 +3732,17 @@ constexpr from_string_result parse_float(const C* str, size_t str_size, F& value
     if (folded_start <= 'f')
     {
         // possibly an ordinary number
-        return _string_convert_priv::parse_float_impl(str, str_size, value, fmt, is_negative, i);
+        return _strconv_priv::parse_float_impl(str, str_size, value, fmt, is_negative, i);
     }
     if (folded_start == 'i')
     {
         // possibly inf
-        return _string_convert_priv::parse_infinity(str, str_size, value, is_negative, i);
+        return _strconv_priv::parse_infinity(str, str_size, value, is_negative, i);
     }
     if (folded_start == 'n')
     {
         // possibly nan
-        return _string_convert_priv::parse_nan(str, str_size, value, is_negative, i);
+        return _strconv_priv::parse_nan(str, str_size, value, is_negative, i);
     }
 
     // definitely invalid
@@ -3759,7 +3759,7 @@ constexpr to_string_result to_string(I value, C* buf, size_t buf_size, const int
     return write_integer(value, buf, buf_size, fmt);
 }
 
-template <typename I, typename S, VX_REQUIRES(std::is_integral<I>::value&& is_mutable_string_like<S>::value)>
+template <typename I, typename S, VX_REQUIRES(std::is_integral<I>::value&& str::is_mutable_string_like<S>::value)>
 to_string_result to_string(I value, S& out, const integer_to_string_format_options& fmt = {}) noexcept
 {
     using C = typename S::value_type;
@@ -3778,13 +3778,13 @@ to_string_result to_string(I value, S& out, const integer_to_string_format_optio
         }
     }
 
-    size_t count = _string_convert_priv::digit_count(uvalue, ubase) + static_cast<size_t>(sign);
+    size_t count = _strconv_priv::digit_count(uvalue, ubase) + static_cast<size_t>(sign);
     out.resize(count, 0);
 
     do
     {
-        const char c = _string_convert_priv::get_integer_digit(uvalue % ubase);
-        out[--count] = static_cast<C>(fmt.uppercase ? _string_convert_priv::alnum_to_upper(c) : c);
+        const char c = _strconv_priv::get_integer_digit(uvalue % ubase);
+        out[--count] = static_cast<C>(fmt.uppercase ? _strconv_priv::alnum_to_upper(c) : c);
         uvalue /= ubase;
 
     } while (uvalue);
@@ -3805,7 +3805,7 @@ constexpr to_string_result to_string(F value, C* buf, size_t buf_size, const flo
     return write_float(value, buf, buf_size, fmt);
 }
 
-template <typename F, typename S, VX_REQUIRES(std::is_floating_point<F>::value&& is_mutable_string_like<S>::value)>
+template <typename F, typename S, VX_REQUIRES(std::is_floating_point<F>::value&& str::is_mutable_string_like<S>::value)>
 to_string_result to_string(F value, S& out, const float_to_string_format_options<typename S::value_type>& fmt = {}) noexcept
 {
     using C = typename S::value_type;
@@ -3847,7 +3847,7 @@ from_string_result from_string(const C* s, I& out, const int base = 10) noexcept
     return parse_integer(s, size, out, base);
 }
 
-template <typename I, typename S, VX_REQUIRES(std::is_integral<I>::value&& is_string_like<S>::value)>
+template <typename I, typename S, VX_REQUIRES(std::is_integral<I>::value&& str::is_string_like<S>::value)>
 from_string_result from_string(const S& s, I& out, const int base = 10) noexcept
 {
     return parse_integer(s.data(), s.size(), out, base);
@@ -3868,11 +3868,11 @@ from_string_result from_string(const C* s, F& out, const float_from_string_forma
     return parse_float(s, size, out, fmt);
 }
 
-template <typename F, typename S, VX_REQUIRES(std::is_floating_point<F>::value&& is_string_like<S>::value)>
+template <typename F, typename S, VX_REQUIRES(std::is_floating_point<F>::value&& str::is_string_like<S>::value)>
 from_string_result from_string(const S& s, F& out, const float_from_string_format_options<typename S::value_type>& fmt = {}) noexcept
 {
     return parse_float(s.data(), s.size(), out, fmt);
 }
 
-} // namespace str
+} // namespace strconv
 } // namespace vx

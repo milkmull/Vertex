@@ -155,67 +155,67 @@ void test_common_cases()
         constexpr format_test_case<C> empty_cases1[] = {
             { LIT(""), LIT(""), fmt::format_error::none, {} },
         };
-
+    
         run_test_batch(empty_cases1);
-
+    
         constexpr format_test_case<C, int> empty_cases2[] = {
             { LIT(""), LIT(""), fmt::format_error::none, { 42 } },
         };
-
+    
         run_test_batch(empty_cases2);
     }
-
+    
     VX_SECTION("escaped braces")
     {
         constexpr format_test_case<C, int> escape_cases[] = {
             { LIT("{{"),        LIT("{"),       fmt::format_error::none,           { 42 } }, // -> "{"
             { LIT("}}"),        LIT("}"),       fmt::format_error::none,           { 42 } }, // -> "}"
             { LIT("{{}}"),      LIT("{}"),      fmt::format_error::none,           { 42 } }, // -> "{}"
-
+    
             { LIT("{{{"),       LIT(""),        fmt::format_error::invalid_format, { 42 } },
             { LIT("}}}"),       LIT(""),        fmt::format_error::invalid_format, { 42 } },
-
+    
             { LIT("{{{0}}}"),   LIT("{42}"),    fmt::format_error::none,           { 42 } },
             { LIT("{{{0}"),     LIT("{42"),     fmt::format_error::none,           { 42 } },
             { LIT("{0}}}"),     LIT("42}"),     fmt::format_error::none,           { 42 } },
-
+    
             { LIT("{{0}}"),     LIT("{0}"),     fmt::format_error::none,           {}     },
             { LIT("{{:}}"),     LIT("{:}"),     fmt::format_error::none,           {}     },
             { LIT("{{:+f.5}}"), LIT("{:+f.5}"), fmt::format_error::none,           {}     },
         };
-
+    
         run_test_batch(escape_cases);
     }
-
+    
     VX_SECTION("bad format")
     {
         constexpr format_test_case<C, int> bad_format_cases[] = {
             { LIT("{"),                                LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("}"),                                LIT(""), fmt::format_error::invalid_format, { 42 } },
-
+    
             { LIT("{0"),                               LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{0:"),                              LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{:"),                               LIT(""), fmt::format_error::invalid_format, { 42 } },
-
+    
             { LIT("{0}}"),                             LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{}}"),                              LIT(""), fmt::format_error::invalid_format, { 42 } },
-
+    
             { LIT("{-1}"),                             LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{+1}"),                             LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{a}"),                              LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{1a}"),                             LIT(""), fmt::format_error::invalid_format, { 42 } },
-
+    
             { LIT("{::}"),                             LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{0::}"),                            LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{0:x:}"),                           LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{0:x}}"),                           LIT(""), fmt::format_error::invalid_format, { 42 } },
-
+    
             { LIT("{999999999999999999999999999999}"), LIT(""), fmt::format_error::invalid_format, { 42 } },
         };
-
+    
         run_test_batch(bad_format_cases);
     }
-
+    
     VX_SECTION("argument index errors")
     {
         constexpr format_test_case<C, int> arg_index_cases[] = {
@@ -223,20 +223,20 @@ void test_common_cases()
             { LIT("{1}"),   LIT(""), fmt::format_error::invalid_argument, { 42 } },
             { LIT("{42}"),  LIT(""), fmt::format_error::invalid_argument, { 42 } },
         };
-
+    
         run_test_batch(arg_index_cases);
     }
-
+    
     VX_SECTION("mismatched auto/manual indexing")
     {
         constexpr format_test_case<C, int> mixed_indexing_cases[] = {
             { LIT("{} {0}"), LIT(""), fmt::format_error::mode_mismatch, { 42 } },
             { LIT("{0} {}"), LIT(""), fmt::format_error::mode_mismatch, { 42 } },
         };
-
+    
         run_test_batch(mixed_indexing_cases);
     }
-
+    
     VX_SECTION("valid cases")
     {
         constexpr format_test_case<C, int> valid_indexing_cases[] = {
@@ -245,10 +245,10 @@ void test_common_cases()
             { LIT("{} world"),       LIT("42 world"),       fmt::format_error::none, { 42 } },
             { LIT("hello {} world"), LIT("hello 42 world"), fmt::format_error::none, { 42 } }
         };
-
+    
         run_test_batch(valid_indexing_cases);
     }
-
+    
     VX_SECTION("valid manual indexing")
     {
         constexpr format_test_case<C, int> valid_indexing_cases[] = {
@@ -259,23 +259,23 @@ void test_common_cases()
             { LIT("hello {0} world"), LIT("hello 42 world"), fmt::format_error::none, { 42 } },
             { LIT("a{0}b{0}c"),       LIT("a42b42c"),        fmt::format_error::none, { 42 } },
         };
-
+    
         run_test_batch(valid_indexing_cases);
     }
-
+    
     VX_SECTION("whitespace")
     {
         constexpr format_test_case<C, int> whitespace_cases[] = {
             { LIT(" {0} "),   LIT(" 42 "),   fmt::format_error::none,           { 42 } },
             { LIT("\t{0}\n"), LIT("\t42\n"), fmt::format_error::none,           { 42 } },
-
+    
             { LIT("{ 0}"),    LIT(""),       fmt::format_error::invalid_format, { 42 } },
             { LIT("{0 }"),    LIT(""),       fmt::format_error::invalid_format, { 42 } },
         };
-
+    
         run_test_batch(whitespace_cases);
     }
-
+    
     VX_SECTION("multiple arguments")
     {
         constexpr format_test_case<C, int, const C*> multiple_arg_cases1[] = {
@@ -284,10 +284,10 @@ void test_common_cases()
             { LIT("{1} {0}"),   LIT("2 1"), fmt::format_error::none, { 1, LIT("2") } },
             { LIT("{1}{1}{0}"), LIT("221"), fmt::format_error::none, { 1, LIT("2") } },
         };
-
+    
         run_test_batch(multiple_arg_cases1);
     }
-
+    
     VX_SECTION("argument index boundaries")
     {
         constexpr format_test_case<C, int, int, int> index_boundary_cases[] = {
@@ -295,17 +295,17 @@ void test_common_cases()
             { LIT("{1}"), LIT("2"), fmt::format_error::none, { 1, 2, 3 } },
             { LIT("{2}"), LIT("3"), fmt::format_error::none, { 1, 2, 3 } },
         };
-
+    
         run_test_batch(index_boundary_cases);
     }
-
+    
     VX_SECTION("repeated automatic indexing")
     {
         constexpr format_test_case<C, int, const C*> auto_index_cases[] = {
             { LIT("{} {}"),    LIT("1 2"), fmt::format_error::none,             { 1, LIT("2") } },
             { LIT("{} {} {}"), LIT(""),    fmt::format_error::invalid_argument, { 1, LIT("2") } },
         };
-
+    
         run_test_batch(auto_index_cases);
     }
 
@@ -315,43 +315,43 @@ void test_common_cases()
             // Basic decimal formatting
             { LIT("{}"),         LIT("42"),           fmt::format_error::none,           { 42 }  },
             { LIT("{:d}"),       LIT("42"),           fmt::format_error::none,           { 42 }  },
-
+            
             // Base conversions
             { LIT("{:x}"),       LIT("2a"),           fmt::format_error::none,           { 42 }  },
             { LIT("{:X}"),       LIT("2A"),           fmt::format_error::none,           { 42 }  },
             { LIT("{:o}"),       LIT("52"),           fmt::format_error::none,           { 42 }  },
             { LIT("{:b}"),       LIT("101010"),       fmt::format_error::none,           { 42 }  },
             { LIT("{:B}"),       LIT("101010"),       fmt::format_error::none,           { 42 }  },
-
+            
             // Signs
             { LIT("{:+d}"),      LIT("+42"),          fmt::format_error::none,           { 42 }  },
             { LIT("{:+d}"),      LIT("-42"),          fmt::format_error::none,           { -42 } },
             { LIT("{: d}"),      LIT(" 42"),          fmt::format_error::none,           { 42 }  },
             { LIT("{: d}"),      LIT("-42"),          fmt::format_error::none,           { -42 } },
-
+            
             // Sign handling for non-decimal
             { LIT("{:+x}"),      LIT("+2a"),          fmt::format_error::none,           { 42 }  },
             { LIT("{:+x}"),      LIT("-2a"),          fmt::format_error::none,           { -42 } },
             { LIT("{: x}"),      LIT(" 2a"),          fmt::format_error::none,           { 42 }  },
             { LIT("{: x}"),      LIT("-2a"),          fmt::format_error::none,           { -42 } },
-
+            
             // Negative base conversions
             { LIT("{:x}"),       LIT("-2a"),          fmt::format_error::none,           { -42 } },
             { LIT("{:X}"),       LIT("-2A"),          fmt::format_error::none,           { -42 } },
             { LIT("{:o}"),       LIT("-52"),          fmt::format_error::none,           { -42 } },
             { LIT("{:b}"),       LIT("-101010"),      fmt::format_error::none,           { -42 } },
             { LIT("{:B}"),       LIT("-101010"),      fmt::format_error::none,           { -42 } },
-
+            
             // Width and padding
             { LIT("{:8d}"),      LIT("      42"),     fmt::format_error::none,           { 42 }  },
             { LIT("{:08d}"),     LIT("00000042"),     fmt::format_error::none,           { 42 }  },
             { LIT("{:+08d}"),    LIT("+0000042"),     fmt::format_error::none,           { 42 }  },
             { LIT("{: 08d}"),    LIT(" 0000042"),     fmt::format_error::none,           { 42 }  },
-
+            
             { LIT("{:8d}"),      LIT("     -42"),     fmt::format_error::none,           { -42 } },
             { LIT("{:08d}"),     LIT("-0000042"),     fmt::format_error::none,           { -42 } },
             { LIT("{:+08d}"),    LIT("-0000042"),     fmt::format_error::none,           { -42 } },
-
+            
             // Width and padding (non-decimal)
             { LIT("{:8x}"),      LIT("      2a"),     fmt::format_error::none,           { 42 }  },
             { LIT("{:08x}"),     LIT("0000002a"),     fmt::format_error::none,           { 42 }  },
@@ -736,10 +736,6 @@ void test_common_cases()
             // Larger address
             { LIT("{}"),       LIT("0xdeadbeef"),   fmt::format_error::none,           { p_dead }   },
 
-            // Width and padding
-            { LIT("{:12p}"),   LIT("        0x2a"), fmt::format_error::none,           { p_2a }     },
-            { LIT("{:012p}"),  LIT("0x000000002a"), fmt::format_error::none,           { p_2a }     },
-
             // Alignment
             { LIT("{:<12p}"),  LIT("0x2a        "), fmt::format_error::none,           { p_2a }     },
             { LIT("{:^12p}"),  LIT("    0x2a    "), fmt::format_error::none,           { p_2a }     },
@@ -754,6 +750,7 @@ void test_common_cases()
             { LIT("{:+p}"),    LIT(""),             fmt::format_error::invalid_format, { p_2a }     },
             { LIT("{:#p}"),    LIT(""),             fmt::format_error::invalid_format, { p_2a }     },
             { LIT("{:.2p}"),   LIT(""),             fmt::format_error::invalid_format, { p_2a }     },
+            { LIT("{:012p}"),  LIT("0x000000002a"), fmt::format_error::invalid_format, { p_2a }     },
         };
 
         run_test_batch(pointer_cases);
