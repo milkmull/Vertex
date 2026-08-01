@@ -5,20 +5,12 @@
 
 using namespace vx;
 
-auto test_string_format()
+int main()
 {
-    auto result = fmt::format(
+    fmt::printf(
         "precision: {1} {0:10}",
         true,
         42);
-
-    return result;
-}
-
-int main()
-{
-    auto out1 = test_string_format();
-    print(out1);
 
     return 0;
 }

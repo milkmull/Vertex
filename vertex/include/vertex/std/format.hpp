@@ -2,6 +2,7 @@
 
 #include "vertex/std/array.hpp"
 #include "vertex/std/float_bits.hpp"
+#include "vertex/std/io.hpp"
 #include "vertex/std/string.hpp"
 #include "vertex/std/string_convert.hpp"
 
@@ -1747,10 +1748,7 @@ constexpr format_result format(
     }
 }
 
-template <typename FMT, typename S, typename... Args, VX_REQUIRES(
-    str::is_string_like<FMT>::value &&
-    str::is_mutable_string_like<S>::value &&
-    str::is_string_compatible<FMT, S>::value)>
+template <typename FMT, typename S, typename... Args, VX_REQUIRES(str::is_string_like<FMT>::value&& str::is_mutable_string_like<S>::value&& str::is_string_compatible<FMT, S>::value)>
 format_result format_string(
     const FMT& fmt,
     S& out,
@@ -1787,11 +1785,7 @@ format_result format_string(
     }
 }
 
-template <typename C, typename FMT, typename S, typename... Args, VX_REQUIRES(
-    type_traits::is_char<C>::value &&
-    str::is_string_of<FMT, C>::value &&
-    str::is_mutable_string_like<S>::value &&
-    str::is_string_compatible<FMT, S>::value)>
+template <typename C, typename FMT, typename S, typename... Args, VX_REQUIRES(type_traits::is_char<C>::value&& str::is_string_of<FMT, C>::value&& str::is_mutable_string_like<S>::value&& str::is_string_compatible<FMT, S>::value)>
 format_result format_string(
     const C* fmt,
     S& out,
@@ -1832,6 +1826,45 @@ str::basic_string<C> format(
         std::forward<Args>(args)...);
 
     return out;
+}
+
+//==============================================================================
+// printf
+//==============================================================================
+
+template <typename FMT, typename... Args, VX_REQUIRES(str::is_string_like<FMT>::value)>
+format_result printf(
+    const FMT& fmt,
+    Args&&... args)
+{
+    using C = typename FMT::value_type;
+
+    str::basic_string<C> out;
+
+    const auto res = format_string(
+        fmt,
+        out,
+        std::forward<Args>(args)...);
+
+    if (res.err == format_error::none)
+    {
+        io::print_raw(
+            out.data(),
+            out.size());
+    }
+
+    return res;
+}
+
+
+template <typename C, typename... Args, VX_REQUIRES(type_traits::is_char<C>::value)>
+format_result printf(
+    const C* fmt,
+    Args&&... args)
+{
+    return printf(
+        str::basic_string_view<C>(fmt),
+        std::forward<Args>(args)...);
 }
 
 //==============================================================================

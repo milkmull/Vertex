@@ -13,7 +13,11 @@ x string
 
 x numeric printing
 x io
-- string format
+x string format
+
+- to_string/from_string
+- test 0 size array
+
 - packed string array
 - single link list
 - double link list

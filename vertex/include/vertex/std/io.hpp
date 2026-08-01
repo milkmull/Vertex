@@ -7,6 +7,7 @@
 #include "vertex/std/utf.hpp"
 
 namespace vx {
+namespace io {
 
 // ============================================================
 // Print
@@ -172,6 +173,20 @@ template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && (sizeof(C) =
 void println_raw_err(const C* data, size_t size)
 {
     println_raw(os::stream::err, data, size);
+}
+
+} // namespace io
+
+template <typename... Args>
+void print(const Args&... args)
+{
+    io::print(os::stream::out, args...);
+}
+
+template <typename... Args>
+void println(const Args&... args)
+{
+    io::println(os::stream::out, args...);
 }
 
 } // namespace vx
