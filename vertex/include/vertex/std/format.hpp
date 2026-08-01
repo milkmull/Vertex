@@ -664,6 +664,11 @@ public:
         return m_in.consume(n);
     }
 
+    constexpr size_t consume_next(const C c) noexcept
+    {
+        return m_in.consume_next(c);
+    }
+
 private:
 
     using scan_callback_t = format_error (*)(void*, basic_scan_context<C>&);
@@ -674,86 +679,113 @@ private:
         void* user_data,
         alignment default_align) noexcept
     {
-        const size_t max_width = spec.width > remaining() ? spec.width : remaining();
+        // If width is specified, but no alignment, default alignment and fill are used
+        // If align is specified, but no width, width is unbounded and default fill is greedy
+        // If both width and align are specified, width is bounded and fill consumption is also bounded
+        const size_t max_width = spec.width == 0 ? remaining() : spec.width < remaining() ? spec.width : remaining();
         const alignment align = (spec.align == alignment::none) ? default_align : spec.align;
 
-        _fmt_priv::input_buffer<C> in{ ptr(), max_width };
-        basic_scan_context<C> ctx{ in };
+        _fmt_priv::input_buffer<C> field_in{ ptr(), max_width };
+        basic_scan_context<C> field_ctx{ field_in };
         format_error err = format_error::none;
 
         if (align == alignment::left)
         {
-            // consume the value
-            err = callback(user_data, ctx);
+            err = callback(user_data, field_ctx);
 
-            const size_t remaining = ctx.remaining();
-            const size_t consumed = max_width - remaining;
-            consume(consumed);
+            size_t leftover = field_ctx.remaining();
+            size_t value_len = max_width - leftover;
+            consume(value_len);
 
             if (err != format_error::none)
             {
                 return err;
             }
 
-            if (!m_in.consume(remaining, spec.fill))
+            if (spec.width != 0)
             {
-                return format_error::invalid_format;
+                // bounded: trailing fill must exactly fill the remainder
+                if (!field_in.consume(leftover, spec.fill))
+                {
+                    return format_error::invalid_argument;
+                }
+                consume(leftover);
+                return format_error::none;
             }
 
+            // unbounded: consume whatever trailing fill is present, no count required
+            consume(field_ctx.consume_next(spec.fill));
             return format_error::none;
         }
 
         if (align == alignment::right)
         {
-            in.consume_next(spec.fill);
-            err = callback(user_data, ctx);
+            // greedy discovery — exact requirement (if any) checked after value parses
+            size_t pre = field_ctx.consume_next(spec.fill);
+            consume(pre);
 
-            const size_t remaining = ctx.remaining();
-            const size_t consumed = max_width - remaining;
+            err = callback(user_data, field_ctx);
 
-            consume(consumed);
-            return err;
-        }
-
-        if (align == alignment::center)
-        {
-            // Greedily consume leading fill characters, one at a time,
-            // since we don't yet know len(value) to compute floor(n/2) up front.
-            size_t pre = 0;
-            while (pre < max_width && in.consume(1, spec.fill))
-            {
-                ++pre;
-            }
-
-            const size_t remaining_before = ctx.remaining();
-
-            err = callback(user_data, ctx);
-
-            const size_t remaining_after = ctx.remaining();
-            const size_t value_len = remaining_before - remaining_after;
-            const size_t consumed = pre + value_len;
-            consume(consumed);
+            size_t leftover = field_ctx.remaining();
+            size_t value_len = (max_width - pre) - leftover;
+            consume(value_len);
 
             if (err != format_error::none)
             {
                 return err;
             }
 
-            // n = total fill chars required by the field width.
-            // floor(n/2) before the value, ceil(n/2) after (extra char goes right).
-            const size_t n = max_width - value_len;
-            const size_t pre_expected = n / 2;
-            const size_t post_expected = n - pre_expected;
-
-            if (pre != pre_expected)
+            if (leftover > 0 && spec.width != 0)
             {
-                return format_error::invalid_format;
+                // bounded: unexplained leftover after value+leading fill
+                return format_error::invalid_argument;
             }
 
-            if (!m_in.consume(post_expected, spec.fill))
+            return format_error::none;
+        }
+
+        if (align == alignment::center)
+        {
+            size_t pre = field_ctx.consume_next(spec.fill);
+            consume(pre);
+
+            err = callback(user_data, field_ctx);
+
+            size_t leftover = field_ctx.remaining();
+            size_t value_len = (max_width - pre) - leftover;
+            consume(value_len);
+
+            if (err != format_error::none)
             {
-                return format_error::invalid_format;
+                return err;
             }
+
+            size_t post_expected;
+
+            if (spec.width != 0)
+            {
+                // bounded: exact floor(n/2) / ceil(n/2) split
+                const size_t n = max_width - value_len;
+                const size_t pre_expected = n / 2;
+
+                if (pre != pre_expected)
+                {
+                    return format_error::invalid_argument;
+                }
+
+                post_expected = n - pre_expected;
+            }
+            else
+            {
+                // unbounded: trailing count must exactly equal leading count
+                post_expected = pre;
+            }
+
+            if (!field_in.consume(post_expected, spec.fill))
+            {
+                return format_error::invalid_argument;
+            }
+            consume(post_expected);
 
             return format_error::none;
         }
@@ -1646,7 +1678,8 @@ constexpr format_result scan_impl(
     {
         if (!parser.next(tok))
         {
-            return { format_error::invalid_format, 0 };
+            const size_t count = in_size - buffer.remaining;
+            return { format_error::invalid_format, count };
         }
 
         switch (tok.type)
@@ -1655,7 +1688,8 @@ constexpr format_result scan_impl(
             {
                 if (!buffer.consume(tok.first, tok.calculate_size()))
                 {
-                    return { format_error::invalid_format, 0 };
+                    const size_t count = in_size - buffer.remaining;
+                    return { format_error::invalid_format, count };
                 }
                 break;
             }
@@ -1663,15 +1697,18 @@ constexpr format_result scan_impl(
             {
                 if (!buffer.consume(2, *tok.first))
                 {
-                    return { format_error::invalid_format, 0 };
+                    const size_t count = in_size - buffer.remaining;
+                    return { format_error::invalid_format, count };
                 }
                 break;
             }
             case token_type::replacement:
             {
+                const size_t count = in_size - buffer.remaining;
+
                 _FORMAT_RET_IF(
                     (!parser.update_mode(tok.has_index ? format_mode::manual : format_mode::auto_)),
-                    (format_result{ format_error::mode_mismatch, 0 }));
+                    (format_result{ format_error::mode_mismatch, count }));
 
                 const size_t index = (tok.has_index)
                     ? tok.index
