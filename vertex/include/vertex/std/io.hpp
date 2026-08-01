@@ -2,8 +2,9 @@
 
 #include "vertex/config/type_traits.hpp"
 #include "vertex/os/io.hpp"
+#include "vertex/std/format.hpp"
+#include "vertex/std/string.hpp"
 #include "vertex/std/string_cast.hpp"
-#include "vertex/std/string_convert.hpp"
 #include "vertex/std/utf.hpp"
 
 namespace vx {
@@ -66,23 +67,17 @@ void print_one(os::stream s, const S& v)
     print_one_base(s, v.data(), v.size());
 }
 
-template <typename T, typename = void>
-struct has_to_string : std::false_type
-{};
-
 template <typename T>
-struct has_to_string<
-    T,
-    typename std::enable_if<
-        str::is_string_like<
-            decltype(to_string(std::declval<const T&>()))>::value>::type> : std::true_type
-{};
-
-template <typename T, VX_REQUIRES(has_to_string<T>::value)>
 void print_one(os::stream s, const T& v)
 {
-    const auto str = to_string(v);
-    print_one_base(s, str.data(), str.size());
+    const char fmt[] = { '{', '}' };
+    string out;
+
+    const auto res = fmt::format_string(fmt, 2, out, v);
+    if (res.err == fmt::format_error::none)
+    {
+        print_one_base(s, out.data(), out.size());
+    }
 }
 
 } // namespace _io_priv

@@ -2,7 +2,6 @@
 
 #include "vertex/std/array.hpp"
 #include "vertex/std/float_bits.hpp"
-#include "vertex/std/io.hpp"
 #include "vertex/std/string.hpp"
 #include "vertex/std/string_convert.hpp"
 
@@ -158,6 +157,10 @@ enum class sign_option
     space
 };
 
+//==============================================================================
+// format specs
+//==============================================================================
+
 template <typename C>
 struct basic_format_spec
 {
@@ -190,7 +193,14 @@ struct basic_float_format_spec : basic_integer_format_spec<C>
 };
 
 //==============================================================================
-// formatter
+// scan specs
+//==============================================================================
+
+template <typename C>
+using basic_scan_spec = basic_format_spec<C>;
+
+//==============================================================================
+// formatter and scanner
 //==============================================================================
 
 template <typename T, typename C, typename Enable = void>
@@ -199,12 +209,15 @@ struct formatter
     VX_STATIC_ASSERT_MSG((!std::is_same<T, T>::value), "No formatter available");
 };
 
+template <typename T, typename C, typename Enable = void>
+struct scanner
+{
+    VX_STATIC_ASSERT_MSG((!std::is_same<T, T>::value), "No scanner available");
+};
+
 //==============================================================================
 // format context
 //==============================================================================
-
-template <typename C>
-class basic_format_context;
 
 namespace _fmt_priv {
 
@@ -423,6 +436,8 @@ struct context_creator;
 
 } // namespace _fmt_priv
 
+//==============================================================================
+
 template <typename C>
 class basic_format_context
 {
@@ -449,6 +464,11 @@ public:
     constexpr size_t remaining() const noexcept
     {
         return m_out.remaining;
+    }
+
+    constexpr bool empty() const noexcept
+    {
+        return (m_out.remaining == 0);
     }
 
     constexpr bool reserve(size_t n) noexcept
@@ -523,6 +543,251 @@ private:
 };
 
 using format_context = basic_format_context<char>;
+
+//==============================================================================
+// scan context
+//==============================================================================
+
+namespace _fmt_priv {
+
+template <typename C>
+struct input_buffer
+{
+    const C* ptr;
+    size_t remaining;
+
+    constexpr bool consume(size_t count) noexcept
+    {
+        const size_t stop = (count < remaining) ? count : remaining;
+        ptr += stop;
+        remaining -= stop;
+        return (stop == count);
+    }
+
+    constexpr bool consume(const C* data, size_t count) noexcept
+    {
+        size_t i = 0;
+        const size_t stop = (count < remaining) ? count : remaining;
+
+        while (i < stop)
+        {
+            if (ptr[i] != data[i])
+            {
+                return false;
+            }
+
+            ++i;
+        }
+
+        ptr += i;
+        remaining -= i;
+
+        return true;
+    }
+
+    constexpr bool consume(size_t count, const C c) noexcept
+    {
+        size_t i = 0;
+        const size_t stop = (count < remaining) ? count : remaining;
+
+        while (i < stop)
+        {
+            if (ptr[i] != c)
+            {
+                return false;
+            }
+
+            ++i;
+        }
+
+        ptr += i;
+        remaining -= i;
+
+        return true;
+    }
+
+    constexpr size_t consume_next(const C c) noexcept
+    {
+        size_t i = 0;
+
+        while (i < remaining && ptr[i] == c)
+        {
+            ++i;
+        }
+
+        ptr += i;
+        remaining -= i;
+
+        return i;
+    }
+};
+
+} // namespace _fmt_priv
+
+//==============================================================================
+
+template <typename C>
+class basic_scan_context
+{
+private:
+
+    friend _fmt_priv::context_creator<C>;
+
+    constexpr explicit basic_scan_context(_fmt_priv::input_buffer<C>& in) noexcept
+        : m_in(in)
+    {}
+
+public:
+
+    constexpr const C* ptr() const noexcept
+    {
+        return m_in.ptr;
+    }
+
+    constexpr const C* ptr() noexcept
+    {
+        return m_in.ptr;
+    }
+
+    constexpr size_t remaining() const noexcept
+    {
+        return m_in.remaining;
+    }
+
+    constexpr bool empty() const noexcept
+    {
+        return (m_in.remaining == 0);
+    }
+
+    constexpr bool consume(size_t n) noexcept
+    {
+        return m_in.consume(n);
+    }
+
+private:
+
+    using scan_callback_t = format_error (*)(void*, basic_scan_context<C>&);
+
+    constexpr format_error scan_field_impl(
+        const basic_scan_spec<C>& spec,
+        scan_callback_t callback,
+        void* user_data,
+        alignment default_align) noexcept
+    {
+        const size_t max_width = spec.width > remaining() ? spec.width : remaining();
+        const alignment align = (spec.align == alignment::none) ? default_align : spec.align;
+
+        _fmt_priv::input_buffer<C> in{ ptr(), max_width };
+        basic_scan_context<C> ctx{ in };
+        format_error err = format_error::none;
+
+        if (align == alignment::left)
+        {
+            // consume the value
+            err = callback(user_data, ctx);
+
+            const size_t remaining = ctx.remaining();
+            const size_t consumed = max_width - remaining;
+            consume(consumed);
+
+            if (err != format_error::none)
+            {
+                return err;
+            }
+
+            if (!m_in.consume(remaining, spec.fill))
+            {
+                return format_error::invalid_format;
+            }
+
+            return format_error::none;
+        }
+
+        if (align == alignment::right)
+        {
+            in.consume_next(spec.fill);
+            err = callback(user_data, ctx);
+
+            const size_t remaining = ctx.remaining();
+            const size_t consumed = max_width - remaining;
+
+            consume(consumed);
+            return err;
+        }
+
+        if (align == alignment::center)
+        {
+            // Greedily consume leading fill characters, one at a time,
+            // since we don't yet know len(value) to compute floor(n/2) up front.
+            size_t pre = 0;
+            while (pre < max_width && in.consume(1, spec.fill))
+            {
+                ++pre;
+            }
+
+            const size_t remaining_before = ctx.remaining();
+
+            err = callback(user_data, ctx);
+
+            const size_t remaining_after = ctx.remaining();
+            const size_t value_len = remaining_before - remaining_after;
+            const size_t consumed = pre + value_len;
+            consume(consumed);
+
+            if (err != format_error::none)
+            {
+                return err;
+            }
+
+            // n = total fill chars required by the field width.
+            // floor(n/2) before the value, ceil(n/2) after (extra char goes right).
+            const size_t n = max_width - value_len;
+            const size_t pre_expected = n / 2;
+            const size_t post_expected = n - pre_expected;
+
+            if (pre != pre_expected)
+            {
+                return format_error::invalid_format;
+            }
+
+            if (!m_in.consume(post_expected, spec.fill))
+            {
+                return format_error::invalid_format;
+            }
+
+            return format_error::none;
+        }
+
+        return format_error::none;
+    }
+
+    template <typename Callable>
+    struct scan_callback_wrapper
+    {
+        static format_error invoke(void* user_data, basic_scan_context<C>& ctx)
+        {
+            Callable& callback = *static_cast<Callable*>(user_data);
+            return callback(ctx);
+        }
+    };
+
+public:
+
+    template <typename Callable>
+    constexpr format_error scan_field(
+        const basic_scan_spec<C>& spec,
+        Callable& callback,
+        alignment default_align) noexcept
+    {
+        return scan_field_impl(spec, scan_callback_wrapper<Callable>::invoke, &callback, default_align);
+    }
+
+private:
+
+    _fmt_priv::input_buffer<C>& m_in;
+};
+
+using scan_context = basic_scan_context<char>;
 
 //==============================================================================
 // parsing
@@ -825,6 +1090,11 @@ struct context_creator
     static constexpr auto create_format_context(output_buffer<C>& out) noexcept
     {
         return basic_format_context<C>{ out };
+    }
+
+    static constexpr auto create_scan_context(input_buffer<C>& in) noexcept
+    {
+        return basic_scan_context<C>{ in };
     }
 };
 
@@ -1295,10 +1565,269 @@ constexpr format_result format_impl_consteval(
     }
 }
 
+//==============================================================================
+// scan
+//==============================================================================
+
+template <typename C>
+using scan_fn =
+    format_error (*)(
+        input_buffer<C>&,
+        const basic_parse_context<C>&,
+        void*);
+
+template <typename T, typename C>
+constexpr format_error invoke_scanner(
+    input_buffer<C>& in,
+    const basic_parse_context<C>& parse_ctx,
+    void* ptr)
+{
+    // preserves array-ness, e.g. const char[6]
+    using U = typename std::remove_reference<T>::type;
+    using DT = typename std::decay<T>::type;
+
+    scanner<DT, C> s;
+
+    const auto err = s.parse(parse_ctx);
+    if (err != format_error::none)
+    {
+        return err;
+    }
+
+    auto scan_ctx = context_creator<C>::create_scan_context(in);
+
+    // reinterpret as the *actual* stored object type, not the decayed one
+    U& ref = *static_cast<U*>(ptr);
+    return s.scan(scan_ctx, ref);
+}
+
+template <typename T, typename C>
+constexpr format_error invoke_scanner_consteval(
+    input_buffer<C>& in,
+    const basic_parse_context<C>& parse_ctx,
+    T& value) noexcept
+{
+    using U = std::remove_reference_t<T>;
+    using DT = std::remove_cv_t<U>;
+
+    scanner<DT, C> s;
+
+    const auto err = s.parse(parse_ctx);
+    if (err != format_error::none)
+    {
+        return err;
+    }
+
+    auto scan_ctx = context_creator<C>::create_scan_context(in);
+    return s.scan(scan_ctx, value);
+}
+
+//==============================================================================
+
+template <typename C, typename... Args>
+constexpr format_result scan_impl(
+    const C* in,
+    size_t in_size,
+    const C* fmt,
+    size_t fmt_size,
+    Args&&... args) noexcept
+{
+    constexpr size_t argc = sizeof...(Args);
+    const array<void*, argc> values = { &args... };
+    const array<scan_fn<C>, argc> funcs = { &invoke_scanner<Args, C>... };
+
+    basic_format_parser<C> parser(fmt, fmt_size);
+    input_buffer<C> buffer{ in, in_size };
+
+    size_t next_arg = 0;
+    basic_format_token<C> tok;
+
+    while (true)
+    {
+        if (!parser.next(tok))
+        {
+            return { format_error::invalid_format, 0 };
+        }
+
+        switch (tok.type)
+        {
+            case token_type::literal:
+            {
+                if (!buffer.consume(tok.first, tok.calculate_size()))
+                {
+                    return { format_error::invalid_format, 0 };
+                }
+                break;
+            }
+            case token_type::escaped:
+            {
+                if (!buffer.consume(2, *tok.first))
+                {
+                    return { format_error::invalid_format, 0 };
+                }
+                break;
+            }
+            case token_type::replacement:
+            {
+                _FORMAT_RET_IF(
+                    (!parser.update_mode(tok.has_index ? format_mode::manual : format_mode::auto_)),
+                    (format_result{ format_error::mode_mismatch, 0 }));
+
+                const size_t index = (tok.has_index)
+                    ? tok.index
+                    : next_arg++;
+
+                _FORMAT_RET_IF((index >= argc), (format_result{ format_error::invalid_argument, 0 }));
+
+                auto parse_ctx = context_creator<C>::create_parse_context(tok.first, tok.calculate_size());
+                const auto fmt_err = funcs[index](buffer, parse_ctx, values[index]);
+                if (fmt_err != format_error::none)
+                {
+                    return { fmt_err, 0 };
+                }
+
+                break;
+            }
+            case token_type::end:
+            {
+                const size_t count = in_size - buffer.remaining;
+                return { format_error::none, count };
+            }
+        }
+    }
+}
+
+template <size_t I = 0, typename Tuple, typename C>
+constexpr format_error scan_arg(
+    input_buffer<C>& buffer,
+    const basic_format_token<C>& tok,
+    Tuple&& tuple,
+    size_t index)
+{
+    VX_IF_CONSTEXPR (I < std::tuple_size<typename std::remove_reference<Tuple>::type>::value)
+    {
+        if (I == index)
+        {
+            auto parse_ctx =
+                context_creator<C>::create_parse_context(
+                    tok.first,
+                    tok.calculate_size());
+
+            return invoke_scanner_consteval(
+                buffer,
+                parse_ctx,
+                std::get<I>(std::forward<Tuple>(tuple)));
+        }
+
+        return scan_arg<I + 1>(
+            buffer,
+            tok,
+            std::forward<Tuple>(tuple),
+            index);
+    }
+    else
+    {
+        return format_error::invalid_argument;
+    }
+}
+
+template <typename C, typename... Args>
+constexpr format_result scan_impl_consteval(
+    const C* in,
+    size_t in_size,
+    const C* fmt,
+    size_t fmt_size,
+    Args&&... args) noexcept
+{
+    constexpr size_t argc = sizeof...(Args);
+
+    auto values = std::forward_as_tuple(std::forward<Args>(args)...);
+
+    basic_format_parser<C> parser(fmt, fmt_size);
+    input_buffer<C> buffer{ in, in_size };
+
+    size_t next_arg = 0;
+    basic_format_token<C> tok;
+
+    while (true)
+    {
+        if (!parser.next(tok))
+        {
+            return { format_error::invalid_format, 0 };
+        }
+
+        switch (tok.type)
+        {
+            case token_type::literal:
+            {
+                if (!buffer.consume(tok.first, tok.calculate_size()))
+                {
+                    return { format_error::invalid_format, 0 };
+                }
+
+                break;
+            }
+            case token_type::escaped:
+            {
+                if (!buffer.consume(2, *tok.first))
+                {
+                    return { format_error::invalid_format, 0 };
+                }
+
+                break;
+            }
+            case token_type::replacement:
+            {
+                _FORMAT_RET_IF(
+                    (!parser.update_mode(
+                        tok.has_index
+                            ? format_mode::manual
+                            : format_mode::auto_)),
+                    (format_result{ format_error::mode_mismatch, 0 }));
+
+                const size_t index = tok.has_index
+                    ? tok.index
+                    : next_arg++;
+
+                _FORMAT_RET_IF(
+                    (index >= argc),
+                    (format_result{ format_error::invalid_argument, 0 }));
+
+                const auto fmt_err = scan_arg(
+                    buffer,
+                    tok,
+                    values,
+                    index);
+
+                if (fmt_err != format_error::none)
+                {
+                    return { fmt_err, 0 };
+                }
+
+                break;
+            }
+            case token_type::end:
+            {
+                const size_t count = in_size - buffer.remaining;
+                return { format_error::none, count };
+            }
+        }
+    }
+}
+
+template <typename T, typename C>
+struct base_scanner : basic_scan_spec<C>
+{
+    constexpr format_error parse(const basic_parse_context<C>& ctx) noexcept
+    {
+        return ctx.parse_basic_spec(*this);
+    }
+};
+
 } // namespace _fmt_priv
 
 //==============================================================================
-// integer formatters
+// integer
 //==============================================================================
 
 template <typename I, typename C>
@@ -1379,6 +1908,75 @@ public:
 
         const str::basic_string_view<C> prefix_view{ prefix, prefix_size };
         return ctx.pad_written_number(*this, res.count, prefix_view);
+    }
+};
+
+//==============================================================================
+
+template <typename I, typename C>
+struct scanner<I, C, VX_REQUIRES_TYPE(std::is_integral<I>::value && !type_traits::is_char<I>::value && !std::is_same<I, bool>::value)> : _fmt_priv::base_scanner<I, C>
+{
+private:
+
+    using base = _fmt_priv::base_scanner<I, C>;
+
+    struct callback
+    {
+        I& value;
+        int base;
+
+        format_error operator()(basic_scan_context<C>& ctx) const noexcept
+        {
+            const C* ptr = ctx.ptr();
+            const size_t remaining = ctx.remaining();
+
+            const auto res = strconv::from_string<I, C>(ptr, remaining, value, base);
+            ctx.consume(res.count);
+            return (res.err == strconv::from_string_error::none)
+                ? format_error::none
+                : format_error::invalid_format;
+        }
+    };
+
+public:
+
+    constexpr format_error scan(
+        basic_scan_context<C>& ctx,
+        I& value) const noexcept
+    {
+        callback cb{ value, 10 };
+
+        switch (base::type)
+        {
+            case C('\0'):
+            case C('d'):
+            {
+                break;
+            }
+            case C('x'):
+            case C('X'):
+            {
+                cb.base = 16;
+                break;
+            }
+            case C('o'):
+            {
+                cb.base = 8;
+                break;
+            }
+            case C('b'):
+            case C('B'):
+            {
+                cb.base = 2;
+                break;
+            }
+            default:
+            {
+                _FORMAT_RET_IF(true, format_error::invalid_format);
+            }
+        }
+
+        return ctx.scan_field(*this, cb, alignment::right);
     }
 };
 
@@ -1785,14 +2383,15 @@ format_result format_string(
     }
 }
 
-template <typename C, typename FMT, typename S, typename... Args, VX_REQUIRES(type_traits::is_char<C>::value&& str::is_string_of<FMT, C>::value&& str::is_mutable_string_like<S>::value&& str::is_string_compatible<FMT, S>::value)>
+template <typename C, typename S, typename... Args, VX_REQUIRES(type_traits::is_char<C>::value&& str::is_mutable_string_like<S>::value&& str::is_string_of<S, C>::value)>
 format_result format_string(
     const C* fmt,
+    const size_t fmt_size,
     S& out,
     Args&&... args)
 {
     return format_string(
-        str::basic_string_view<C>(fmt),
+        str::basic_string_view<C>(fmt, fmt_size),
         out,
         std::forward<Args>(args)...);
 }
@@ -1829,42 +2428,35 @@ str::basic_string<C> format(
 }
 
 //==============================================================================
-// printf
+// scan
 //==============================================================================
 
-template <typename FMT, typename... Args, VX_REQUIRES(str::is_string_like<FMT>::value)>
-format_result printf(
-    const FMT& fmt,
-    Args&&... args)
-{
-    using C = typename FMT::value_type;
-
-    str::basic_string<C> out;
-
-    const auto res = format_string(
-        fmt,
-        out,
-        std::forward<Args>(args)...);
-
-    if (res.err == format_error::none)
-    {
-        io::print_raw(
-            out.data(),
-            out.size());
-    }
-
-    return res;
-}
-
-
 template <typename C, typename... Args, VX_REQUIRES(type_traits::is_char<C>::value)>
-format_result printf(
+constexpr format_result scan(
+    const C* in,
+    size_t in_size,
     const C* fmt,
-    Args&&... args)
+    size_t fmt_size,
+    Args&&... args) noexcept
 {
-    return printf(
-        str::basic_string_view<C>(fmt),
-        std::forward<Args>(args)...);
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return _fmt_priv::scan_impl_consteval(
+            in,
+            in_size,
+            fmt,
+            fmt_size,
+            std::forward<Args>(args)...);
+    }
+    else
+    {
+        return _fmt_priv::scan_impl(
+            in,
+            in_size,
+            fmt,
+            fmt_size,
+            std::forward<Args>(args)...);
+    }
 }
 
 //==============================================================================

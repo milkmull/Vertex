@@ -14,8 +14,9 @@ x string
 x numeric printing
 x io
 x string format
+- string scan
 
-- to_string/from_string
+- handle 0 width
 - test 0 size array
 
 - packed string array
