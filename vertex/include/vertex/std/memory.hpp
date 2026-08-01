@@ -826,9 +826,9 @@ IT fill_range(IT first, IT last, const U& value)
 //=========================================================================
 
 template <typename T>
-T* copy_range(T* dst, const T* src, size_t count)
+constexpr T* copy_range(T* dst, const T* src, size_t count)
 {
-    VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
+    if (!VX_IS_CONSTANT_EVALUATED() && type_traits::memmove_is_safe<T*>::value)
     {
         move(dst, src, count * sizeof(T));
         return dst + count;
@@ -922,9 +922,9 @@ IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 //=========================================================================
 
 template <typename T>
-T* move_range(T* dst, T* src, size_t count) noexcept
+constexpr T* move_range(T* dst, T* src, size_t count) noexcept
 {
-    VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
+    if (!VX_IS_CONSTANT_EVALUATED() && type_traits::memmove_is_safe<T*>::value)
     {
         move(dst, src, count * sizeof(T));
         return dst + count;

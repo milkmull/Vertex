@@ -3826,7 +3826,7 @@ to_string_result to_string(F value, S& out, const float_to_string_format_options
         res = to_string<F, C>(value, out.data(), buf_size, fmt);
     }
 
-    out.shrink_to_fit();
+    out.resize(res.count);
     return res;
 }
 

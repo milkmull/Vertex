@@ -1,8 +1,8 @@
 #pragma once
 
 #include <climits> // CHAR_BIT
-#include <limits>  // numeric_limits
 #include <intrin.h>
+#include <limits> // numeric_limits
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/type_traits.hpp"
@@ -895,9 +895,17 @@ To bit_cast(const From& src) noexcept
         "This implementation additionally requires "
         "destination type to be trivially constructible");
 
+#if VX_HAS_BUILTIN(__builtin_bit_cast)
+
+    return __builtin_bit_cast(To, src);
+
+#else
+
     To dst;
     mem::copy(&dst, &src, sizeof(To));
     return dst;
+
+#endif
 }
 
 } // namespace bit

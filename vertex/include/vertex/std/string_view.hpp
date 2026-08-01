@@ -46,6 +46,11 @@ public:
     constexpr basic_string_view(const basic_string_view&) noexcept = default;
     constexpr basic_string_view& operator=(const basic_string_view&) noexcept = default;
 
+    template <size_type N>
+    constexpr basic_string_view(const value_type (&str)[N]) noexcept
+        : m_data(str), m_size(N - 1)
+    {}
+
     constexpr basic_string_view(const const_pointer ptr) noexcept
         : m_data(ptr), m_size(traits_type::length(ptr))
     {}
@@ -178,27 +183,27 @@ public:
     // size
     //=========================================================================
 
-    bool empty() const noexcept
+    constexpr bool empty() const noexcept
     {
         return m_size == 0;
     }
 
-    bool full() const noexcept
+    constexpr bool full() const noexcept
     {
         return m_size == max_size();
     }
 
-    size_type size() const noexcept
+    constexpr size_type size() const noexcept
     {
         return m_size;
     }
 
-    size_type length() const noexcept
+    constexpr size_type length() const noexcept
     {
         return size();
     }
 
-    size_type data_size() const noexcept
+    constexpr size_type data_size() const noexcept
     {
         return size() * sizeof(value_type);
     }
