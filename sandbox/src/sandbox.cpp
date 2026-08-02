@@ -7,7 +7,7 @@
 using namespace vx;
 
 template <size_t InN, size_t FmtN, typename T>
-static fmt::format_result run_scan(const char (&in)[InN], const char (&fmt)[FmtN], T& out)
+static fmt::scan_result run_scan(const char (&in)[InN], const char (&fmt)[FmtN], T& out)
 {
     return fmt::scan(
         in, mem::array_size(in),
@@ -21,20 +21,20 @@ static void test_no_align_no_width()
     const char fmt[] = "{}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err == fmt::format_error::none);
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err == fmt::scan_error::none);
     assert(value == 42);
 }
 
 static void test_width_only_default_align_ok()
 {
-    const char in[] = "    42";
-    const char fmt[] = "{:6}";
+    const char in[] = "  0x42";
+    const char fmt[] = "{:6x}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err == fmt::format_error::none);
-    assert(value == 42);
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err == fmt::scan_error::none);
+    assert(value == 66);
     assert(r.count == 7); // full field consumed
 }
 
@@ -44,8 +44,8 @@ static void test_width_only_default_align_error()
     const char fmt[] = "{:6}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err != fmt::format_error::none); // width=6 requires exact field, no fill present
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err != fmt::scan_error::none); // width=6 requires exact field, no fill present
 }
 
 static void test_align_right_no_width()
@@ -54,8 +54,8 @@ static void test_align_right_no_width()
     const char fmt[] = "{:*>}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err == fmt::format_error::none);
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err == fmt::scan_error::none);
     assert(value == 42);
     assert(r.count == 6);
 }
@@ -66,8 +66,8 @@ static void test_align_left_no_width()
     const char fmt[] = "{:*<}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err == fmt::format_error::none);
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err == fmt::scan_error::none);
     assert(value == 42);
     assert(r.count == 6);
 }
@@ -78,8 +78,8 @@ static void test_align_center_no_width_ok()
     const char fmt[] = "{:*^}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err == fmt::format_error::none);
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err == fmt::scan_error::none);
     assert(value == 42);
     assert(r.count == 5);
 }
@@ -90,8 +90,8 @@ static void test_align_center_no_width_error()
     const char fmt[] = "{:*^}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err != fmt::format_error::none); // pre=2, post=1, mismatch
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err != fmt::scan_error::none); // pre=2, post=1, mismatch
 }
 
 static void test_align_right_width_ok()
@@ -100,8 +100,8 @@ static void test_align_right_width_ok()
     const char fmt[] = "{:*>5}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err == fmt::format_error::none);
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err == fmt::scan_error::none);
     assert(value == 42);
     assert(r.count == 6);
 }
@@ -112,8 +112,8 @@ static void test_align_right_width_truncates_value()
     const char fmt[] = "{:*>4}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    //assert(r.err == fmt::format_error::none);
+    fmt::scan_result r = run_scan(in, fmt, value);
+    //assert(r.err == fmt::scan_error::none);
     assert(value == 4);   // gotcha: width chops into the value itself
     assert(r.count == 4); // "2" left unconsumed
 }
@@ -124,8 +124,8 @@ static void test_align_center_width_ok()
     const char fmt[] = "{:*^5}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err == fmt::format_error::none);
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err == fmt::scan_error::none);
     assert(value == 42);
     assert(r.count == 6);
 }
@@ -136,8 +136,8 @@ static void test_align_center_width_error()
     const char fmt[] = "{:*^5}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err != fmt::format_error::none); // n=3 wants pre=1/post=2, got pre=2/post=1
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err != fmt::scan_error::none); // n=3 wants pre=1/post=2, got pre=2/post=1
 }
 
 static void test_align_left_width_ok()
@@ -146,8 +146,8 @@ static void test_align_left_width_ok()
     const char fmt[] = "{:*<5}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err == fmt::format_error::none);
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err == fmt::scan_error::none);
     assert(value == 42);
     assert(r.count == 6);
 }
@@ -158,8 +158,8 @@ static void test_align_left_width_error()
     const char fmt[] = "{:*<5}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err != fmt::format_error::none); // width=5 requires 3 trailing '*', none present
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err != fmt::scan_error::none); // width=5 requires 3 trailing '*', none present
 }
 
 static void test_width_equals_value_len_left()
@@ -168,8 +168,8 @@ static void test_width_equals_value_len_left()
     const char fmt[] = "{:*<2}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err == fmt::format_error::none);
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err == fmt::scan_error::none);
     assert(value == 42);
     assert(r.count == 3);
 }
@@ -180,8 +180,8 @@ static void test_width_equals_value_len_center()
     const char fmt[] = "{:*^2}";
     int value = 0;
 
-    fmt::format_result r = run_scan(in, fmt, value);
-    assert(r.err == fmt::format_error::none);
+    fmt::scan_result r = run_scan(in, fmt, value);
+    assert(r.err == fmt::scan_error::none);
     assert(value == 42);
     assert(r.count == 3);
 }

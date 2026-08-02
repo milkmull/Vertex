@@ -310,8 +310,10 @@ struct integer_to_string_format_options
 
 //==============================================================================
 
-template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
-constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size, const integer_to_string_format_options& fmt = {}) noexcept
+namespace _strconv_priv {
+
+template <typename I, typename C, bool Prefix = false>
+constexpr to_string_result write_integer_impl(I value, C* buf, const size_t buf_size, const integer_to_string_format_options& fmt) noexcept
 {
     VX_ASSERT(2 <= fmt.base);
 #if defined(VX_STRING_CONVERT_TO_STRING_BASE_36_SUPPORT)
@@ -335,8 +337,31 @@ constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size,
         }
     }
 
+    size_t prefix_size = 0;
+    VX_IF_CONSTEXPR (Prefix)
+    {
+        switch (fmt.base)
+        {
+            case 2:
+            case 16:
+            {
+                prefix_size = 2;
+                break;
+            }
+            case 8:
+            {
+                prefix_size = 1;
+                break;
+            }
+            default:
+            {
+                break;
+            }
+        }
+    }
+
     const size_t n_digits = _strconv_priv::digit_count(uvalue, ubase);
-    const size_t needed = n_digits + static_cast<size_t>(sign != 0);
+    const size_t needed = static_cast<size_t>(sign != 0) + prefix_size + n_digits;
     if (buf_size < needed)
     {
         return { 0, to_string_error::buffer_too_small };
@@ -352,6 +377,24 @@ constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size,
 
     } while (uvalue);
 
+    VX_IF_CONSTEXPR (Prefix)
+    {
+        if (prefix_size)
+        {
+            buf[1] = static_cast<C>('0');
+            const C case_mask = make_case_mask<C>(fmt.uppercase);
+
+            if (fmt.base == 2)
+            {
+                buf[2] = static_cast<C>('b') & case_mask;
+            }
+            else // if (fmt.base == 16)
+            {
+                buf[2] = static_cast<C>('x') & case_mask;
+            }
+        }
+    }
+
     if (sign)
     {
         buf[0] = static_cast<C>(sign);
@@ -360,11 +403,19 @@ constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size,
     return { needed, to_string_error::none };
 }
 
+} // namespace _strconv_priv
+
+template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
+constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size, const integer_to_string_format_options& fmt = {}) noexcept
+{
+    return _strconv_priv::write_integer_impl<I, C>(value, buf, buf_size, fmt);
+}
+
 //==============================================================================
 
 namespace _strconv_priv {
 
-template <typename I, typename C, bool Sign = true>
+template <typename I, typename C, bool Sign = true, bool Prefix = false>
 constexpr from_string_result parse_integer_impl(const C* s, size_t size, I& value, const int base) noexcept
 {
     VX_ASSERT(2 <= base && base <= 36);
@@ -389,6 +440,39 @@ constexpr from_string_result parse_integer_impl(const C* s, size_t size, I& valu
             {
                 is_negative = true;
                 ++i;
+            }
+        }
+    }
+
+    VX_IF_CONSTEXPR (Prefix)
+    {
+        if (size - i >= 2 && s[i] == C('0'))
+        {
+            const C x = s[i + 1];
+
+            switch (base)
+            {
+                case 2:
+                {
+                    if (x == C('b') || x == C('B'))
+                    {
+                        i += 2;
+                    }
+                    break;
+                }
+                case 16:
+                {
+                    if (x == C('x') || x == C('X'))
+                    {
+                        i += 2;
+                    }
+                    break;
+                }
+                case 8:
+                {
+                    ++i;
+                    break;
+                }
             }
         }
     }
@@ -3694,30 +3778,15 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
     return { i, err };
 }
 
-} // namespace _strconv_priv
-
-template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-constexpr from_string_result parse_float(const C* str, size_t str_size, F& value, const float_from_string_format_options<C>& fmt = {}) noexcept
+template <typename F, typename C>
+constexpr from_string_result parse_float_body(
+    const C* str,
+    size_t str_size,
+    size_t i,
+    bool is_negative,
+    F& value,
+    const float_from_string_format_options<C>& fmt) noexcept
 {
-    if (str_size == 0)
-    {
-        return { 0, from_string_error::invalid_argument };
-    }
-
-    size_t i = 0;
-    bool is_negative = false;
-
-    if (str[0] == C('-') || str[0] == C('+'))
-    {
-        if (str_size == 1)
-        {
-            return { 0, from_string_error::invalid_argument };
-        }
-
-        ++i;
-        is_negative = str[0] == C('-');
-    }
-
     // Distinguish ordinary numbers versus inf/nan with a single test.
     // ordinary numbers start with ['.'] ['0', '9'] ['A', 'F'] ['a', 'f']
     // inf/nan start with ['I'] ['N'] ['i'] ['n']
@@ -3747,6 +3816,53 @@ constexpr from_string_result parse_float(const C* str, size_t str_size, F& value
 
     // definitely invalid
     return { 0, from_string_error::invalid_argument };
+}
+
+template <typename F, typename C, bool Prefix = false>
+constexpr from_string_result parse_float_start(
+    const C* str,
+    size_t str_size,
+    F& value,
+    const float_from_string_format_options<C>& fmt) noexcept
+{
+    if (str_size == 0)
+    {
+        return { 0, from_string_error::invalid_argument };
+    }
+
+    size_t i = 0;
+    bool is_negative = false;
+
+    if (str[0] == C('-') || str[0] == C('+'))
+    {
+        if (str_size == 1)
+        {
+            return { 0, from_string_error::invalid_argument };
+        }
+
+        ++i;
+        is_negative = str[0] == C('-');
+    }
+
+    VX_IF_CONSTEXPR (Prefix)
+    {
+        if ((str_size - i >= 2) &&
+            (str[i] == C('0')) &&
+            (str[i + 1] == C('x') || str[i + 1] == C('X')))
+        {
+            i += 2;
+        }
+    }
+
+    return parse_float_body(str, str_size, i, is_negative, value, fmt);
+}
+
+} // namespace _strconv_priv
+
+template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
+constexpr from_string_result parse_float(const C* str, size_t str_size, F& value, const float_from_string_format_options<C>& fmt = {}) noexcept
+{
+    return _strconv_priv::parse_float_start(str, str_size, value, fmt);
 }
 
 //==============================================================================

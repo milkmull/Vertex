@@ -129,13 +129,44 @@ enum class format_error
     buffer_too_small,
     invalid_format,
     invalid_argument,
-    mode_mismatch
+    index_mode_mismatch
 };
 
 struct format_result
 {
     format_error err;
     size_t count;
+};
+
+enum class scan_error
+{
+    none,
+    end_of_input,
+    invalid_format,
+    invalid_argument,
+    invalid_scaned_value,
+    index_mode_mismatch
+};
+
+struct scan_result
+{
+    scan_error err;
+    size_t count;
+};
+
+//==============================================================================
+// options
+//==============================================================================
+
+enum class whitespace_mode
+{
+    greedy,
+    bounded,
+};
+
+struct scan_options
+{
+    whitespace_mode ws_mode = whitespace_mode::greedy;
 };
 
 //==============================================================================
@@ -150,11 +181,11 @@ enum class alignment : char
     center = '^'
 };
 
-enum class sign_option
+enum class sign_option : char
 {
-    none,
-    force,
-    space
+    none = 0,
+    force = '+',
+    space = ' '
 };
 
 //==============================================================================
@@ -162,12 +193,18 @@ enum class sign_option
 //==============================================================================
 
 template <typename C>
-struct basic_format_spec
+struct basic_format_spec_base
 {
-    C type = C{};
     C fill = C(' ');
     alignment align = alignment::none;
+    alignment default_align = alignment::none;
     size_t width = 0;
+};
+
+template <typename C>
+struct basic_format_spec : basic_format_spec_base<C>
+{
+    C type = C{};
 };
 
 template <typename C>
@@ -551,10 +588,17 @@ using format_context = basic_format_context<char>;
 namespace _fmt_priv {
 
 template <typename C>
-struct input_buffer
+struct input_reader
 {
+    using interator = const C*;
+
     const C* ptr;
     size_t remaining;
+
+    constexpr size_t consumed(const size_t starting_size) const noexcept
+    {
+        return starting_size - remaining;
+    }
 
     constexpr bool consume(size_t count) noexcept
     {
@@ -564,7 +608,7 @@ struct input_buffer
         return (stop == count);
     }
 
-    constexpr bool consume(const C* data, size_t count) noexcept
+    constexpr bool consume_literal(const C* data, size_t count) noexcept
     {
         size_t i = 0;
         const size_t stop = (count < remaining) ? count : remaining;
@@ -585,7 +629,7 @@ struct input_buffer
         return true;
     }
 
-    constexpr bool consume(size_t count, const C c) noexcept
+    constexpr bool consume_characters(size_t count, const C c) noexcept
     {
         size_t i = 0;
         const size_t stop = (count < remaining) ? count : remaining;
@@ -606,6 +650,21 @@ struct input_buffer
         return true;
     }
 
+    constexpr size_t consume_whitespace() noexcept
+    {
+        size_t i = 0;
+
+        while (i < remaining && str::is_space(ptr[i]))
+        {
+            ++i;
+        }
+
+        ptr += i;
+        remaining -= i;
+
+        return i;
+    }
+
     constexpr size_t consume_next(const C c) noexcept
     {
         size_t i = 0;
@@ -618,6 +677,19 @@ struct input_buffer
         ptr += i;
         remaining -= i;
 
+        return i;
+    }
+
+    constexpr size_t consume_next_n(const C c, const size_t n) noexcept
+    {
+        size_t i = 0;
+        const size_t stop = (n < remaining) ? n : remaining;
+        while (i < stop && ptr[i] == c)
+        {
+            ++i;
+        }
+        ptr += i;
+        remaining -= i;
         return i;
     }
 };
@@ -633,11 +705,16 @@ private:
 
     friend _fmt_priv::context_creator<C>;
 
-    constexpr explicit basic_scan_context(_fmt_priv::input_buffer<C>& in) noexcept
+    constexpr explicit basic_scan_context(_fmt_priv::input_reader<C>& in) noexcept
         : m_in(in)
     {}
 
 public:
+
+    constexpr size_t consumed(const size_t starting_size) const noexcept
+    {
+        return m_in.consumed(starting_size);
+    }
 
     constexpr const C* ptr() const noexcept
     {
@@ -669,154 +746,289 @@ public:
         return m_in.consume_next(c);
     }
 
-private:
-
-    using scan_callback_t = format_error (*)(void*, basic_scan_context<C>&);
-
-    constexpr format_error scan_field_impl(
-        const basic_scan_spec<C>& spec,
-        scan_callback_t callback,
-        void* user_data,
-        alignment default_align) noexcept
+    constexpr size_t consume_whitespace() noexcept
     {
-        // If width is specified, but no alignment, default alignment and fill are used
-        // If align is specified, but no width, width is unbounded and default fill is greedy
-        // If both width and align are specified, width is bounded and fill consumption is also bounded
-        const size_t max_width = spec.width == 0 ? remaining() : spec.width < remaining() ? spec.width : remaining();
-        const alignment align = (spec.align == alignment::none) ? default_align : spec.align;
-
-        _fmt_priv::input_buffer<C> field_in{ ptr(), max_width };
-        basic_scan_context<C> field_ctx{ field_in };
-        format_error err = format_error::none;
-
-        if (align == alignment::left)
-        {
-            err = callback(user_data, field_ctx);
-
-            size_t leftover = field_ctx.remaining();
-            size_t value_len = max_width - leftover;
-            consume(value_len);
-
-            if (err != format_error::none)
-            {
-                return err;
-            }
-
-            if (spec.width != 0)
-            {
-                // bounded: trailing fill must exactly fill the remainder
-                if (!field_in.consume(leftover, spec.fill))
-                {
-                    return format_error::invalid_argument;
-                }
-                consume(leftover);
-                return format_error::none;
-            }
-
-            // unbounded: consume whatever trailing fill is present, no count required
-            consume(field_ctx.consume_next(spec.fill));
-            return format_error::none;
-        }
-
-        if (align == alignment::right)
-        {
-            // greedy discovery — exact requirement (if any) checked after value parses
-            size_t pre = field_ctx.consume_next(spec.fill);
-            consume(pre);
-
-            err = callback(user_data, field_ctx);
-
-            size_t leftover = field_ctx.remaining();
-            size_t value_len = (max_width - pre) - leftover;
-            consume(value_len);
-
-            if (err != format_error::none)
-            {
-                return err;
-            }
-
-            if (leftover > 0 && spec.width != 0)
-            {
-                // bounded: unexplained leftover after value+leading fill
-                return format_error::invalid_argument;
-            }
-
-            return format_error::none;
-        }
-
-        if (align == alignment::center)
-        {
-            size_t pre = field_ctx.consume_next(spec.fill);
-            consume(pre);
-
-            err = callback(user_data, field_ctx);
-
-            size_t leftover = field_ctx.remaining();
-            size_t value_len = (max_width - pre) - leftover;
-            consume(value_len);
-
-            if (err != format_error::none)
-            {
-                return err;
-            }
-
-            size_t post_expected;
-
-            if (spec.width != 0)
-            {
-                // bounded: exact floor(n/2) / ceil(n/2) split
-                const size_t n = max_width - value_len;
-                const size_t pre_expected = n / 2;
-
-                if (pre != pre_expected)
-                {
-                    return format_error::invalid_argument;
-                }
-
-                post_expected = n - pre_expected;
-            }
-            else
-            {
-                // unbounded: trailing count must exactly equal leading count
-                post_expected = pre;
-            }
-
-            if (!field_in.consume(post_expected, spec.fill))
-            {
-                return format_error::invalid_argument;
-            }
-            consume(post_expected);
-
-            return format_error::none;
-        }
-
-        return format_error::none;
+        return m_in.consume_whitespace();
     }
 
-    template <typename Callable>
+private:
+
+    using scan_callback_t = scan_error (*)(void*, basic_scan_context<C>&);
+
+    struct callback_pair
+    {
+        scan_callback_t callback;
+        void* user_data;
+
+        scan_error operator()(basic_scan_context<C>& ctx) const noexcept
+        {
+            return callback(user_data, ctx);
+        }
+    };
+
+    constexpr scan_error scan_bounded_field(
+        const size_t width,
+        const C fill,
+        const alignment align,
+        const callback_pair callback) noexcept
+    {
+        const size_t r = remaining();
+        const size_t max_width = width < r ? width : r;
+        scan_error err = scan_error::none;
+
+        _fmt_priv::input_reader<C> field_in{ ptr(), max_width };
+        basic_scan_context<C> field_ctx{ field_in };
+
+        switch (align)
+        {
+            case alignment::none:
+            case alignment::left:
+            {
+                err = callback(field_ctx);
+                const size_t value_size = field_in.consumed(max_width);
+                consume(value_size);
+
+                if (err != scan_error::none)
+                {
+                    return err;
+                }
+
+                const size_t expected_right_pad = width - value_size;
+                if (!m_in.consume_characters(expected_right_pad, fill))
+                {
+                    return scan_error::invalid_format;
+                }
+
+                break;
+            }
+            case alignment::right:
+            {
+                const size_t left_pad = field_in.consume_next(fill);
+
+                err = callback(field_ctx);
+                const size_t total_consumed = field_in.consumed(max_width);
+                consume(total_consumed);
+
+                const size_t value_size = total_consumed - left_pad;
+                const size_t expected_left_pad = width - value_size;
+                if (left_pad != expected_left_pad)
+                {
+                    return scan_error::invalid_format;
+                }
+
+                if (err != scan_error::none)
+                {
+                    return err;
+                }
+
+                break;
+            }
+            case alignment::center:
+            {
+                const size_t left_pad = field_in.consume_next(fill);
+
+                err = callback(field_ctx);
+                const size_t total_consumed = field_in.consumed(max_width);
+                consume(total_consumed);
+
+                const size_t value_size = total_consumed - left_pad;
+                const size_t expected_left_pad = (width - value_size) / 2;
+                if (left_pad != expected_left_pad)
+                {
+                    return scan_error::invalid_format;
+                }
+
+                if (err != scan_error::none)
+                {
+                    return err;
+                }
+
+                const size_t expected_right_pad = width - value_size - expected_left_pad;
+                if (!m_in.consume_characters(expected_right_pad, fill))
+                {
+                    return scan_error::invalid_format;
+                }
+
+                break;
+            }
+        }
+
+        return scan_error::none;
+    }
+
+    constexpr scan_error scan_unbounded_field(
+        const C fill,
+        const alignment align,
+        const callback_pair callback) noexcept
+    {
+        const size_t max_width = remaining();
+        scan_error err = scan_error::none;
+
+        switch (align)
+        {
+            case alignment::none:
+            case alignment::left:
+            {
+                err = callback(*this);
+                if (err != scan_error::none)
+                {
+                    return err;
+                }
+
+                m_in.consume_next(fill);
+                break;
+            }
+            case alignment::right:
+            {
+                m_in.consume_next(fill);
+
+                err = callback(*this);
+                if (err != scan_error::none)
+                {
+                    return err;
+                }
+
+                break;
+            }
+            case alignment::center:
+            {
+                const size_t left_pad = m_in.consume_next(fill);
+
+                err = callback(*this);
+                if (err != scan_error::none)
+                {
+                    return err;
+                }
+
+                // with unbounded width and center alignment,
+                // padding is expected to be the same on both sides
+                if (!m_in.consume_characters(left_pad, fill))
+                {
+                    return scan_error::invalid_format;
+                }
+
+                break;
+            }
+        }
+
+        return scan_error::none;
+    }
+
+    constexpr scan_error scan_field_begin(
+        const basic_scan_spec<C>& spec,
+        const callback_pair callback,
+        const alignment default_align) noexcept
+    {
+        // Neither width nor align specified: no fill/align logic runs;
+        // the type's own scanner handles input directly (own whitespace rules apply)
+        if (spec.width == 0 && spec.align == alignment::none)
+        {
+            return callback(*this);
+        }
+
+        basic_format_spec_base<C> bounded_spec;
+
+        // Width specified, no align: default alignment for the type is used
+        // default fill (' ') is used, matching is bounded/exact
+        if (spec.width != 0 && spec.align == alignment::none)
+        {
+            return scan_bounded_field(
+                spec.width, spec.fill, default_align,
+                callback);
+        }
+
+        // Both width and align specified: bounded, exact matching —
+        // n = width - value_len determines required fill counts
+        if (spec.width != 0 && spec.align != alignment::none)
+        {
+            return scan_bounded_field(
+                spec.width, spec.fill, spec.align,
+                callback);
+        }
+
+        // Align specified, no width: width is unbounded, fill defaults to ' ' if not
+        // explicitly given, matching is greedy/unbounded (symmetric-only for center)
+        if (spec.width == 0 && spec.align != alignment::none)
+        {
+            return scan_unbounded_field(
+                spec.fill, spec.align,
+                callback);
+        }
+
+        return scan_error::none;
+    }
+
+    template <typename T>
     struct scan_callback_wrapper
     {
-        static format_error invoke(void* user_data, basic_scan_context<C>& ctx)
+        struct callback_data
         {
-            Callable& callback = *static_cast<Callable*>(user_data);
-            return callback(ctx);
+            const scanner<T, C>& scn;
+            T& value;
+        };
+
+        static scan_error invoke(void* user_data, basic_scan_context<C>& ctx)
+        {
+            auto* data = static_cast<callback_data*>(user_data);
+            return data->scn.scan(ctx, data->value);
         }
     };
 
 public:
 
-    template <typename Callable>
-    constexpr format_error scan_field(
-        const basic_scan_spec<C>& spec,
-        Callable& callback,
-        alignment default_align) noexcept
+    template <typename T>
+    constexpr scan_error scan_field(
+        const scanner<T, C>& scn,
+        T& value,
+        const alignment default_align) noexcept
     {
-        return scan_field_impl(spec, scan_callback_wrapper<Callable>::invoke, &callback, default_align);
+        using callback_data = typename scan_callback_wrapper<T>::callback_data;
+        callback_data data{ scn, value };
+        callback_pair callback{ scan_callback_wrapper<T>::invoke, &data };
+
+        return scan_field_begin(scn, callback, default_align);
+    }
+
+    template <typename T>
+    constexpr scan_error scan_field(
+        const scanner<T, C>& scn,
+        T& value) noexcept
+    {
+        return scan_field(scn, value, scn.default_align);
+    }
+
+    template <typename T>
+    constexpr bool try_scan_field(
+        const scanner<T, C>& scn,
+        T& value,
+        const alignment default_align) noexcept
+    {
+        const size_t r = remaining();
+        _fmt_priv::input_reader<C> field_in{ ptr(), r };
+        basic_scan_context<C> field_ctx{ field_in };
+
+        const auto err = field_ctx.scan_field(scn, value);
+        if (err != scan_error::none)
+        {
+            return false;
+        }
+
+        const size_t value_size = field_in.consumed(r);
+        consume(value_size);
+        return true;
+    }
+
+    template <typename T>
+    constexpr bool try_scan_field(
+        const scanner<T, C>& scn,
+        T& value) noexcept
+    {
+        return try_scan_field(scn, value, scn.default_align);
     }
 
 private:
 
-    _fmt_priv::input_buffer<C>& m_in;
+    _fmt_priv::input_reader<C>& m_in;
 };
 
 using scan_context = basic_scan_context<char>;
@@ -999,7 +1211,7 @@ private:
         }
     }
 
-    constexpr void parse_basic_width(size_t& i, size_t& width) const noexcept
+    constexpr bool parse_basic_width(size_t& i, size_t& width) const noexcept
     {
         if (i < m_size)
         {
@@ -1007,8 +1219,11 @@ private:
             if (parse_uint(value, i))
             {
                 width = value;
+                return width != 0;
             }
         }
+
+        return true;
     }
 
     constexpr bool parse_basic_precision(size_t& i, size_t& precision, bool& has_precision) const noexcept
@@ -1043,7 +1258,7 @@ public:
 
         parse_basic_fill_alignment(i, spec.fill, spec.align);
         _FORMAT_RET_IF((check_basic_numeric_flags(i)), format_error::invalid_format);
-        parse_basic_width(i, spec.width);
+        _FORMAT_RET_IF((!parse_basic_width(i, spec.width)), format_error::invalid_format);
         parse_basic_type(i, spec.type);
 
         _FORMAT_RET_IF((m_data[i] != C(_fmt_priv::closed_brace)), format_error::invalid_format);
@@ -1055,7 +1270,7 @@ public:
         size_t i = 0;
 
         parse_basic_fill_alignment(i, spec.fill, spec.align);
-        parse_basic_width(i, spec.width);
+        _FORMAT_RET_IF((!parse_basic_width(i, spec.width)), format_error::invalid_format);
         if (!parse_basic_precision(i, spec.precision, spec.has_precision))
         {
             return format_error::invalid_format;
@@ -1072,7 +1287,7 @@ public:
 
         parse_basic_fill_alignment(i, spec.fill, spec.align);
         parse_basic_numeric_flags(i, spec.alternate, spec.zero_pad, spec.sign);
-        parse_basic_width(i, spec.width);
+        _FORMAT_RET_IF((!parse_basic_width(i, spec.width)), format_error::invalid_format);
         parse_basic_type(i, spec.type);
 
         _FORMAT_RET_IF((m_data[i] != C(_fmt_priv::closed_brace)), format_error::invalid_format);
@@ -1085,7 +1300,7 @@ public:
 
         parse_basic_fill_alignment(i, spec.fill, spec.align);
         parse_basic_numeric_flags(i, spec.alternate, spec.zero_pad, spec.sign);
-        parse_basic_width(i, spec.width);
+        _FORMAT_RET_IF((!parse_basic_width(i, spec.width)), format_error::invalid_format);
         if (!parse_basic_precision(i, spec.precision, spec.has_precision))
         {
             return format_error::invalid_format;
@@ -1124,7 +1339,7 @@ struct context_creator
         return basic_format_context<C>{ out };
     }
 
-    static constexpr auto create_scan_context(input_buffer<C>& in) noexcept
+    static constexpr auto create_scan_context(input_reader<C>& in) noexcept
     {
         return basic_scan_context<C>{ in };
     }
@@ -1135,6 +1350,7 @@ struct context_creator
 enum class token_type
 {
     literal,
+    whitespace,
     replacement,
     escaped,
     end
@@ -1157,7 +1373,7 @@ struct basic_format_token
     }
 };
 
-enum class format_mode
+enum class index_mode
 {
     default_,
     auto_,
@@ -1169,15 +1385,16 @@ class basic_format_parser
 {
 public:
 
-    constexpr basic_format_parser(const C* data, size_t size) noexcept
+    constexpr basic_format_parser(const C* data, size_t size, const whitespace_mode ws) noexcept
         : m_ptr(data)
         , m_remaning(size)
-        , m_mode(format_mode::default_)
+        , m_mode(index_mode::default_)
+        , m_ws_mode(ws)
     {}
 
-    constexpr bool update_mode(format_mode mode) noexcept
+    constexpr bool update_mode(index_mode mode) noexcept
     {
-        if (m_mode == format_mode::default_)
+        if (m_mode == index_mode::default_)
         {
             m_mode = mode;
             return true;
@@ -1212,17 +1429,23 @@ public:
         // literal
         if (current() != C(open_brace))
         {
-            tok.type = token_type::literal;
             tok.first = m_ptr;
 
-            while (!empty())
+            if ((m_ws_mode == whitespace_mode::greedy) && str::is_space(current()))
             {
-                if (current() == C(open_brace) || current() == C(closed_brace))
+                tok.type = token_type::whitespace;
+                while (!empty() && str::is_space(current()))
                 {
-                    break;
+                    advance(1);
                 }
-
-                advance(1);
+            }
+            else
+            {
+                tok.type = token_type::literal;
+                while (!empty() && (current() != C(open_brace) && current() != C(closed_brace)))
+                {
+                    advance(1);
+                }
             }
 
             tok.last = m_ptr;
@@ -1342,7 +1565,8 @@ private:
 
     const C* m_ptr;
     size_t m_remaning;
-    format_mode m_mode;
+    index_mode m_mode;
+    whitespace_mode m_ws_mode;
 };
 
 //==============================================================================
@@ -1416,7 +1640,7 @@ constexpr format_result format_impl(
     const array<const void*, argc> values = { &args... };
     const array<format_fn<C>, argc> funcs = { &invoke_formatter<Args, C>... };
 
-    basic_format_parser<C> parser(fmt, fmt_size);
+    basic_format_parser<C> parser{ fmt, fmt_size, whitespace_mode::bounded };
     output_buffer<C> buffer{ out, out_size };
 
     size_t next_arg = 0;
@@ -1452,8 +1676,8 @@ constexpr format_result format_impl(
             case token_type::replacement:
             {
                 _FORMAT_RET_IF(
-                    (!parser.update_mode(tok.has_index ? format_mode::manual : format_mode::auto_)),
-                    (format_result{ format_error::mode_mismatch, 0 }));
+                    (!parser.update_mode(tok.has_index ? index_mode::manual : index_mode::auto_)),
+                    (format_result{ format_error::index_mode_mismatch, 0 }));
 
                 const size_t index = (tok.has_index)
                     ? tok.index
@@ -1525,7 +1749,7 @@ constexpr format_result format_impl_consteval(
 
     auto values = std::forward_as_tuple(std::forward<Args>(args)...);
 
-    basic_format_parser<C> parser(fmt, fmt_size);
+    basic_format_parser<C> parser{ fmt, fmt_size, whitespace_mode::bounded };
     output_buffer<C> buffer{ out, out_size };
 
     size_t next_arg = 0;
@@ -1563,9 +1787,9 @@ constexpr format_result format_impl_consteval(
                 _FORMAT_RET_IF(
                     (!parser.update_mode(
                         tok.has_index
-                            ? format_mode::manual
-                            : format_mode::auto_)),
-                    (format_result{ format_error::mode_mismatch, 0 }));
+                            ? index_mode::manual
+                            : index_mode::auto_)),
+                    (format_result{ format_error::index_mode_mismatch, 0 }));
 
                 const size_t index = tok.has_index
                     ? tok.index
@@ -1603,15 +1827,15 @@ constexpr format_result format_impl_consteval(
 
 template <typename C>
 using scan_fn =
-    format_error (*)(
-        input_buffer<C>&,
+    scan_error (*)(
         const basic_parse_context<C>&,
+        basic_scan_context<C>&,
         void*);
 
 template <typename T, typename C>
-constexpr format_error invoke_scanner(
-    input_buffer<C>& in,
+constexpr scan_error invoke_scanner(
     const basic_parse_context<C>& parse_ctx,
+    basic_scan_context<C>& scan_ctx,
     void* ptr)
 {
     // preserves array-ness, e.g. const char[6]
@@ -1620,23 +1844,22 @@ constexpr format_error invoke_scanner(
 
     scanner<DT, C> s;
 
-    const auto err = s.parse(parse_ctx);
-    if (err != format_error::none)
+    auto err = s.parse(parse_ctx);
+    if (err != scan_error::none)
     {
         return err;
     }
 
-    auto scan_ctx = context_creator<C>::create_scan_context(in);
-
     // reinterpret as the *actual* stored object type, not the decayed one
     U& ref = *static_cast<U*>(ptr);
-    return s.scan(scan_ctx, ref);
+    err = s.scan_field(scan_ctx, ref);
+    return err;
 }
 
 template <typename T, typename C>
-constexpr format_error invoke_scanner_consteval(
-    input_buffer<C>& in,
+constexpr scan_error invoke_scanner_consteval(
     const basic_parse_context<C>& parse_ctx,
+    basic_scan_context<C>& scan_ctx,
     T& value) noexcept
 {
     using U = std::remove_reference_t<T>;
@@ -1645,98 +1868,115 @@ constexpr format_error invoke_scanner_consteval(
     scanner<DT, C> s;
 
     const auto err = s.parse(parse_ctx);
-    if (err != format_error::none)
+    if (err != scan_error::none)
     {
         return err;
     }
 
-    auto scan_ctx = context_creator<C>::create_scan_context(in);
     return s.scan(scan_ctx, value);
 }
 
 //==============================================================================
 
 template <typename C, typename... Args>
-constexpr format_result scan_impl(
+constexpr scan_result scan_impl(
     const C* in,
     size_t in_size,
     const C* fmt,
     size_t fmt_size,
+    const scan_options& ops,
     Args&&... args) noexcept
 {
     constexpr size_t argc = sizeof...(Args);
     const array<void*, argc> values = { &args... };
     const array<scan_fn<C>, argc> funcs = { &invoke_scanner<Args, C>... };
 
-    basic_format_parser<C> parser(fmt, fmt_size);
-    input_buffer<C> buffer{ in, in_size };
+    basic_format_parser<C> parser{ fmt, fmt_size, ops.ws_mode };
+    input_reader<C> input{ in, in_size };
 
     size_t next_arg = 0;
     basic_format_token<C> tok;
 
-    while (true)
+    scan_error err = scan_error::none;
+    bool scanning = true;
+    bool format_error = false;
+
+    while (scanning && !format_error)
     {
         if (!parser.next(tok))
         {
-            const size_t count = in_size - buffer.remaining;
-            return { format_error::invalid_format, count };
+            break;
         }
 
         switch (tok.type)
         {
             case token_type::literal:
             {
-                if (!buffer.consume(tok.first, tok.calculate_size()))
-                {
-                    const size_t count = in_size - buffer.remaining;
-                    return { format_error::invalid_format, count };
-                }
+                format_error = !input.consume_literal(tok.first, tok.calculate_size());
+                break;
+            }
+            case token_type::whitespace:
+            {
+                input.consume_whitespace();
                 break;
             }
             case token_type::escaped:
             {
-                if (!buffer.consume(2, *tok.first))
-                {
-                    const size_t count = in_size - buffer.remaining;
-                    return { format_error::invalid_format, count };
-                }
+                format_error = !input.consume_characters(2, *tok.first);
                 break;
             }
             case token_type::replacement:
             {
-                const size_t count = in_size - buffer.remaining;
-
-                _FORMAT_RET_IF(
-                    (!parser.update_mode(tok.has_index ? format_mode::manual : format_mode::auto_)),
-                    (format_result{ format_error::mode_mismatch, count }));
+                // verify index mode
+                if (!parser.update_mode(tok.has_index ? index_mode::manual : index_mode::auto_))
+                {
+                    err = scan_error::index_mode_mismatch;
+                    scanning = false;
+                    break;
+                }
 
                 const size_t index = (tok.has_index)
                     ? tok.index
                     : next_arg++;
 
-                _FORMAT_RET_IF((index >= argc), (format_result{ format_error::invalid_argument, 0 }));
+                // verify arg index
+                if (index >= argc)
+                {
+                    format_error = true;
+                    break;
+                }
 
                 auto parse_ctx = context_creator<C>::create_parse_context(tok.first, tok.calculate_size());
-                const auto fmt_err = funcs[index](buffer, parse_ctx, values[index]);
-                if (fmt_err != format_error::none)
+                auto scan_ctx = context_creator<C>::create_scan_context(input);
+                err = funcs[index](parse_ctx, scan_ctx, values[index]);
+
+                if (err != scan_error::none)
                 {
-                    return { fmt_err, 0 };
+                    scanning = false;
                 }
 
                 break;
             }
             case token_type::end:
             {
-                const size_t count = in_size - buffer.remaining;
-                return { format_error::none, count };
+                scanning = false;
+                break;
             }
         }
     }
+
+    if (format_error)
+    {
+        err = scan_error::invalid_format;
+    }
+
+    const size_t count = input.consumed(in_size);
+    return { err, count };
 }
 
 template <size_t I = 0, typename Tuple, typename C>
-constexpr format_error scan_arg(
-    input_buffer<C>& buffer,
+constexpr scan_error scan_arg(
+    input_reader<C>& input,
     const basic_format_token<C>& tok,
     Tuple&& tuple,
     size_t index)
@@ -1751,37 +1991,38 @@ constexpr format_error scan_arg(
                     tok.calculate_size());
 
             return invoke_scanner_consteval(
-                buffer,
+                input,
                 parse_ctx,
                 std::get<I>(std::forward<Tuple>(tuple)));
         }
 
         return scan_arg<I + 1>(
-            buffer,
+            input,
             tok,
             std::forward<Tuple>(tuple),
             index);
     }
     else
     {
-        return format_error::invalid_argument;
+        return scan_error::invalid_argument;
     }
 }
 
 template <typename C, typename... Args>
-constexpr format_result scan_impl_consteval(
+constexpr scan_result scan_impl_consteval(
     const C* in,
     size_t in_size,
     const C* fmt,
     size_t fmt_size,
+    const scan_options& ops,
     Args&&... args) noexcept
 {
     constexpr size_t argc = sizeof...(Args);
 
     auto values = std::forward_as_tuple(std::forward<Args>(args)...);
 
-    basic_format_parser<C> parser(fmt, fmt_size);
-    input_buffer<C> buffer{ in, in_size };
+    basic_format_parser<C> parser{ fmt, fmt_size, ops.ws_mode };
+    input_reader<C> input{ in, in_size };
 
     size_t next_arg = 0;
     basic_format_token<C> tok;
@@ -1790,82 +2031,108 @@ constexpr format_result scan_impl_consteval(
     {
         if (!parser.next(tok))
         {
-            return { format_error::invalid_format, 0 };
+            return { scan_error::invalid_format, 0 };
         }
 
         switch (tok.type)
         {
             case token_type::literal:
             {
-                if (!buffer.consume(tok.first, tok.calculate_size()))
+                if (!input.consume_literal(tok.first, tok.calculate_size()))
                 {
-                    return { format_error::invalid_format, 0 };
+                    return { scan_error::invalid_format, 0 };
                 }
 
                 break;
             }
             case token_type::escaped:
             {
-                if (!buffer.consume(2, *tok.first))
+                if (!input.consume_characters(2, *tok.first))
                 {
-                    return { format_error::invalid_format, 0 };
+                    return { scan_error::invalid_format, 0 };
                 }
 
                 break;
             }
             case token_type::replacement:
             {
-                _FORMAT_RET_IF(
-                    (!parser.update_mode(
-                        tok.has_index
-                            ? format_mode::manual
-                            : format_mode::auto_)),
-                    (format_result{ format_error::mode_mismatch, 0 }));
-
-                const size_t index = tok.has_index
-                    ? tok.index
-                    : next_arg++;
-
-                _FORMAT_RET_IF(
-                    (index >= argc),
-                    (format_result{ format_error::invalid_argument, 0 }));
-
-                const auto fmt_err = scan_arg(
-                    buffer,
-                    tok,
-                    values,
-                    index);
-
-                if (fmt_err != format_error::none)
-                {
-                    return { fmt_err, 0 };
-                }
+                //_FORMAT_RET_IF(
+                //    (!parser.update_mode(
+                //        tok.has_index
+                //            ? index_mode::manual
+                //            : index_mode::auto_)),
+                //    (scan_error{ scan_error::index_mode_mismatch, 0 }));
+                //
+                //const size_t index = tok.has_index
+                //    ? tok.index
+                //    : next_arg++;
+                //
+                //_FORMAT_RET_IF(
+                //    (index >= argc),
+                //    (scan_error{ scan_error::invalid_argument, 0 }));
+                //
+                //const auto fmt_err = scan_arg(
+                //    input,
+                //    tok,
+                //    values,
+                //    index);
+                //
+                //if (fmt_err != scan_error::none)
+                //{
+                //    return { fmt_err, 0 };
+                //}
 
                 break;
             }
             case token_type::end:
             {
-                const size_t count = in_size - buffer.remaining;
-                return { format_error::none, count };
+                const size_t count = in_size - input.remaining;
+                return { scan_error::none, count };
             }
         }
     }
 }
-
-template <typename T, typename C>
-struct base_scanner : basic_scan_spec<C>
-{
-    constexpr format_error parse(const basic_parse_context<C>& ctx) noexcept
-    {
-        return ctx.parse_basic_spec(*this);
-    }
-};
 
 } // namespace _fmt_priv
 
 //==============================================================================
 // integer
 //==============================================================================
+
+namespace _fmt_priv {
+
+template <typename C>
+constexpr int parse_integer_base(const C c) noexcept
+{
+    switch (c)
+    {
+        case C('\0'):
+        case C('d'):
+        {
+            return 10;
+        }
+        case C('x'):
+        case C('X'):
+        {
+            return 16;
+        }
+        case C('o'):
+        {
+            return 8;
+        }
+        case C('b'):
+        case C('B'):
+        {
+            return 2;
+        }
+        default:
+        {
+            return 0;
+        }
+    }
+}
+
+} // namespace _fmt_priv
 
 template <typename I, typename C>
 struct formatter<I, C, VX_REQUIRES_TYPE(std::is_integral<I>::value && !type_traits::is_char<I>::value && !std::is_same<I, bool>::value)> : basic_integer_format_spec<C>
@@ -1888,36 +2155,9 @@ public:
         strconv::integer_to_string_format_options fmt{};
         fmt.force_sign = base::sign == sign_option::force;
         fmt.uppercase = base::type == C('X') || base::type == C('B');
+        fmt.base = _fmt_priv::parse_integer_base(base::type);
 
-        switch (base::type)
-        {
-            case C('\0'):
-            case C('d'):
-            {
-                break;
-            }
-            case C('x'):
-            case C('X'):
-            {
-                fmt.base = 16;
-                break;
-            }
-            case C('o'):
-            {
-                fmt.base = 8;
-                break;
-            }
-            case C('b'):
-            case C('B'):
-            {
-                fmt.base = 2;
-                break;
-            }
-            default:
-            {
-                _FORMAT_RET_IF(true, format_error::invalid_format);
-            }
-        }
+        _FORMAT_RET_IF((fmt.base == 0), format_error::invalid_format);
 
         const size_t remaining = ctx.remaining();
         C* ptr = ctx.ptr();
@@ -1951,72 +2191,68 @@ public:
 //==============================================================================
 
 template <typename I, typename C>
-struct scanner<I, C, VX_REQUIRES_TYPE(std::is_integral<I>::value && !type_traits::is_char<I>::value && !std::is_same<I, bool>::value)> : _fmt_priv::base_scanner<I, C>
+struct scanner<I, C, VX_REQUIRES_TYPE(std::is_integral<I>::value && !type_traits::is_char<I>::value && !std::is_same<I, bool>::value)> : basic_scan_spec<C>
 {
 private:
 
-    using base = _fmt_priv::base_scanner<I, C>;
-
-    struct callback
-    {
-        I& value;
-        int base;
-
-        format_error operator()(basic_scan_context<C>& ctx) const noexcept
-        {
-            const C* ptr = ctx.ptr();
-            const size_t remaining = ctx.remaining();
-
-            const auto res = strconv::from_string<I, C>(ptr, remaining, value, base);
-            ctx.consume(res.count);
-            return (res.err == strconv::from_string_error::none)
-                ? format_error::none
-                : format_error::invalid_format;
-        }
-    };
+    using base = basic_scan_spec<C>;
 
 public:
 
-    constexpr format_error scan(
+    constexpr scan_error parse(const basic_parse_context<C>& ctx) noexcept
+    {
+        const auto err = ctx.parse_basic_spec(*this);
+        if (err != format_error::none)
+        {
+            return scan_error::invalid_format;
+        }
+
+        base::default_align = (base::type == C('c'))
+            ? alignment::left
+            : alignment::right;
+
+        return scan_error::none;
+    }
+
+    constexpr scan_error scan_field(basic_scan_context<C>& ctx, I& value) noexcept
+    {
+        return ctx.scan_field(*this, value);
+    }
+
+    constexpr scan_error scan(
         basic_scan_context<C>& ctx,
         I& value) const noexcept
     {
-        callback cb{ value, 10 };
-
-        switch (base::type)
+        if (ctx.empty())
         {
-            case C('\0'):
-            case C('d'):
-            {
-                break;
-            }
-            case C('x'):
-            case C('X'):
-            {
-                cb.base = 16;
-                break;
-            }
-            case C('o'):
-            {
-                cb.base = 8;
-                break;
-            }
-            case C('b'):
-            case C('B'):
-            {
-                cb.base = 2;
-                break;
-            }
-            default:
-            {
-                _FORMAT_RET_IF(true, format_error::invalid_format);
-            }
+            return scan_error::invalid_scaned_value;
         }
 
-        return ctx.scan_field(*this, cb, alignment::right);
+        if (base::type == C('c'))
+        {
+            value = static_cast<I>(*ctx.ptr());
+            ctx.consume(1);
+            return scan_error::none;
+        }
+
+        ctx.consume_whitespace();
+        const C* ptr = ctx.ptr();
+        const size_t remaining = ctx.remaining();
+
+        const int base = _fmt_priv::parse_integer_base(base::type);
+        const auto res = strconv::_strconv_priv::parse_integer_impl<I, C, true, true>(
+            ptr, remaining,
+            value, base);
+
+        ctx.consume(res.count);
+        return (res.err == strconv::from_string_error::none)
+            ? scan_error::none
+            : scan_error::invalid_scaned_value;
     }
 };
 
+//==============================================================================
+// character
 //==============================================================================
 
 template <typename C1, typename C2>
@@ -2057,6 +2293,52 @@ public:
     }
 };
 
+//==============================================================================
+
+template <typename C1, typename C2>
+struct scanner<C1, C2, VX_REQUIRES_TYPE(type_traits::is_char<C1>::value)> : scanner<typename std::make_unsigned<C1>::type, C2>
+{
+private:
+
+    VX_STATIC_ASSERT_MSG(sizeof(C1) <= sizeof(C2), "Narrowing conversion not allowed");
+    using U = typename std::make_unsigned<C1>::type;
+    using base = scanner<U, C2>;
+
+public:
+
+    constexpr format_error parse(const basic_parse_context<C1>& ctx) noexcept
+    {
+        const auto err = ctx.parse_basic_spec(*this);
+        if (err != format_error::none)
+        {
+            return err;
+        }
+
+        base::default_align = (base::type == C2('\0') || base::type == C2('c'))
+            ? alignment::left
+            : alignment::right;
+
+        return scan_error::none;
+    }
+
+    constexpr scan_error scan_field(
+        basic_scan_context<C1>& ctx,
+        C2& value) const noexcept
+    {
+        U uvalue;
+        const auto err = base::scan_field(*this, value);
+        if (err != scan_error::none)
+        {
+            return err;
+        }
+
+        value = static_cast<C2>(uvalue);
+        return scan_error::none;
+    }
+};
+
+//==============================================================================
+// bool
 //==============================================================================
 
 template <typename C>
@@ -2110,7 +2392,82 @@ public:
 };
 
 //==============================================================================
-// string formatters
+
+template <typename C>
+struct scanner<bool, C, VX_REQUIRES_TYPE(type_traits::is_char<C>::value)> : scanner<unsigned int, C>
+{
+private:
+
+    using U = unsigned int;
+    using base = scanner<U, C>;
+
+    static constexpr C true_str[] = { C('t'), C('r'), C('u'), C('e') };
+    static constexpr C false_str[] = { C('f'), C('a'), C('l'), C('s'), C('e') };
+
+public:
+
+    constexpr scan_error scan_field(
+        basic_scan_context<C>& ctx,
+        bool& value) const noexcept
+    {
+        if (base::type == C('s'))
+        {
+            return ctx.scan_field(*this, value, alignment::left);
+        }
+
+        if (base::type == C('\0'))
+        {
+            // try string first
+            if (ctx.try_scan_field(*this, value, alignment::left))
+            {
+                return scan_error::none;
+            }
+        }
+
+        U uvalue;
+        const auto err = base::scan_field(ctx, uvalue);
+        if (err != scan_error::none)
+        {
+            return err;
+        }
+
+        value = static_cast<bool>(uvalue);
+        return scan_error::none;
+    }
+
+    constexpr scan_error scan(
+        basic_scan_context<C>& ctx,
+        bool& value) const noexcept
+    {
+        VX_ASSERT(base::type == C('\0') || base::type == C('c'));
+        ctx.consume_whitespace();
+
+        const C* ptr = ctx.ptr();
+        const size_t remaining = ctx.remaining();
+        if (remaining < 4)
+        {
+            return scan_error::invalid_scaned_value;
+        }
+
+        if (str::case_compare(ptr, true_str, 4) == 0)
+        {
+            value = true;
+            ctx.consume(4);
+            return scan_error::none;
+        }
+        if (remaining >= 5 && str::case_compare(ptr, false_str, 5) == 0)
+        {
+            value = false;
+            ctx.consume(5);
+            return scan_error::none;
+        }
+
+        return scan_error::invalid_scaned_value;
+    }
+};
+
+//==============================================================================
+// string like types
 //==============================================================================
 
 namespace _fmt_priv {
@@ -2143,8 +2500,48 @@ public:
     }
 };
 
+template <typename C>
+struct string_scanner : basic_scan_spec<C>
+{
+private:
+
+    using base = basic_scan_spec<C>;
+
+public:
+
+    constexpr format_error parse(const basic_parse_context<C>& ctx) noexcept
+    {
+        const auto err = ctx.parse_basic_spec(*this);
+        if (err != format_error::none)
+        {
+            return scan_error::invalid_format;
+        }
+
+        if (base::type == C('c') && !base::width)
+        {
+            return scan_error::invalid_format;
+        }
+
+        base::default_align = alignment::left;
+        return scan_error::none;
+    }
+
+    static constexpr size_t find_size(const C* ptr, const size_t size) noexcept
+    {
+        size_t i = 0;
+        while (i < size && !str::is_space(ptr[i]))
+        {
+            ++i;
+        }
+
+        return i;
+    }
+};
+
 } // namespace _fmt_priv
 
+//==============================================================================
+// const char*
 //==============================================================================
 
 template <typename C>
@@ -2168,6 +2565,8 @@ public:
     }
 };
 
+//==============================================================================
+// char array
 //==============================================================================
 
 template <typename C, size_t N>
@@ -2195,6 +2594,8 @@ struct formatter<C[N], C> : formatter<const C[N], C>
 {};
 
 //==============================================================================
+// string
+//==============================================================================
 
 template <typename S, typename C>
 struct formatter<S, C, VX_REQUIRES_TYPE(str::is_string_of<S, C>::value)> : _fmt_priv::string_formatter<C>
@@ -2216,8 +2617,53 @@ public:
     }
 };
 
+template <typename S, typename C>
+struct scanner<S, C, VX_REQUIRES_TYPE(str::is_string_of<S, C>::value)> : _fmt_priv::string_scanner<C>
+{
+private:
+
+    using base = _fmt_priv::string_scanner<C>;
+
+public:
+
+    constexpr scan_error scan_field(
+        basic_scan_context<C>& ctx,
+        S& value) const noexcept
+    {
+        return ctx.scan_field(*this, value);
+    }
+
+    constexpr scan_error scan(
+        basic_scan_context<C>& ctx,
+        S& value) const noexcept
+    {
+        if (base::type != C('c'))
+        {
+            VX_ASSERT(base::type == C('\0') || base::type == C('s'));
+            ctx.consume_whitespace();
+        }
+
+        const C* ptr = ctx.ptr();
+        const size_t remaining = ctx.remaining();
+
+        const size_t count = (base::type == C('c'))
+            ? base::width
+            : base::find_size(ptr, remaining);
+
+        if (count == 0)
+        {
+            return scan_error::invalid_scaned_value;
+        }
+
+        value.assign(ptr, count);
+        ctx.consume(count);
+
+        return scan_error::none;
+    }
+};
+
 //==============================================================================
-// float formatters
+// float
 //==============================================================================
 
 template <typename F, typename C>
@@ -2301,7 +2747,90 @@ public:
 };
 
 //==============================================================================
-// pointer formatters
+
+template <typename F, typename C>
+struct scanner<F, C, VX_REQUIRES_TYPE(std::is_floating_point<F>::value)> : basic_scan_spec<C>
+{
+private:
+
+    using base = basic_scan_spec<C>;
+
+public:
+
+    constexpr format_error parse(const basic_parse_context<C>& ctx) noexcept
+    {
+        const auto err = ctx.parse_basic_spec(*this);
+        if (err != format_error::none)
+        {
+            return err;
+        }
+
+        base::default_align = alignment::right;
+        return scan_error::none;
+    }
+
+    constexpr scan_error scan_field(basic_scan_context<C>& ctx, F& value) noexcept
+    {
+        return ctx.scan_field(*this, value);
+    }
+
+    constexpr scan_error scan(
+        basic_scan_context<C>& ctx,
+        F& value) const noexcept
+    {
+        strconv::float_from_string_format_options<C> fmt{};
+
+        const bool is_uppercase = str::is_upper(base::type);
+        const C lower_type = is_uppercase
+            ? str::to_lower_ascii_unchecked(base::type)
+            : base::type;
+
+        switch (lower_type)
+        {
+            case C('\0'):
+            case C('g'):
+            case C('f'):
+            case C('e'):
+            case C('a'):
+            {
+                fmt.format = static_cast<strconv::float_format>(lower_type);
+                break;
+            }
+            default:
+            {
+                _FORMAT_RET_IF(true, format_error::invalid_format);
+            }
+        }
+
+        ctx.consume_whitespace();
+
+        const C* ptr = ctx.ptr();
+        const size_t remaining = ctx.remaining();
+
+        strconv::from_string_result res;
+
+        if (lower_type == C('a'))
+        {
+            res = strconv::_strconv_priv::parse_float_start<F, C, true>(
+                ptr, remaining,
+                value, fmt);
+        }
+        else
+        {
+            res = strconv::_strconv_priv::parse_float_start<F, C, false>(
+                ptr, remaining,
+                value, fmt);
+        }
+
+        ctx.consume(res.count);
+        return (res.err == strconv::from_string_error::none)
+            ? scan_error::none
+            : scan_error::invalid_scaned_value;
+    }
+};
+
+//==============================================================================
+// pointer
 //==============================================================================
 
 template <typename C>
@@ -2341,14 +2870,75 @@ public:
 
 //==============================================================================
 
+template <typename C>
+struct scanner<void*, C> : basic_scan_spec<C>
+{
+private:
+
+    using base = basic_scan_spec<C>;
+
+public:
+
+    constexpr format_error parse(const basic_parse_context<C>& ctx) noexcept
+    {
+        const auto err = ctx.parse_basic_spec(*this);
+        if (err != format_error::none)
+        {
+            return err;
+        }
+
+        base::default_align = alignment::right;
+        return scan_error::none;
+    }
+
+    constexpr scan_error scan_field(basic_scan_context<C>& ctx, void*& value) noexcept
+    {
+        return ctx.scan_field(*this, value);
+    }
+
+    constexpr scan_error scan(
+        basic_scan_context<C>& ctx,
+        void*& value) const noexcept
+    {
+        ctx.consume_whitespace();
+        const C* ptr = ctx.ptr();
+        const size_t remaining = ctx.remaining();
+
+        uintptr_t uvalue;
+        const auto res = strconv::_strconv_priv::parse_integer_impl<uintptr_t, C, true, true>(
+            ptr, remaining,
+            value, 16);
+
+        ctx.consume(res.count);
+
+        if (res.err != strconv::from_string_error::none)
+        {
+            return scan_error::invalid_scaned_value;
+        }
+
+        value = reinterpret_cast<void*>(uvalue);
+        return scan_error::none;
+    }
+};
+
+//==============================================================================
+
 template <typename T, typename C>
 struct formatter<T*, C, VX_REQUIRES_TYPE(!type_traits::is_char<T>::value)> : formatter<const void*, C>
+{};
+
+template <typename T, typename C>
+struct scanner<T*, C, VX_REQUIRES_TYPE(!type_traits::is_char<T>::value)> : scanner<void*, C>
 {};
 
 //==============================================================================
 
 template <typename C>
 struct formatter<std::nullptr_t, C> : formatter<const void*, C>
+{};
+
+template <typename C>
+struct scanner<std::nullptr_t, C> : scanner<void*, C>
 {};
 
 //==============================================================================
@@ -2469,7 +3059,7 @@ str::basic_string<C> format(
 //==============================================================================
 
 template <typename C, typename... Args, VX_REQUIRES(type_traits::is_char<C>::value)>
-constexpr format_result scan(
+constexpr scan_result scan(
     const C* in,
     size_t in_size,
     const C* fmt,
@@ -2483,6 +3073,7 @@ constexpr format_result scan(
             in_size,
             fmt,
             fmt_size,
+            {},
             std::forward<Args>(args)...);
     }
     else
@@ -2492,6 +3083,7 @@ constexpr format_result scan(
             in_size,
             fmt,
             fmt_size,
+            {},
             std::forward<Args>(args)...);
     }
 }

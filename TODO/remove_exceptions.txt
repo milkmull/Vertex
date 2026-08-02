@@ -16,6 +16,8 @@ x io
 x string format
 - string scan
 
+- break up large template functions in strconv and format
+- add parse base 10 function
 - handle 0 width
 - test 0 size array
 
