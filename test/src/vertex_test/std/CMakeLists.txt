@@ -15,3 +15,4 @@ vx_add_test(test_std_span                   "std" "${CMAKE_CURRENT_SOURCE_DIR}/s
 
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/string_convert")
 vx_add_test(test_std_format                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/format.cpp")
+vx_add_test(test_std_scan                   "std" "${CMAKE_CURRENT_SOURCE_DIR}/scan.cpp")

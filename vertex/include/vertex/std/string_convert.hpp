@@ -446,7 +446,7 @@ constexpr from_string_result parse_integer_impl(const C* s, size_t size, I& valu
 
     VX_IF_CONSTEXPR (Prefix)
     {
-        if (size - i >= 2 && s[i] == C('0'))
+        if ((size - i >= 2) && s[i] == C('0'))
         {
             const C x = s[i + 1];
 
@@ -466,11 +466,6 @@ constexpr from_string_result parse_integer_impl(const C* s, size_t size, I& valu
                     {
                         i += 2;
                     }
-                    break;
-                }
-                case 8:
-                {
-                    ++i;
                     break;
                 }
             }

@@ -67,18 +67,18 @@ void print_one(os::stream s, const S& v)
     print_one_base(s, v.data(), v.size());
 }
 
-template <typename T>
-void print_one(os::stream s, const T& v)
-{
-    const char fmt[] = { '{', '}' };
-    string out;
-
-    const auto res = fmt::format_string(fmt, 2, out, v);
-    if (res.err == fmt::format_error::none)
-    {
-        print_one_base(s, out.data(), out.size());
-    }
-}
+//template <typename T>
+//void print_one(os::stream s, const T& v)
+//{
+//    const char fmt[] = { '{', '}' };
+//    string out;
+//
+//    const auto res = fmt::format_string(fmt, 2, out, v);
+//    if (res.err == fmt::format_error::none)
+//    {
+//        print_one_base(s, out.data(), out.size());
+//    }
+//}
 
 } // namespace _io_priv
 

@@ -13,6 +13,10 @@ class basic_string_view
 {
     VX_STATIC_ASSERT_MSG((type_traits::is_char<T>::value), "T must be character type");
 
+    template <typename S>
+    struct is_compatible_string : is_string_of<S, T>
+    {};
+
 public:
 
     //=========================================================================
@@ -51,13 +55,13 @@ public:
         : m_data(str), m_size(N - 1)
     {}
 
-    constexpr basic_string_view(const const_pointer ptr) noexcept
+    constexpr basic_string_view(const T* ptr) noexcept
         : m_data(ptr), m_size(traits_type::length(ptr))
     {}
 
     basic_string_view(nullptr_t) = delete;
 
-    constexpr basic_string_view(const const_pointer ptr, const size_type count) noexcept
+    constexpr basic_string_view(const T* ptr, const size_type count) noexcept
         : m_data(ptr), m_size(count)
     {
         VX_ASSERT(count == 0 || ptr);
@@ -87,6 +91,53 @@ public:
     }
 
 #endif // defined(__cpp_lib_string_view)
+
+    //=========================================================================
+    // assign
+    //=========================================================================
+
+    constexpr basic_string_view& assign(const basic_string_view other) noexcept
+    {
+        return *this = other;
+    }
+
+    //=========================================================================
+
+    constexpr basic_string_view& assign(const basic_string_view other, const size_type off, const size_type count = npos)
+    {
+        return *this = other.substr(off, count);
+    }
+
+    //=========================================================================
+
+    constexpr basic_string_view& assign(const T* ptr)
+    {
+        return *this = basic_string_view(ptr);
+    }
+
+    constexpr basic_string_view& assign(const T* ptr, const size_type count) noexcept
+    {
+        VX_ASSERT(count == 0 || ptr);
+        m_data = ptr;
+        m_size = count;
+        return *this;
+    }
+
+    //=========================================================================
+
+    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+    constexpr basic_string_view& assign(const S& t) noexcept
+    {
+        m_data = t.data();
+        m_size = static_cast<size_type>(t.size());
+        return *this;
+    }
+
+    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+    constexpr basic_string_view& assign(const S& t, const size_type off, const size_type count = npos)
+    {
+        return *this = basic_string_view(t.data(), static_cast<size_type>(t.size())).substr(off, count);
+    }
 
     //=========================================================================
     // element access

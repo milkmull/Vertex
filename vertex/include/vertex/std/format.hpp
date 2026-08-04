@@ -144,7 +144,7 @@ enum class scan_error
     end_of_input,
     invalid_format,
     invalid_argument,
-    invalid_scaned_value,
+    invalid_scaned_field,
     index_mode_mismatch
 };
 
@@ -610,42 +610,42 @@ struct input_reader
 
     constexpr bool consume_literal(const C* data, size_t count) noexcept
     {
-        size_t i = 0;
-        const size_t stop = (count < remaining) ? count : remaining;
+        if (remaining < count)
+        {
+            return false;
+        }
 
-        while (i < stop)
+        for (size_t i = 0; i < count; ++i)
         {
             if (ptr[i] != data[i])
             {
                 return false;
             }
-
-            ++i;
         }
 
-        ptr += i;
-        remaining -= i;
+        ptr += count;
+        remaining -= count;
 
         return true;
     }
 
     constexpr bool consume_characters(size_t count, const C c) noexcept
     {
-        size_t i = 0;
-        const size_t stop = (count < remaining) ? count : remaining;
+        if (remaining < count)
+        {
+            return false;
+        }
 
-        while (i < stop)
+        for (size_t i = 0; i < count; ++i)
         {
             if (ptr[i] != c)
             {
                 return false;
             }
-
-            ++i;
         }
 
-        ptr += i;
-        remaining -= i;
+        ptr += count;
+        remaining -= count;
 
         return true;
     }
@@ -776,6 +776,7 @@ private:
         const size_t max_width = width < r ? width : r;
         scan_error err = scan_error::none;
 
+        // create a new input bound to the width
         _fmt_priv::input_reader<C> field_in{ ptr(), max_width };
         basic_scan_context<C> field_ctx{ field_in };
 
@@ -796,7 +797,7 @@ private:
                 const size_t expected_right_pad = width - value_size;
                 if (!m_in.consume_characters(expected_right_pad, fill))
                 {
-                    return scan_error::invalid_format;
+                    return scan_error::invalid_scaned_field;
                 }
 
                 break;
@@ -813,7 +814,7 @@ private:
                 const size_t expected_left_pad = width - value_size;
                 if (left_pad != expected_left_pad)
                 {
-                    return scan_error::invalid_format;
+                    return scan_error::invalid_scaned_field;
                 }
 
                 if (err != scan_error::none)
@@ -835,7 +836,7 @@ private:
                 const size_t expected_left_pad = (width - value_size) / 2;
                 if (left_pad != expected_left_pad)
                 {
-                    return scan_error::invalid_format;
+                    return scan_error::invalid_scaned_field;
                 }
 
                 if (err != scan_error::none)
@@ -846,7 +847,7 @@ private:
                 const size_t expected_right_pad = width - value_size - expected_left_pad;
                 if (!m_in.consume_characters(expected_right_pad, fill))
                 {
-                    return scan_error::invalid_format;
+                    return scan_error::invalid_scaned_field;
                 }
 
                 break;
@@ -861,7 +862,6 @@ private:
         const alignment align,
         const callback_pair callback) noexcept
     {
-        const size_t max_width = remaining();
         scan_error err = scan_error::none;
 
         switch (align)
@@ -982,6 +982,7 @@ public:
         T& value,
         const alignment default_align) noexcept
     {
+        VX_ASSERT(!empty());
         using callback_data = typename scan_callback_wrapper<T>::callback_data;
         callback_data data{ scn, value };
         callback_pair callback{ scan_callback_wrapper<T>::invoke, &data };
@@ -1905,6 +1906,7 @@ constexpr scan_result scan_impl(
     {
         if (!parser.next(tok))
         {
+            format_error = true;
             break;
         }
 
@@ -1912,7 +1914,17 @@ constexpr scan_result scan_impl(
         {
             case token_type::literal:
             {
-                format_error = !input.consume_literal(tok.first, tok.calculate_size());
+                if (input.remaining == 0)
+                {
+                    err = scan_error::end_of_input;
+                    break;
+                }
+
+                if (!input.consume_literal(tok.first, tok.calculate_size()))
+                {
+                    err = scan_error::invalid_scaned_field;
+                    break;
+                }
                 break;
             }
             case token_type::whitespace:
@@ -1922,11 +1934,27 @@ constexpr scan_result scan_impl(
             }
             case token_type::escaped:
             {
-                format_error = !input.consume_characters(2, *tok.first);
+                if (input.remaining == 0)
+                {
+                    err = scan_error::end_of_input;
+                    break;
+                }
+
+                if (!input.consume_characters(1, *tok.first))
+                {
+                    err = scan_error::invalid_scaned_field;
+                    scanning = false;
+                }
                 break;
             }
             case token_type::replacement:
             {
+                if (input.remaining == 0)
+                {
+                    err = scan_error::end_of_input;
+                    break;
+                }
+
                 // verify index mode
                 if (!parser.update_mode(tok.has_index ? index_mode::manual : index_mode::auto_))
                 {
@@ -1942,13 +1970,20 @@ constexpr scan_result scan_impl(
                 // verify arg index
                 if (index >= argc)
                 {
-                    format_error = true;
+                    err = scan_error::invalid_argument;
+                    scanning = false;
                     break;
                 }
 
                 auto parse_ctx = context_creator<C>::create_parse_context(tok.first, tok.calculate_size());
                 auto scan_ctx = context_creator<C>::create_scan_context(input);
                 err = funcs[index](parse_ctx, scan_ctx, values[index]);
+
+                if (err == scan_error::invalid_scaned_field && input.remaining == 0)
+                {
+                    // we consumed all of the input and did not find what we needed
+                    err = scan_error::end_of_input;
+                }
 
                 if (err != scan_error::none)
                 {
@@ -2017,80 +2052,82 @@ constexpr scan_result scan_impl_consteval(
     const scan_options& ops,
     Args&&... args) noexcept
 {
-    constexpr size_t argc = sizeof...(Args);
+    //constexpr size_t argc = sizeof...(Args);
+    //
+    //auto values = std::forward_as_tuple(std::forward<Args>(args)...);
+    //
+    //basic_format_parser<C> parser{ fmt, fmt_size, ops.ws_mode };
+    //input_reader<C> input{ in, in_size };
+    //
+    //size_t next_arg = 0;
+    //basic_format_token<C> tok;
+    //
+    //while (true)
+    //{
+    //    if (!parser.next(tok))
+    //    {
+    //        return { scan_error::invalid_format, 0 };
+    //    }
+    //
+    //    switch (tok.type)
+    //    {
+    //        case token_type::literal:
+    //        {
+    //            if (!input.consume_literal(tok.first, tok.calculate_size()))
+    //            {
+    //                return { scan_error::invalid_format, 0 };
+    //            }
+    //
+    //            break;
+    //        }
+    //        case token_type::escaped:
+    //        {
+    //            if (!input.consume_characters(2, *tok.first))
+    //            {
+    //                return { scan_error::invalid_format, 0 };
+    //            }
+    //
+    //            break;
+    //        }
+    //        case token_type::replacement:
+    //        {
+    //            //_FORMAT_RET_IF(
+    //            //    (!parser.update_mode(
+    //            //        tok.has_index
+    //            //            ? index_mode::manual
+    //            //            : index_mode::auto_)),
+    //            //    (scan_error{ scan_error::index_mode_mismatch, 0 }));
+    //            //
+    //            //const size_t index = tok.has_index
+    //            //    ? tok.index
+    //            //    : next_arg++;
+    //            //
+    //            //_FORMAT_RET_IF(
+    //            //    (index >= argc),
+    //            //    (scan_error{ scan_error::invalid_argument, 0 }));
+    //            //
+    //            //const auto fmt_err = scan_arg(
+    //            //    input,
+    //            //    tok,
+    //            //    values,
+    //            //    index);
+    //            //
+    //            //if (fmt_err != scan_error::none)
+    //            //{
+    //            //    return { fmt_err, 0 };
+    //            //}
+    //
+    //            break;
+    //        }
+    //        case token_type::end:
+    //        {
+    //            const size_t count = in_size - input.remaining;
+    //            return { scan_error::none, count };
+    //        }
+    //    }
+    //}
 
-    auto values = std::forward_as_tuple(std::forward<Args>(args)...);
-
-    basic_format_parser<C> parser{ fmt, fmt_size, ops.ws_mode };
-    input_reader<C> input{ in, in_size };
-
-    size_t next_arg = 0;
-    basic_format_token<C> tok;
-
-    while (true)
-    {
-        if (!parser.next(tok))
-        {
-            return { scan_error::invalid_format, 0 };
-        }
-
-        switch (tok.type)
-        {
-            case token_type::literal:
-            {
-                if (!input.consume_literal(tok.first, tok.calculate_size()))
-                {
-                    return { scan_error::invalid_format, 0 };
-                }
-
-                break;
-            }
-            case token_type::escaped:
-            {
-                if (!input.consume_characters(2, *tok.first))
-                {
-                    return { scan_error::invalid_format, 0 };
-                }
-
-                break;
-            }
-            case token_type::replacement:
-            {
-                //_FORMAT_RET_IF(
-                //    (!parser.update_mode(
-                //        tok.has_index
-                //            ? index_mode::manual
-                //            : index_mode::auto_)),
-                //    (scan_error{ scan_error::index_mode_mismatch, 0 }));
-                //
-                //const size_t index = tok.has_index
-                //    ? tok.index
-                //    : next_arg++;
-                //
-                //_FORMAT_RET_IF(
-                //    (index >= argc),
-                //    (scan_error{ scan_error::invalid_argument, 0 }));
-                //
-                //const auto fmt_err = scan_arg(
-                //    input,
-                //    tok,
-                //    values,
-                //    index);
-                //
-                //if (fmt_err != scan_error::none)
-                //{
-                //    return { fmt_err, 0 };
-                //}
-
-                break;
-            }
-            case token_type::end:
-            {
-                const size_t count = in_size - input.remaining;
-                return { scan_error::none, count };
-            }
-        }
-    }
+    return { scan_error::none, 0 };
 }
 
 } // namespace _fmt_priv
@@ -2214,7 +2251,7 @@ public:
         return scan_error::none;
     }
 
-    constexpr scan_error scan_field(basic_scan_context<C>& ctx, I& value) noexcept
+    constexpr scan_error scan_field(basic_scan_context<C>& ctx, I& value) const noexcept
     {
         return ctx.scan_field(*this, value);
     }
@@ -2225,7 +2262,7 @@ public:
     {
         if (ctx.empty())
         {
-            return scan_error::invalid_scaned_value;
+            return scan_error::invalid_scaned_field;
         }
 
         if (base::type == C('c'))
@@ -2239,15 +2276,17 @@ public:
         const C* ptr = ctx.ptr();
         const size_t remaining = ctx.remaining();
 
-        const int base = _fmt_priv::parse_integer_base(base::type);
+        const int b = _fmt_priv::parse_integer_base(base::type);
+        _FORMAT_RET_IF((b == 0), scan_error::invalid_format);
+
         const auto res = strconv::_strconv_priv::parse_integer_impl<I, C, true, true>(
             ptr, remaining,
-            value, base);
+            value, b);
 
         ctx.consume(res.count);
         return (res.err == strconv::from_string_error::none)
             ? scan_error::none
-            : scan_error::invalid_scaned_value;
+            : scan_error::invalid_scaned_field;
     }
 };
 
@@ -2306,15 +2345,20 @@ private:
 
 public:
 
-    constexpr format_error parse(const basic_parse_context<C1>& ctx) noexcept
+    constexpr scan_error parse(const basic_parse_context<C2>& ctx) noexcept
     {
         const auto err = ctx.parse_basic_spec(*this);
         if (err != format_error::none)
         {
-            return err;
+            return scan_error::invalid_format;
         }
 
-        base::default_align = (base::type == C2('\0') || base::type == C2('c'))
+        if (base::type == C2('\0'))
+        {
+            base::type = C2('c');
+        }
+
+        base::default_align = (base::type == C2('c'))
             ? alignment::left
             : alignment::right;
 
@@ -2322,11 +2366,11 @@ public:
     }
 
     constexpr scan_error scan_field(
-        basic_scan_context<C1>& ctx,
-        C2& value) const noexcept
+        basic_scan_context<C2>& ctx,
+        C1& value) const noexcept
     {
         U uvalue;
-        const auto err = base::scan_field(*this, value);
+        const auto err = base::scan_field(ctx, uvalue);
         if (err != scan_error::none)
         {
             return err;
@@ -2439,30 +2483,32 @@ public:
         basic_scan_context<C>& ctx,
         bool& value) const noexcept
     {
-        VX_ASSERT(base::type == C('\0') || base::type == C('c'));
-        ctx.consume_whitespace();
+        if (base::type != C('c'))
+        {
+            ctx.consume_whitespace();
+        }
 
         const C* ptr = ctx.ptr();
         const size_t remaining = ctx.remaining();
         if (remaining < 4)
         {
-            return scan_error::invalid_scaned_value;
+            return scan_error::invalid_scaned_field;
         }
 
-        if (str::case_compare(ptr, true_str, 4) == 0)
+        if (str::case_compare(ptr, 4, true_str, 4) == 0)
         {
             value = true;
             ctx.consume(4);
             return scan_error::none;
         }
-        if (remaining >= 5 && str::case_compare(ptr, false_str, 5) == 0)
+        if (remaining >= 5 && str::case_compare(ptr, 5, false_str, 5) == 0)
         {
             value = false;
             ctx.consume(5);
             return scan_error::none;
         }
 
-        return scan_error::invalid_scaned_value;
+        return scan_error::invalid_scaned_field;
     }
 };
 
@@ -2509,7 +2555,7 @@ private:
 
 public:
 
-    constexpr format_error parse(const basic_parse_context<C>& ctx) noexcept
+    constexpr scan_error parse(const basic_parse_context<C>& ctx) noexcept
     {
         const auto err = ctx.parse_basic_spec(*this);
         if (err != format_error::none)
@@ -2652,10 +2698,10 @@ public:
 
         if (count == 0)
         {
-            return scan_error::invalid_scaned_value;
+            return scan_error::invalid_scaned_field;
         }
 
-        value.assign(ptr, count);
+        value = S{ ptr, count };
         ctx.consume(count);
 
         return scan_error::none;
@@ -2757,19 +2803,19 @@ private:
 
 public:
 
-    constexpr format_error parse(const basic_parse_context<C>& ctx) noexcept
+    constexpr scan_error parse(const basic_parse_context<C>& ctx) noexcept
     {
         const auto err = ctx.parse_basic_spec(*this);
         if (err != format_error::none)
         {
-            return err;
+            return scan_error::invalid_format;
         }
 
         base::default_align = alignment::right;
         return scan_error::none;
     }
 
-    constexpr scan_error scan_field(basic_scan_context<C>& ctx, F& value) noexcept
+    constexpr scan_error scan_field(basic_scan_context<C>& ctx, F& value) const noexcept
     {
         return ctx.scan_field(*this, value);
     }
@@ -2798,7 +2844,7 @@ public:
             }
             default:
             {
-                _FORMAT_RET_IF(true, format_error::invalid_format);
+                _FORMAT_RET_IF(true, scan_error::invalid_format);
             }
         }
 
@@ -2825,7 +2871,7 @@ public:
         ctx.consume(res.count);
         return (res.err == strconv::from_string_error::none)
             ? scan_error::none
-            : scan_error::invalid_scaned_value;
+            : scan_error::invalid_scaned_field;
     }
 };
 
@@ -2879,10 +2925,10 @@ private:
 
 public:
 
-    constexpr format_error parse(const basic_parse_context<C>& ctx) noexcept
+    constexpr scan_error parse(const basic_parse_context<C>& ctx) noexcept
     {
         const auto err = ctx.parse_basic_spec(*this);
-        if (err != format_error::none)
+        if (err != scan_error::none)
         {
             return err;
         }
@@ -2913,7 +2959,7 @@ public:
 
         if (res.err != strconv::from_string_error::none)
         {
-            return scan_error::invalid_scaned_value;
+            return scan_error::invalid_scaned_field;
         }
 
         value = reinterpret_cast<void*>(uvalue);
