@@ -145,6 +145,7 @@ enum class scan_error
     invalid_format,
     invalid_argument,
     invalid_scaned_field,
+    result_out_of_range,
     index_mode_mismatch
 };
 
@@ -610,12 +611,9 @@ struct input_reader
 
     constexpr bool consume_literal(const C* data, size_t count) noexcept
     {
-        if (remaining < count)
-        {
-            return false;
-        }
+        const size_t n = remaining < count ? remaining : count;
 
-        for (size_t i = 0; i < count; ++i)
+        for (size_t i = 0; i < n; ++i)
         {
             if (ptr[i] != data[i])
             {
@@ -623,20 +621,17 @@ struct input_reader
             }
         }
 
-        ptr += count;
-        remaining -= count;
+        ptr += n;
+        remaining -= n;
 
-        return true;
+        return n == count;
     }
 
     constexpr bool consume_characters(size_t count, const C c) noexcept
     {
-        if (remaining < count)
-        {
-            return false;
-        }
+        const size_t n = remaining < count ? remaining : count;
 
-        for (size_t i = 0; i < count; ++i)
+        for (size_t i = 0; i < n; ++i)
         {
             if (ptr[i] != c)
             {
@@ -644,10 +639,10 @@ struct input_reader
             }
         }
 
-        ptr += count;
-        remaining -= count;
+        ptr += n;
+        remaining -= n;
 
-        return true;
+        return n == count;
     }
 
     constexpr size_t consume_whitespace() noexcept
@@ -773,7 +768,7 @@ private:
         const callback_pair callback) noexcept
     {
         const size_t r = remaining();
-        const size_t max_width = width < r ? width : r;
+        const size_t max_width = r < width ? r : width;
         scan_error err = scan_error::none;
 
         // create a new input bound to the width
@@ -904,7 +899,7 @@ private:
                 // padding is expected to be the same on both sides
                 if (!m_in.consume_characters(left_pad, fill))
                 {
-                    return scan_error::invalid_format;
+                    return scan_error::invalid_scaned_field;
                 }
 
                 break;
@@ -2272,7 +2267,11 @@ public:
             return scan_error::none;
         }
 
-        ctx.consume_whitespace();
+        if (base::width == 0)
+        {
+            ctx.consume_whitespace();
+        }
+
         const C* ptr = ctx.ptr();
         const size_t remaining = ctx.remaining();
 
@@ -2284,6 +2283,12 @@ public:
             value, b);
 
         ctx.consume(res.count);
+
+        if (res.err == strconv::from_string_error::out_of_range)
+        {
+            return scan_error::result_out_of_range;
+        }
+
         return (res.err == strconv::from_string_error::none)
             ? scan_error::none
             : scan_error::invalid_scaned_field;
@@ -2423,13 +2428,9 @@ public:
                         alignment::left);
                 }
             }
-            case C('d'):
-            {
-                return base::format(ctx, value);
-            }
             default:
             {
-                _FORMAT_RET_IF(true, format_error::invalid_format);
+                return base::format(ctx, value);
             }
         }
     }
@@ -2438,12 +2439,12 @@ public:
 //==============================================================================
 
 template <typename C>
-struct scanner<bool, C, VX_REQUIRES_TYPE(type_traits::is_char<C>::value)> : scanner<unsigned int, C>
+struct scanner<bool, C, VX_REQUIRES_TYPE(type_traits::is_char<C>::value)> : scanner<int, C>
 {
 private:
 
-    using U = unsigned int;
-    using base = scanner<U, C>;
+    using I = int;
+    using base = scanner<I, C>;
 
     static constexpr C true_str[] = { C('t'), C('r'), C('u'), C('e') };
     static constexpr C false_str[] = { C('f'), C('a'), C('l'), C('s'), C('e') };
@@ -2468,14 +2469,14 @@ public:
             }
         }
 
-        U uvalue;
-        const auto err = base::scan_field(ctx, uvalue);
+        I ivalue;
+        const auto err = base::scan_field(ctx, ivalue);
         if (err != scan_error::none)
         {
             return err;
         }
 
-        value = static_cast<bool>(uvalue);
+        value = static_cast<bool>(ivalue);
         return scan_error::none;
     }
 
@@ -2483,7 +2484,9 @@ public:
         basic_scan_context<C>& ctx,
         bool& value) const noexcept
     {
-        if (base::type != C('c'))
+        VX_ASSERT(base::type == C('s') || base::type == C('\0'));
+
+        if (base::width == 0)
         {
             ctx.consume_whitespace();
         }
@@ -2495,13 +2498,13 @@ public:
             return scan_error::invalid_scaned_field;
         }
 
-        if (str::case_compare(ptr, 4, true_str, 4) == 0)
+        if (str::compare(ptr, 4, true_str, 4) == 0)
         {
             value = true;
             ctx.consume(4);
             return scan_error::none;
         }
-        if (remaining >= 5 && str::case_compare(ptr, 5, false_str, 5) == 0)
+        if (remaining >= 5 && str::compare(ptr, 5, false_str, 5) == 0)
         {
             value = false;
             ctx.consume(5);
@@ -2683,7 +2686,7 @@ public:
         basic_scan_context<C>& ctx,
         S& value) const noexcept
     {
-        if (base::type != C('c'))
+        if (base::type != C('c') || base::width == 0)
         {
             VX_ASSERT(base::type == C('\0') || base::type == C('s'));
             ctx.consume_whitespace();
@@ -2848,7 +2851,10 @@ public:
             }
         }
 
-        ctx.consume_whitespace();
+        if (base::width == 0)
+        {
+            ctx.consume_whitespace();
+        }
 
         const C* ptr = ctx.ptr();
         const size_t remaining = ctx.remaining();
@@ -2869,6 +2875,12 @@ public:
         }
 
         ctx.consume(res.count);
+
+        if (res.err == strconv::from_string_error::out_of_range)
+        {
+            return scan_error::result_out_of_range;
+        }
+
         return (res.err == strconv::from_string_error::none)
             ? scan_error::none
             : scan_error::invalid_scaned_field;
@@ -2946,7 +2958,11 @@ public:
         basic_scan_context<C>& ctx,
         void*& value) const noexcept
     {
-        ctx.consume_whitespace();
+        if (base::width == 0)
+        {
+            ctx.consume_whitespace();
+        }
+
         const C* ptr = ctx.ptr();
         const size_t remaining = ctx.remaining();
 
