@@ -2,6 +2,7 @@
 #include "vertex/std/array.hpp"
 #include "vertex/std/io.hpp"
 #include "vertex/std/string_view.hpp"
+#include "vertex/std/vector.hpp"
 #include "vertex_test/test.hpp"
 
 #define LIT(x)          VX_LIT(C, x)
@@ -156,7 +157,7 @@ void run_format_test(
 
     constexpr size_t buf_prefix = 20;
     constexpr size_t buf_suffix = 30;
-    constexpr size_t space = 1024;
+    constexpr size_t space = fmt::_fmt_priv::float_buffer_traits<double>::max_precision + 1024;
 
     constexpr size_t buf_size = buf_prefix + space + buf_suffix;
     array<C, buf_size> buf;
@@ -257,13 +258,13 @@ void test_common_cases()
         constexpr format_test_case<C> empty_cases1[] = {
             { LIT(""), LIT(""), fmt::format_error::none, {} },
         };
-    
+
         run_test_batch(empty_cases1);
-    
+
         constexpr format_test_case<C, int> empty_cases2[] = {
             { LIT(""), LIT(""), fmt::format_error::none, { 42 } },
         };
-    
+
         run_test_batch(empty_cases2);
     }
 
@@ -273,51 +274,51 @@ void test_common_cases()
             { LIT("{{"),        LIT("{"),       fmt::format_error::none,           { 42 } }, // -> "{"
             { LIT("}}"),        LIT("}"),       fmt::format_error::none,           { 42 } }, // -> "}"
             { LIT("{{}}"),      LIT("{}"),      fmt::format_error::none,           { 42 } }, // -> "{}"
-            
+
             { LIT("{{{"),       LIT(""),        fmt::format_error::invalid_format, { 42 } },
             { LIT("}}}"),       LIT(""),        fmt::format_error::invalid_format, { 42 } },
-            
+
             { LIT("{{{0}}}"),   LIT("{42}"),    fmt::format_error::none,           { 42 } },
             { LIT("{{{0}"),     LIT("{42"),     fmt::format_error::none,           { 42 } },
             { LIT("{0}}}"),     LIT("42}"),     fmt::format_error::none,           { 42 } },
-    
+
             { LIT("{{0}}"),     LIT("{0}"),     fmt::format_error::none,           {}     },
             { LIT("{{:}}"),     LIT("{:}"),     fmt::format_error::none,           {}     },
             { LIT("{{:+f.5}}"), LIT("{:+f.5}"), fmt::format_error::none,           {}     },
         };
-    
+
         run_test_batch(escape_cases);
     }
-    
+
     VX_SECTION("bad format")
     {
         constexpr format_test_case<C, int> bad_format_cases[] = {
             { LIT("{"),                                LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("}"),                                LIT(""), fmt::format_error::invalid_format, { 42 } },
-    
+
             { LIT("{0"),                               LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{0:"),                              LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{:"),                               LIT(""), fmt::format_error::invalid_format, { 42 } },
-    
+
             { LIT("{0}}"),                             LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{}}"),                              LIT(""), fmt::format_error::invalid_format, { 42 } },
-    
+
             { LIT("{-1}"),                             LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{+1}"),                             LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{a}"),                              LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{1a}"),                             LIT(""), fmt::format_error::invalid_format, { 42 } },
-    
+
             { LIT("{::}"),                             LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{0::}"),                            LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{0:x:}"),                           LIT(""), fmt::format_error::invalid_format, { 42 } },
             { LIT("{0:x}}"),                           LIT(""), fmt::format_error::invalid_format, { 42 } },
-    
+
             { LIT("{999999999999999999999999999999}"), LIT(""), fmt::format_error::invalid_format, { 42 } },
         };
-    
+
         run_test_batch(bad_format_cases);
     }
-    
+
     VX_SECTION("argument index errors")
     {
         constexpr format_test_case<C, int> arg_index_cases[] = {
@@ -325,20 +326,20 @@ void test_common_cases()
             { LIT("{1}"),   LIT(""), fmt::format_error::invalid_argument, { 42 } },
             { LIT("{42}"),  LIT(""), fmt::format_error::invalid_argument, { 42 } },
         };
-    
+
         run_test_batch(arg_index_cases);
     }
-    
+
     VX_SECTION("mismatched auto/manual indexing")
     {
         constexpr format_test_case<C, int> mixed_indexing_cases[] = {
             { LIT("{} {0}"), LIT(""), fmt::format_error::index_mode_mismatch, { 42 } },
             { LIT("{0} {}"), LIT(""), fmt::format_error::index_mode_mismatch, { 42 } },
         };
-    
+
         run_test_batch(mixed_indexing_cases);
     }
-    
+
     VX_SECTION("valid cases")
     {
         constexpr format_test_case<C, int> valid_indexing_cases[] = {
@@ -347,10 +348,10 @@ void test_common_cases()
             { LIT("{} world"),       LIT("42 world"),       fmt::format_error::none, { 42 } },
             { LIT("hello {} world"), LIT("hello 42 world"), fmt::format_error::none, { 42 } }
         };
-    
+
         run_test_batch(valid_indexing_cases);
     }
-    
+
     VX_SECTION("valid manual indexing")
     {
         constexpr format_test_case<C, int> valid_indexing_cases[] = {
@@ -361,23 +362,23 @@ void test_common_cases()
             { LIT("hello {0} world"), LIT("hello 42 world"), fmt::format_error::none, { 42 } },
             { LIT("a{0}b{0}c"),       LIT("a42b42c"),        fmt::format_error::none, { 42 } },
         };
-    
+
         run_test_batch(valid_indexing_cases);
     }
-    
+
     VX_SECTION("whitespace")
     {
         constexpr format_test_case<C, int> whitespace_cases[] = {
             { LIT(" {0} "),   LIT(" 42 "),   fmt::format_error::none,           { 42 } },
             { LIT("\t{0}\n"), LIT("\t42\n"), fmt::format_error::none,           { 42 } },
-    
+
             { LIT("{ 0}"),    LIT(""),       fmt::format_error::invalid_format, { 42 } },
             { LIT("{0 }"),    LIT(""),       fmt::format_error::invalid_format, { 42 } },
         };
-    
+
         run_test_batch(whitespace_cases);
     }
-    
+
     VX_SECTION("multiple arguments")
     {
         constexpr format_test_case<C, int, const C*> multiple_arg_cases1[] = {
@@ -386,10 +387,10 @@ void test_common_cases()
             { LIT("{1} {0}"),   LIT("2 1"), fmt::format_error::none, { 1, LIT("2") } },
             { LIT("{1}{1}{0}"), LIT("221"), fmt::format_error::none, { 1, LIT("2") } },
         };
-    
+
         run_test_batch(multiple_arg_cases1);
     }
-    
+
     VX_SECTION("argument index boundaries")
     {
         constexpr format_test_case<C, int, int, int> index_boundary_cases[] = {
@@ -397,168 +398,168 @@ void test_common_cases()
             { LIT("{1}"), LIT("2"), fmt::format_error::none, { 1, 2, 3 } },
             { LIT("{2}"), LIT("3"), fmt::format_error::none, { 1, 2, 3 } },
         };
-    
+
         run_test_batch(index_boundary_cases);
     }
-    
+
     VX_SECTION("repeated automatic indexing")
     {
         constexpr format_test_case<C, int, const C*> auto_index_cases[] = {
             { LIT("{} {}"),    LIT("1 2"), fmt::format_error::none,             { 1, LIT("2") } },
             { LIT("{} {} {}"), LIT(""),    fmt::format_error::invalid_argument, { 1, LIT("2") } },
         };
-    
+
         run_test_batch(auto_index_cases);
     }
-    
+
     VX_SECTION("integer formatting")
     {
         constexpr format_test_case<C, int> integer_cases[] = {
             // Basic decimal formatting
-            { LIT("{}"),         LIT("42"),           fmt::format_error::none,           { 42 }  },
-            { LIT("{:d}"),       LIT("42"),           fmt::format_error::none,           { 42 }  },
-    
+            { LIT("{}"),         LIT("42"),                                 fmt::format_error::none,           { 42 }                              },
+            { LIT("{:d}"),       LIT("42"),                                 fmt::format_error::none,           { 42 }                              },
+
             // Base conversions
-            { LIT("{:x}"),       LIT("2a"),           fmt::format_error::none,           { 42 }  },
-            { LIT("{:X}"),       LIT("2A"),           fmt::format_error::none,           { 42 }  },
-            { LIT("{:o}"),       LIT("52"),           fmt::format_error::none,           { 42 }  },
-            { LIT("{:b}"),       LIT("101010"),       fmt::format_error::none,           { 42 }  },
-            { LIT("{:B}"),       LIT("101010"),       fmt::format_error::none,           { 42 }  },
-    
+            { LIT("{:x}"),       LIT("2a"),                                 fmt::format_error::none,           { 42 }                              },
+            { LIT("{:X}"),       LIT("2A"),                                 fmt::format_error::none,           { 42 }                              },
+            { LIT("{:o}"),       LIT("52"),                                 fmt::format_error::none,           { 42 }                              },
+            { LIT("{:b}"),       LIT("101010"),                             fmt::format_error::none,           { 42 }                              },
+            { LIT("{:B}"),       LIT("101010"),                             fmt::format_error::none,           { 42 }                              },
+
             // Signs
-            { LIT("{:+d}"),      LIT("+42"),          fmt::format_error::none,           { 42 }  },
-            { LIT("{:+d}"),      LIT("-42"),          fmt::format_error::none,           { -42 } },
-            { LIT("{: d}"),      LIT(" 42"),          fmt::format_error::none,           { 42 }  },
-            { LIT("{: d}"),      LIT("-42"),          fmt::format_error::none,           { -42 } },
-    
+            { LIT("{:+d}"),      LIT("+42"),                                fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+d}"),      LIT("-42"),                                fmt::format_error::none,           { -42 }                             },
+            { LIT("{: d}"),      LIT(" 42"),                                fmt::format_error::none,           { 42 }                              },
+            { LIT("{: d}"),      LIT("-42"),                                fmt::format_error::none,           { -42 }                             },
+
             // Sign handling for non-decimal
-            { LIT("{:+x}"),      LIT("+2a"),          fmt::format_error::none,           { 42 }  },
-            { LIT("{:+x}"),      LIT("-2a"),          fmt::format_error::none,           { -42 } },
-            { LIT("{: x}"),      LIT(" 2a"),          fmt::format_error::none,           { 42 }  },
-            { LIT("{: x}"),      LIT("-2a"),          fmt::format_error::none,           { -42 } },
-    
+            { LIT("{:+x}"),      LIT("+2a"),                                fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+x}"),      LIT("-2a"),                                fmt::format_error::none,           { -42 }                             },
+            { LIT("{: x}"),      LIT(" 2a"),                                fmt::format_error::none,           { 42 }                              },
+            { LIT("{: x}"),      LIT("-2a"),                                fmt::format_error::none,           { -42 }                             },
+
             // Negative base conversions
-            { LIT("{:x}"),       LIT("-2a"),          fmt::format_error::none,           { -42 } },
-            { LIT("{:X}"),       LIT("-2A"),          fmt::format_error::none,           { -42 } },
-            { LIT("{:o}"),       LIT("-52"),          fmt::format_error::none,           { -42 } },
-            { LIT("{:b}"),       LIT("-101010"),      fmt::format_error::none,           { -42 } },
-            { LIT("{:B}"),       LIT("-101010"),      fmt::format_error::none,           { -42 } },
-    
+            { LIT("{:x}"),       LIT("-2a"),                                fmt::format_error::none,           { -42 }                             },
+            { LIT("{:X}"),       LIT("-2A"),                                fmt::format_error::none,           { -42 }                             },
+            { LIT("{:o}"),       LIT("-52"),                                fmt::format_error::none,           { -42 }                             },
+            { LIT("{:b}"),       LIT("-101010"),                            fmt::format_error::none,           { -42 }                             },
+            { LIT("{:B}"),       LIT("-101010"),                            fmt::format_error::none,           { -42 }                             },
+
             // Width and padding
-            { LIT("{:8d}"),      LIT("      42"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:08d}"),     LIT("00000042"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:+08d}"),    LIT("+0000042"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{: 08d}"),    LIT(" 0000042"),     fmt::format_error::none,           { 42 }  },
-    
-            { LIT("{:8d}"),      LIT("     -42"),     fmt::format_error::none,           { -42 } },
-            { LIT("{:08d}"),     LIT("-0000042"),     fmt::format_error::none,           { -42 } },
-            { LIT("{:+08d}"),    LIT("-0000042"),     fmt::format_error::none,           { -42 } },
-    
+            { LIT("{:8d}"),      LIT("      42"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:08d}"),     LIT("00000042"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+08d}"),    LIT("+0000042"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{: 08d}"),    LIT(" 0000042"),                           fmt::format_error::none,           { 42 }                              },
+
+            { LIT("{:8d}"),      LIT("     -42"),                           fmt::format_error::none,           { -42 }                             },
+            { LIT("{:08d}"),     LIT("-0000042"),                           fmt::format_error::none,           { -42 }                             },
+            { LIT("{:+08d}"),    LIT("-0000042"),                           fmt::format_error::none,           { -42 }                             },
+
             // Width and padding (non-decimal)
-            { LIT("{:8x}"),      LIT("      2a"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:08x}"),     LIT("0000002a"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:+08x}"),    LIT("+000002a"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:08x}"),     LIT("-000002a"),     fmt::format_error::none,           { -42 } },
-    
+            { LIT("{:8x}"),      LIT("      2a"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:08x}"),     LIT("0000002a"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+08x}"),    LIT("+000002a"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:08x}"),     LIT("-000002a"),                           fmt::format_error::none,           { -42 }                             },
+
             // Alignment
-            { LIT("{:<8d}"),     LIT("42      "),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:^8d}"),     LIT("   42   "),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:>8d}"),     LIT("      42"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:*^7d}"),    LIT("**42***"),      fmt::format_error::none,           { 42 }  },
-            { LIT("{:*^8d}"),    LIT("***42***"),     fmt::format_error::none,           { 42 }  },
-    
+            { LIT("{:<8d}"),     LIT("42      "),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:^8d}"),     LIT("   42   "),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:>8d}"),     LIT("      42"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:*^7d}"),    LIT("**42***"),                            fmt::format_error::none,           { 42 }                              },
+            { LIT("{:*^8d}"),    LIT("***42***"),                           fmt::format_error::none,           { 42 }                              },
+
             // Alignment (negative)
-            { LIT("{:<8d}"),     LIT("-42     "),     fmt::format_error::none,           { -42 } },
-            { LIT("{:^8d}"),     LIT("  -42   "),     fmt::format_error::none,           { -42 } },
-            { LIT("{:>8d}"),     LIT("     -42"),     fmt::format_error::none,           { -42 } },
-    
+            { LIT("{:<8d}"),     LIT("-42     "),                           fmt::format_error::none,           { -42 }                             },
+            { LIT("{:^8d}"),     LIT("  -42   "),                           fmt::format_error::none,           { -42 }                             },
+            { LIT("{:>8d}"),     LIT("     -42"),                           fmt::format_error::none,           { -42 }                             },
+
             // Alternate forms
-            { LIT("{:#x}"),      LIT("0x2a"),         fmt::format_error::none,           { 42 }  },
-            { LIT("{:#X}"),      LIT("0X2A"),         fmt::format_error::none,           { 42 }  },
-            { LIT("{:#o}"),      LIT("052"),          fmt::format_error::none,           { 42 }  },
-            { LIT("{:#b}"),      LIT("0b101010"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:#B}"),      LIT("0B101010"),     fmt::format_error::none,           { 42 }  },
-    
+            { LIT("{:#x}"),      LIT("0x2a"),                               fmt::format_error::none,           { 42 }                              },
+            { LIT("{:#X}"),      LIT("0X2A"),                               fmt::format_error::none,           { 42 }                              },
+            { LIT("{:#o}"),      LIT("052"),                                fmt::format_error::none,           { 42 }                              },
+            { LIT("{:#b}"),      LIT("0b101010"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:#B}"),      LIT("0B101010"),                           fmt::format_error::none,           { 42 }                              },
+
             // Alternate forms with sign (hexadecimal)
-            { LIT("{:+#x}"),     LIT("+0x2a"),        fmt::format_error::none,           { 42 }  },
-            { LIT("{:+#x}"),     LIT("-0x2a"),        fmt::format_error::none,           { -42 } },
-            { LIT("{: #x}"),     LIT(" 0x2a"),        fmt::format_error::none,           { 42 }  },
-    
+            { LIT("{:+#x}"),     LIT("+0x2a"),                              fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+#x}"),     LIT("-0x2a"),                              fmt::format_error::none,           { -42 }                             },
+            { LIT("{: #x}"),     LIT(" 0x2a"),                              fmt::format_error::none,           { 42 }                              },
+
             // Alternate forms with sign (uppercase hexadecimal)
-            { LIT("{:+#X}"),     LIT("+0X2A"),        fmt::format_error::none,           { 42 }  },
-            { LIT("{:+#X}"),     LIT("-0X2A"),        fmt::format_error::none,           { -42 } },
-            { LIT("{: #X}"),     LIT(" 0X2A"),        fmt::format_error::none,           { 42 }  },
-    
+            { LIT("{:+#X}"),     LIT("+0X2A"),                              fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+#X}"),     LIT("-0X2A"),                              fmt::format_error::none,           { -42 }                             },
+            { LIT("{: #X}"),     LIT(" 0X2A"),                              fmt::format_error::none,           { 42 }                              },
+
             // Alternate forms with sign (octal)
-            { LIT("{:+#o}"),     LIT("+052"),         fmt::format_error::none,           { 42 }  },
-            { LIT("{:+#o}"),     LIT("-052"),         fmt::format_error::none,           { -42 } },
-            { LIT("{: #o}"),     LIT(" 052"),         fmt::format_error::none,           { 42 }  },
-    
+            { LIT("{:+#o}"),     LIT("+052"),                               fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+#o}"),     LIT("-052"),                               fmt::format_error::none,           { -42 }                             },
+            { LIT("{: #o}"),     LIT(" 052"),                               fmt::format_error::none,           { 42 }                              },
+
             // Alternate forms with sign (binary)
-            { LIT("{:+#b}"),     LIT("+0b101010"),    fmt::format_error::none,           { 42 }  },
-            { LIT("{:+#b}"),     LIT("-0b101010"),    fmt::format_error::none,           { -42 } },
-            { LIT("{: #b}"),     LIT(" 0b101010"),    fmt::format_error::none,           { 42 }  },
-    
+            { LIT("{:+#b}"),     LIT("+0b101010"),                          fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+#b}"),     LIT("-0b101010"),                          fmt::format_error::none,           { -42 }                             },
+            { LIT("{: #b}"),     LIT(" 0b101010"),                          fmt::format_error::none,           { 42 }                              },
+
             // Alternate forms with sign (uppercase binary)
-            { LIT("{:+#B}"),     LIT("+0B101010"),    fmt::format_error::none,           { 42 }  },
-            { LIT("{:+#B}"),     LIT("-0B101010"),    fmt::format_error::none,           { -42 } },
-            { LIT("{: #B}"),     LIT(" 0B101010"),    fmt::format_error::none,           { 42 }  },
-    
+            { LIT("{:+#B}"),     LIT("+0B101010"),                          fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+#B}"),     LIT("-0B101010"),                          fmt::format_error::none,           { -42 }                             },
+            { LIT("{: #B}"),     LIT(" 0B101010"),                          fmt::format_error::none,           { 42 }                              },
+
             // Zero padding with sign and alternate forms (hexadecimal)
-            { LIT("{:+#08x}"),   LIT("+0x0002a"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:+#08x}"),   LIT("-0x0002a"),     fmt::format_error::none,           { -42 } },
-    
+            { LIT("{:+#08x}"),   LIT("+0x0002a"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+#08x}"),   LIT("-0x0002a"),                           fmt::format_error::none,           { -42 }                             },
+
             // Zero padding with sign and alternate forms (uppercase hexadecimal)
-            { LIT("{:+#08X}"),   LIT("+0X0002A"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:+#08X}"),   LIT("-0X0002A"),     fmt::format_error::none,           { -42 } },
-    
+            { LIT("{:+#08X}"),   LIT("+0X0002A"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+#08X}"),   LIT("-0X0002A"),                           fmt::format_error::none,           { -42 }                             },
+
             // Zero padding with sign and alternate forms (octal)
-            { LIT("{:+#08o}"),   LIT("+0000052"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:+#08o}"),   LIT("-0000052"),     fmt::format_error::none,           { -42 } },
-    
+            { LIT("{:+#08o}"),   LIT("+0000052"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+#08o}"),   LIT("-0000052"),                           fmt::format_error::none,           { -42 }                             },
+
             // Zero padding with sign and alternate forms (binary)
-            { LIT("{:+#012b}"),  LIT("+0b000101010"), fmt::format_error::none,           { 42 }  },
-            { LIT("{:+#012b}"),  LIT("-0b000101010"), fmt::format_error::none,           { -42 } },
-    
+            { LIT("{:+#012b}"),  LIT("+0b000101010"),                       fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+#012b}"),  LIT("-0b000101010"),                       fmt::format_error::none,           { -42 }                             },
+
             // Zero padding with sign and alternate forms (uppercase binary)
-            { LIT("{:+#012B}"),  LIT("+0B000101010"), fmt::format_error::none,           { 42 }  },
-            { LIT("{:+#012B}"),  LIT("-0B000101010"), fmt::format_error::none,           { -42 } },
-    
+            { LIT("{:+#012B}"),  LIT("+0B000101010"),                       fmt::format_error::none,           { 42 }                              },
+            { LIT("{:+#012B}"),  LIT("-0B000101010"),                       fmt::format_error::none,           { -42 }                             },
+
             // Zero padding with space sign and alternate forms
-            { LIT("{: #08x}"),   LIT(" 0x0002a"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{: #08X}"),   LIT(" 0X0002A"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{: #012b}"),  LIT(" 0b000101010"), fmt::format_error::none,           { 42 }  },
-    
+            { LIT("{: #08x}"),   LIT(" 0x0002a"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{: #08X}"),   LIT(" 0X0002A"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{: #012b}"),  LIT(" 0b000101010"),                       fmt::format_error::none,           { 42 }                              },
+
             // Zero padding left align
-            { LIT("{:0<8d}"),    LIT("42000000"),     fmt::format_error::none,           { 42 }  },
-            { LIT("{:0<8d}"),    LIT("-4200000"),     fmt::format_error::none,           { -42 } },
-            { LIT("{:0< #12b}"), LIT(" 0b101010000"), fmt::format_error::none,           { 42 }  },
-    
+            { LIT("{:0<8d}"),    LIT("42000000"),                           fmt::format_error::none,           { 42 }                              },
+            { LIT("{:0<8d}"),    LIT("-4200000"),                           fmt::format_error::none,           { -42 }                             },
+            { LIT("{:0< #12b}"), LIT(" 0b101010000"),                       fmt::format_error::none,           { 42 }                              },
+
             // Zero handling
-            { LIT("{}"),         LIT("0"),            fmt::format_error::none,           { 0 }   },
-            { LIT("{:x}"),       LIT("0"),            fmt::format_error::none,           { 0 }   },
-            { LIT("{:+d}"),      LIT("+0"),           fmt::format_error::none,           { 0 }   },
-    
+            { LIT("{}"),         LIT("0"),                                  fmt::format_error::none,           { 0 }                               },
+            { LIT("{:x}"),       LIT("0"),                                  fmt::format_error::none,           { 0 }                               },
+            { LIT("{:+d}"),      LIT("+0"),                                 fmt::format_error::none,           { 0 }                               },
+
             // Zero alternate forms
-            { LIT("{:#x}"),      LIT("0x0"),          fmt::format_error::none,           { 0 }   },
-            { LIT("{:#X}"),      LIT("0X0"),          fmt::format_error::none,           { 0 }   },
-            { LIT("{:#b}"),      LIT("0b0"),          fmt::format_error::none,           { 0 }   },
-            { LIT("{:#B}"),      LIT("0B0"),          fmt::format_error::none,           { 0 }   },
-            { LIT("{:#o}"),      LIT("00"),           fmt::format_error::none,           { 0 }   },
-    
+            { LIT("{:#x}"),      LIT("0x0"),                                fmt::format_error::none,           { 0 }                               },
+            { LIT("{:#X}"),      LIT("0X0"),                                fmt::format_error::none,           { 0 }                               },
+            { LIT("{:#b}"),      LIT("0b0"),                                fmt::format_error::none,           { 0 }                               },
+            { LIT("{:#B}"),      LIT("0B0"),                                fmt::format_error::none,           { 0 }                               },
+            { LIT("{:#o}"),      LIT("00"),                                 fmt::format_error::none,           { 0 }                               },
+
             // Invalid type specifiers
-            { LIT("{:D}"),       LIT(""),             fmt::format_error::invalid_format, { 42 }  },
-            { LIT("{:O}"),       LIT(""),             fmt::format_error::invalid_format, { 42 }  },
-            { LIT("{:f}"),       LIT(""),             fmt::format_error::invalid_format, { 42 }  },
-            { LIT("{:g}"),       LIT(""),             fmt::format_error::invalid_format, { 42 }  },
-            { LIT("{:.2d}"),     LIT(""),             fmt::format_error::invalid_format, { 42 }  },
-            { LIT("{:z}"),       LIT(""),             fmt::format_error::invalid_format, { 42 }  },
-            { LIT("{:1.0d}"),    LIT(""),             fmt::format_error::invalid_format, { 42 }  },
-    
-            // Zero width
-            //{ LIT("{:0<0d}"),    LIT(""),             fmt::format_error::invalid_format, { 42 }  },
+            { LIT("{:D}"),       LIT(""),                                   fmt::format_error::invalid_format, { 42 }                              },
+            { LIT("{:O}"),       LIT(""),                                   fmt::format_error::invalid_format, { 42 }                              },
+            { LIT("{:f}"),       LIT(""),                                   fmt::format_error::invalid_format, { 42 }                              },
+            { LIT("{:g}"),       LIT(""),                                   fmt::format_error::invalid_format, { 42 }                              },
+            { LIT("{:.2d}"),     LIT(""),                                   fmt::format_error::invalid_format, { 42 }                              },
+            { LIT("{:z}"),       LIT(""),                                   fmt::format_error::invalid_format, { 42 }                              },
+            { LIT("{:1.0d}"),    LIT(""),                                   fmt::format_error::invalid_format, { 42 }                              },
+
+            // Max size
+            { LIT("{:+#b}"),     LIT("+0b1111111111111111111111111111111"), fmt::format_error::none,           { std::numeric_limits<int>::max() } },
         };
-    
+
         run_test_batch(integer_cases);
     }
 
@@ -566,11 +567,11 @@ void test_common_cases()
     {
         constexpr format_test_case<C, char> character_cases[] = {
             // Default / character formatting
-            //{ LIT("{}"),      LIT("A"),         fmt::format_error::none,           { 'A' }  },
-            //{ LIT("{:c}"),    LIT("A"),         fmt::format_error::none,           { 'A' }  },
-            //{ LIT("{:c}"),    LIT(" "),         fmt::format_error::none,           { ' ' }  },
-            //{ LIT("{:c}"),    LIT("\n"),        fmt::format_error::none,           { '\n' } },
-    
+            { LIT("{}"),      LIT("A"),         fmt::format_error::none,           { 'A' }  },
+            { LIT("{:c}"),    LIT("A"),         fmt::format_error::none,           { 'A' }  },
+            { LIT("{:c}"),    LIT(" "),         fmt::format_error::none,           { ' ' }  },
+            { LIT("{:c}"),    LIT("\n"),        fmt::format_error::none,           { '\n' } },
+
             // Width and alignment
             { LIT("{:4c}"),   LIT("A   "),      fmt::format_error::none,           { 'A' }  },
             { LIT("{:<4c}"),  LIT("A   "),      fmt::format_error::none,           { 'A' }  },
@@ -579,7 +580,7 @@ void test_common_cases()
             { LIT("{:*^4c}"), LIT("*A**"),      fmt::format_error::none,           { 'A' }  },
             { LIT("{:*^5c}"), LIT("**A**"),     fmt::format_error::none,           { 'A' }  },
             { LIT("{:0>4c}"), LIT("000A"),      fmt::format_error::none,           { 'A' }  },
-    
+
             // Integer formatting fallback
             { LIT("{:d}"),    LIT("65"),        fmt::format_error::none,           { 'A' }  },
             { LIT("{:x}"),    LIT("41"),        fmt::format_error::none,           { 'A' }  },
@@ -587,28 +588,28 @@ void test_common_cases()
             { LIT("{:o}"),    LIT("101"),       fmt::format_error::none,           { 'A' }  },
             { LIT("{:b}"),    LIT("1000001"),   fmt::format_error::none,           { 'A' }  },
             { LIT("{:B}"),    LIT("1000001"),   fmt::format_error::none,           { 'A' }  },
-    
+
             // Integer formatting with width
             { LIT("{:4d}"),   LIT("  65"),      fmt::format_error::none,           { 'A' }  },
             { LIT("{:04x}"),  LIT("0041"),      fmt::format_error::none,           { 'A' }  },
             { LIT("{:+d}"),   LIT("+65"),       fmt::format_error::none,           { 'A' }  },
             { LIT("{: d}"),   LIT(" 65"),       fmt::format_error::none,           { 'A' }  },
-    
+
             // Alternate forms
             { LIT("{:#x}"),   LIT("0x41"),      fmt::format_error::none,           { 'A' }  },
             { LIT("{:#X}"),   LIT("0X41"),      fmt::format_error::none,           { 'A' }  },
             { LIT("{:#o}"),   LIT("0101"),      fmt::format_error::none,           { 'A' }  },
             { LIT("{:#b}"),   LIT("0b1000001"), fmt::format_error::none,           { 'A' }  },
             { LIT("{:#B}"),   LIT("0B1000001"), fmt::format_error::none,           { 'A' }  },
-    
+
             // Zero character
             //{ LIT("{:c}"),    LIT("\0"),        fmt::format_error::none,           { '\0' } },
             { LIT("{:d}"),    LIT("0"),         fmt::format_error::none,           { '\0' } },
             { LIT("{:#x}"),   LIT("0x0"),       fmt::format_error::none,           { '\0' } },
-    
+
             // Invalid character format
             { LIT("{:.2c}"),  LIT(""),          fmt::format_error::invalid_format, { 'A' }  },
-    
+
             // Invalid integer format (forwarded to integer formatter)
             { LIT("{:D}"),    LIT(""),          fmt::format_error::invalid_format, { 'A' }  },
             { LIT("{:O}"),    LIT(""),          fmt::format_error::invalid_format, { 'A' }  },
@@ -618,10 +619,10 @@ void test_common_cases()
             { LIT("{:z}"),    LIT(""),          fmt::format_error::invalid_format, { 'A' }  },
             { LIT("{:1.0d}"), LIT(""),          fmt::format_error::invalid_format, { 'A' }  },
         };
-    
+
         run_test_batch(character_cases);
     }
-    
+
     VX_SECTION("literal formatting")
     {
         constexpr format_test_case<C, const C*> literal_cases[] = {
@@ -629,47 +630,47 @@ void test_common_cases()
             { LIT("{}"),      LIT("hello"),     fmt::format_error::none,           { LIT("hello") } },
             { LIT("{}"),      LIT(""),          fmt::format_error::none,           { LIT("") }      },
             { LIT("{}"),      LIT("A"),         fmt::format_error::none,           { LIT("A") }     },
-    
+
             // Explicit string formatting
             { LIT("{:s}"),    LIT("hello"),     fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:s}"),    LIT(""),          fmt::format_error::none,           { LIT("") }      },
             { LIT("{:s}"),    LIT("A"),         fmt::format_error::none,           { LIT("A") }     },
-    
+
             // Width and alignment
             { LIT("{:8}"),    LIT("hello   "),  fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:<8}"),   LIT("hello   "),  fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:>8}"),   LIT("   hello"),  fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:^8}"),   LIT(" hello  "),  fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:*^9}"),  LIT("**hello**"), fmt::format_error::none,           { LIT("hello") } },
-    
+
             // String formatting with width and alignment
             { LIT("{:8s}"),   LIT("hello   "),  fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:<8s}"),  LIT("hello   "),  fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:>8s}"),  LIT("   hello"),  fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:^8s}"),  LIT(" hello  "),  fmt::format_error::none,           { LIT("hello") } },
-    
+
             // Precision / truncation
             { LIT("{:.0}"),   LIT(""),          fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:.1}"),   LIT("h"),         fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:.3}"),   LIT("hel"),       fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:.5}"),   LIT("hello"),     fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:.10}"),  LIT("hello"),     fmt::format_error::none,           { LIT("hello") } },
-    
+
             // String formatting with precision
             { LIT("{:.0s}"),  LIT(""),          fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:.3s}"),  LIT("hel"),       fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:.5s}"),  LIT("hello"),     fmt::format_error::none,           { LIT("hello") } },
-    
+
             // Width combined with precision
             { LIT("{:8.3}"),  LIT("hel     "),  fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:<8.3}"), LIT("hel     "),  fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:>8.3}"), LIT("     hel"),  fmt::format_error::none,           { LIT("hello") } },
             { LIT("{:^8.3}"), LIT("  hel   "),  fmt::format_error::none,           { LIT("hello") } },
-    
+
             // Empty literal
             { LIT("{}"),      LIT(""),          fmt::format_error::none,           { LIT("") }      },
             { LIT("{:4}"),    LIT("    "),      fmt::format_error::none,           { LIT("") }      },
-    
+
             // Invalid literal format specs
             { LIT("{:+}"),    LIT(""),          fmt::format_error::invalid_format, { LIT("hello") } },
             { LIT("{:#}"),    LIT(""),          fmt::format_error::invalid_format, { LIT("hello") } },
@@ -677,7 +678,7 @@ void test_common_cases()
             { LIT("{:x}"),    LIT(""),          fmt::format_error::invalid_format, { LIT("hello") } },
             { LIT("{:S}"),    LIT(""),          fmt::format_error::invalid_format, { LIT("hello") } },
         };
-    
+
         run_test_batch(literal_cases);
     }
 
@@ -695,15 +696,15 @@ void test_common_cases()
             { LIT("{:+.2f}"),    LIT("-42.00"),               fmt::format_error::none,           { -42.0f }    },
             { LIT("{: .2f}"),    LIT(" 42.00"),               fmt::format_error::none,           { 42.0f }     },
             { LIT("{: .2f}"),    LIT("-42.00"),               fmt::format_error::none,           { -42.0f }    },
-            
+
             // Fixed width and padding
             { LIT("{:10.2f}"),   LIT("     42.00"),           fmt::format_error::none,           { 42.0f }     },
             { LIT("{:010.2f}"),  LIT("0000042.00"),           fmt::format_error::none,           { 42.0f }     },
             { LIT("{:+010.2f}"), LIT("+000042.00"),           fmt::format_error::none,           { 42.0f }     },
             { LIT("{: 010.2f}"), LIT(" 000042.00"),           fmt::format_error::none,           { 42.0f }     },
-            
+
             { LIT("{:010.2f}"),  LIT("-000042.00"),           fmt::format_error::none,           { -42.0f }    },
-            
+
             // Fixed alignment
             { LIT("{:<10.2f}"),  LIT("42.00     "),           fmt::format_error::none,           { 42.0f }     },
             { LIT("{:^10.2f}"),  LIT("  42.00   "),           fmt::format_error::none,           { 42.0f }     },
@@ -711,70 +712,70 @@ void test_common_cases()
             { LIT("{:*^10.2f}"), LIT("**42.00***"),           fmt::format_error::none,           { 42.0f }     },
 
             // Scientific notation (short exponent)
-            { LIT("{:e}"),      LIT("4.200000e1"),           fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:E}"),      LIT("4.200000E1"),           fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:.2e}"),    LIT("4.20e1"),               fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:.2E}"),    LIT("4.20E1"),               fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:e}"),       LIT("4.200000e1"),           fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:E}"),       LIT("4.200000E1"),           fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:.2e}"),     LIT("4.20e1"),               fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:.2E}"),     LIT("4.20E1"),               fmt::format_error::none,           { 42.0f }     },
 
             // Scientific negative exponent
-            { LIT("{:e}"),      LIT("1.000000e-6"),          fmt::format_error::none,           { 0.000001f } },
-            { LIT("{:.2e}"),    LIT("1.00e-6"),              fmt::format_error::none,           { 0.000001f } },
+            { LIT("{:e}"),       LIT("1.000000e-6"),          fmt::format_error::none,           { 0.000001f } },
+            { LIT("{:.2e}"),     LIT("1.00e-6"),              fmt::format_error::none,           { 0.000001f } },
 
             // Scientific positive exponent with alternate form
-            { LIT("{:#e}"),     LIT("4.200000e+1"),          fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:#.0e}"),   LIT("4e+1"),                 fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:#.2e}"),   LIT("4.20e+1"),              fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:#e}"),      LIT("4.200000e+1"),          fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:#.0e}"),    LIT("4e+1"),                 fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:#.2e}"),    LIT("4.20e+1"),              fmt::format_error::none,           { 42.0f }     },
 
             // Scientific signs
-            { LIT("{:+e}"),     LIT("+4.200000e1"),          fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:+e}"),     LIT("-4.200000e1"),          fmt::format_error::none,           { -42.0f }    },
-            { LIT("{: e}"),     LIT(" 4.200000e1"),          fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:+e}"),      LIT("+4.200000e1"),          fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:+e}"),      LIT("-4.200000e1"),          fmt::format_error::none,           { -42.0f }    },
+            { LIT("{: e}"),      LIT(" 4.200000e1"),          fmt::format_error::none,           { 42.0f }     },
 
             // Scientific width/padding
-            { LIT("{:12e}"),    LIT("  4.200000e1"),         fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:012e}"),   LIT("004.200000e1"),         fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:+012e}"),  LIT("+04.200000e1"),         fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:+012e}"),  LIT("-04.200000e1"),         fmt::format_error::none,           { -42.0f }    },
-            { LIT("{: 012e}"),  LIT(" 04.200000e1"),         fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:12e}"),     LIT("  4.200000e1"),         fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:012e}"),    LIT("004.200000e1"),         fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:+012e}"),   LIT("+04.200000e1"),         fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:+012e}"),   LIT("-04.200000e1"),         fmt::format_error::none,           { -42.0f }    },
+            { LIT("{: 012e}"),   LIT(" 04.200000e1"),         fmt::format_error::none,           { 42.0f }     },
 
             // Scientific alignment
-            { LIT("{:<12.2e}"), LIT("4.20e1      "),         fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:^12.2e}"), LIT("   4.20e1   "),         fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:>12.2e}"), LIT("      4.20e1"),         fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:<12.2e}"),  LIT("4.20e1      "),         fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:^12.2e}"),  LIT("   4.20e1   "),         fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:>12.2e}"),  LIT("      4.20e1"),         fmt::format_error::none,           { 42.0f }     },
 
             // Hexadecimal floating point
-            { LIT("{:a}"),      LIT("0x1.500000p5"),         fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:A}"),      LIT("0X1.500000P5"),         fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:.2a}"),    LIT("0x1.50p5"),             fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:.2A}"),    LIT("0X1.50P5"),             fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:a}"),       LIT("0x1.500000p5"),         fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:A}"),       LIT("0X1.500000P5"),         fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:.2a}"),     LIT("0x1.50p5"),             fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:.2A}"),     LIT("0X1.50P5"),             fmt::format_error::none,           { 42.0f }     },
 
             // Hex float signs
-            { LIT("{:+a}"),     LIT("+0x1.500000p5"),        fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:+a}"),     LIT("-0x1.500000p5"),        fmt::format_error::none,           { -42.0f }    },
-            { LIT("{: a}"),     LIT(" 0x1.500000p5"),        fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:+a}"),      LIT("+0x1.500000p5"),        fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:+a}"),      LIT("-0x1.500000p5"),        fmt::format_error::none,           { -42.0f }    },
+            { LIT("{: a}"),      LIT(" 0x1.500000p5"),        fmt::format_error::none,           { 42.0f }     },
 
             // Hex float alternate form
-            { LIT("{:#a}"),     LIT("0x1.500000p+5"),        fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:#.0a}"),   LIT("0x1p+6"),               fmt::format_error::none,           { 64.0f }     },
-            { LIT("{:+#a}"),    LIT("+0x1.500000p+5"),       fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:#a}"),      LIT("0x1.500000p+5"),        fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:#.0a}"),    LIT("0x1p+6"),               fmt::format_error::none,           { 64.0f }     },
+            { LIT("{:+#a}"),     LIT("+0x1.500000p+5"),       fmt::format_error::none,           { 42.0f }     },
 
             // Hex float width/padding
-            { LIT("{:20a}"),    LIT("        0x1.500000p5"), fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:020a}"),   LIT("0x000000001.500000p5"), fmt::format_error::none,           { 42.0f }     },
-            { LIT("{:+020a}"),  LIT("+0x00000001.500000p5"), fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:20a}"),     LIT("        0x1.500000p5"), fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:020a}"),    LIT("0x000000001.500000p5"), fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:+020a}"),   LIT("+0x00000001.500000p5"), fmt::format_error::none,           { 42.0f }     },
 
             // General formatting
-            { LIT("{:g}"),      LIT("42.000000"),            fmt::format_error::none,           { 42.0f }     },
+            { LIT("{:g}"),       LIT("42.000000"),            fmt::format_error::none,           { 42.0f }     },
 
             // Zero
-            { LIT("{}"),        LIT("0.000000"),             fmt::format_error::none,           { 0.0f }      },
-            { LIT("{:+f}"),     LIT("+0.000000"),            fmt::format_error::none,           { 0.0f }      },
+            { LIT("{}"),         LIT("0.000000"),             fmt::format_error::none,           { 0.0f }      },
+            { LIT("{:+f}"),      LIT("+0.000000"),            fmt::format_error::none,           { 0.0f }      },
 
             // Invalid types
-            { LIT("{:d}"),      LIT(""),                     fmt::format_error::invalid_format, { 42.0f }     },
-            { LIT("{:x}"),      LIT(""),                     fmt::format_error::invalid_format, { 42.0f }     },
-            { LIT("{:b}"),      LIT(""),                     fmt::format_error::invalid_format, { 42.0f }     },
-            { LIT("{:.2d}"),    LIT(""),                     fmt::format_error::invalid_format, { 42.0f }     },
+            { LIT("{:d}"),       LIT(""),                     fmt::format_error::invalid_format, { 42.0f }     },
+            { LIT("{:x}"),       LIT(""),                     fmt::format_error::invalid_format, { 42.0f }     },
+            { LIT("{:b}"),       LIT(""),                     fmt::format_error::invalid_format, { 42.0f }     },
+            { LIT("{:.2d}"),     LIT(""),                     fmt::format_error::invalid_format, { 42.0f }     },
         };
 
         run_test_batch(float_cases);
@@ -1108,6 +1109,202 @@ void test_character_conversions()
 
 //==============================================================================
 
+template <typename C, typename F>
+void test_float_precision_overflow(strconv::float_format format, bool upper_case = false)
+{
+    using traits = fmt::_fmt_priv::float_buffer_traits<F>;
+
+    constexpr size_t extra = 64;
+    constexpr size_t requested_precision = traits::max_precision + extra;
+
+    // format specifier char: 'f' (fixed), 'e' (scientific), 'a' (hex)
+    char fmt_char = static_cast<char>(format);
+    if (upper_case)
+    {
+        fmt_char = static_cast<char>(str::to_upper(static_cast<char>(fmt_char)));
+    }
+
+    C fmt_buffer[32];
+    size_t pos = 0;
+
+    fmt_buffer[pos++] = C('{');
+    fmt_buffer[pos++] = C(':');
+    fmt_buffer[pos++] = C('.');
+
+    const auto res = strconv::to_string(
+        requested_precision,
+        fmt_buffer + pos,
+        mem::array_size(fmt_buffer) - pos);
+
+    VX_ASSERT(res.err == strconv::to_string_error::none);
+    pos += res.count;
+
+    fmt_buffer[pos++] = C(fmt_char);
+    fmt_buffer[pos++] = C('}');
+    fmt_buffer[pos] = C('\0');
+
+    C expected[requested_precision + 16];
+    size_t epos = 0;
+
+    const char x_char = upper_case ? 'X' : 'x';
+    const char p_char = upper_case ? 'P' : 'p';
+    const char e_char = upper_case ? 'E' : 'e';
+
+    if (format == strconv::float_format::hex)
+    {
+        expected[epos++] = C('0');
+        expected[epos++] = C(x_char);
+    }
+
+    expected[epos++] = C('1');
+    expected[epos++] = C('.');
+
+    for (size_t i = 0; i < requested_precision; ++i)
+    {
+        expected[epos++] = C('0');
+    }
+
+    switch (format)
+    {
+        case strconv::float_format::scientific:
+        {
+            expected[epos++] = C(e_char);
+            expected[epos++] = C('0'); // exponent of 1.0 is 0, no sign, no padding
+            break;
+        }
+        case strconv::float_format::hex:
+        {
+            expected[epos++] = C(p_char);
+            expected[epos++] = C('0'); // exponent of 1.0 is 0, no sign, no padding
+            break;
+        }
+        case strconv::float_format::fixed:
+        default:
+        {
+            break;
+        }
+    }
+
+    expected[epos] = C('\0');
+
+    run_format_test(
+        fmt_buffer,
+        expected,
+        fmt::format_error::none,
+        std::make_tuple(F(1)));
+}
+
+//==============================================================================
+
+template <typename C, typename F>
+void test_float_type()
+{
+    test_float_precision_overflow<C, F>(strconv::float_format::fixed, false);
+    test_float_precision_overflow<C, F>(strconv::float_format::fixed, true);
+
+    test_float_precision_overflow<C, F>(strconv::float_format::scientific, false);
+    test_float_precision_overflow<C, F>(strconv::float_format::scientific, true);
+
+    test_float_precision_overflow<C, F>(strconv::float_format::hex, false);
+    test_float_precision_overflow<C, F>(strconv::float_format::hex, true);
+}
+
+void test_precision_overflow()
+{
+    test_float_type<char, float>();
+    test_float_type<char, double>();
+}
+
+//==============================================================================
+
+template <typename C, typename F>
+void test_float_min_subnormal_precision(const char* digits, size_t digit_count)
+{
+    using traits = fmt::_fmt_priv::float_buffer_traits<F>;
+
+    constexpr size_t extra = 64;
+    const size_t requested_precision = digit_count + extra;
+
+    // Build "{:.<precision>f}"
+    C fmt_buffer[32];
+    size_t pos = 0;
+
+    fmt_buffer[pos++] = C('{');
+    fmt_buffer[pos++] = C(':');
+    fmt_buffer[pos++] = C('.');
+
+    const auto res = strconv::to_string(
+        requested_precision,
+        fmt_buffer + pos,
+        mem::array_size(fmt_buffer) - pos);
+
+    VX_ASSERT(res.err == strconv::to_string_error::none);
+    pos += res.count;
+
+    fmt_buffer[pos++] = C('f');
+    fmt_buffer[pos++] = C('}');
+    fmt_buffer[pos] = C('\0');
+
+    // Build "0.<exact digits><zeros padding>"
+    vector<C> expected(requested_precision + 3);
+    size_t epos = 0;
+
+    expected[epos++] = C('0');
+    expected[epos++] = C('.');
+
+    for (size_t i = 0; i < digit_count; ++i)
+    {
+        expected[epos++] = C(digits[i]);
+    }
+
+    for (size_t i = digit_count; i < requested_precision; ++i)
+    {
+        expected[epos++] = C('0');
+    }
+
+    expected[epos] = C('\0');
+
+    run_format_test(
+        fmt_buffer,
+        expected.data(),
+        fmt::format_error::none,
+        std::make_tuple(std::numeric_limits<F>::denorm_min()));
+}
+
+void test_precision_min_subnormal()
+{
+    static constexpr char float_digits[] =
+        "0000000000000000000000000000000000000000000014012984643248170709237295"
+        "8328991613128026194187651577175706828388979108268586060148663818836212"
+        "158203125";
+
+    static constexpr char double_digits[] =
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000000000000000000000000000000"
+        "0000000000000000000000000000000000000000000494065645841246544176568792"
+        "8682213723650598026143247644255856825006755072702087518652998363616359"
+        "9237979656469544571773092665671035593979639877479601078187812630071319"
+        "0311404527845817167848982103688718636056998730723050006387409153564984"
+        "3873124733972731696151400317153853980741262385655911710266585566867681"
+        "8703956031062493194527159149245532930545654440112748012970999954193198"
+        "9409080416563324524757147869014726780159355238611550134803526493472019"
+        "3790268107107491703332226844753335720832431936092382893458368060106011"
+        "5061698097530783422773183292479049825247307763759272478746560847782037"
+        "3446969953364701797267771758512566055119913150489110145103786273816725"
+        "0955837389733598993664809941164205702637090279242767544565229087538682"
+        "506419718265533447265625";
+
+    test_float_min_subnormal_precision<char, float>(
+        float_digits, sizeof(float_digits) - 1);
+
+    test_float_min_subnormal_precision<char, double>(
+        double_digits, sizeof(double_digits) - 1);
+}
+
+//==============================================================================
+
 VX_TEST_CASE(test_common)
 {
     test_common_cases<char>();
@@ -1119,6 +1316,8 @@ VX_TEST_CASE(test_common)
     test_common_cases<char32_t>();
 
     test_character_conversions();
+    test_precision_overflow();
+    test_precision_min_subnormal();
 }
 
 //==============================================================================

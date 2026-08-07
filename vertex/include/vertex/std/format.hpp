@@ -740,7 +740,7 @@ inline constexpr format_error make_float_format_details(
         if (spec.precision > max_precision)
         {
             details.fmt.precision = static_cast<uint32_t>(max_precision);
-            details.precision_info.extra_precision = max_precision - spec.precision;
+            details.precision_info.extra_precision = spec.precision - max_precision;
         }
         else
         {
@@ -853,7 +853,7 @@ inline constexpr format_error format_float_core(
         truncated = truncated || !ctx.fill(C('0'), details.precision_info.extra_precision);
 
         body_size -= head_count;
-        digits += details.precision_info.extra_precision;
+        digits += head_count;
     }
 
     truncated = truncated || !ctx.append(digits, body_size);
