@@ -13,6 +13,6 @@ vx_add_test(test_std_io                     "std" "${CMAKE_CURRENT_SOURCE_DIR}/i
 vx_add_test(test_std_array                  "std" "${CMAKE_CURRENT_SOURCE_DIR}/array.cpp")
 vx_add_test(test_std_span                   "std" "${CMAKE_CURRENT_SOURCE_DIR}/span.cpp")
 
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/string_convert")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/string_convert")
 vx_add_test(test_std_format                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/format.cpp")
 vx_add_test(test_std_scan                   "std" "${CMAKE_CURRENT_SOURCE_DIR}/scan.cpp")

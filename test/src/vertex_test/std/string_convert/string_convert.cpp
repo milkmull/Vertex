@@ -6,6 +6,7 @@
 #define VX_STRING_CONVERT_SNAN_SUPPORT
 
 #include "vertex/std/string.hpp"
+#include "vertex/std/string_cast.hpp"
 #include "vertex/std/string_convert.hpp"
 #include "vertex/std/string_view.hpp"
 #include "vertex_test/test.hpp"
@@ -1054,7 +1055,11 @@ void test_float_from_string(const strconv::float_format format)
         case strconv::float_format::scientific:
         {
             test_from_string<F, C>(LIT("1729"), fmt, 0, fse_inv_arg);
+            test_from_string<F, C>(LIT("1729e"), fmt, 0, fse_inv_arg);
+            test_from_string<F, C>(LIT("1729e+"), fmt, 0, fse_inv_arg);
+            test_from_string<F, C>(LIT("1729e-x"), fmt, 0, fse_inv_arg);
             test_from_string<F, C>(LIT("1729e3"), fmt, 6, fse_none, F{ 1729000 });
+            test_from_string<F, C>(LIT("1729e3!"), fmt, 6, fse_none, F{ 1729000 });
             break;
         }
         case strconv::float_format::fixed:

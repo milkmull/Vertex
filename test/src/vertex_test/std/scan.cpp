@@ -1,3 +1,6 @@
+#define VX_STRING_CONVERT_IND_NAN_SUPPORT
+#define VX_STRING_CONVERT_SNAN_SUPPORT
+
 #include "vertex/std/array.hpp"
 #include "vertex/std/format.hpp"
 #include "vertex/std/io.hpp"
@@ -35,11 +38,24 @@ fmt::scan_result call_scan(
     return fmt::scan(in, in_size, fmt, fmt_size, std::get<I>(values)...);
 }
 
+template <typename T>
+constexpr bool values_equal(const T& a, const T& b)
+{
+    if constexpr (std::is_floating_point<typename type_traits::remove_cvref<T>::type>::value)
+    {
+        return (std::isnan(a) && std::isnan(b)) || (a == b);
+    }
+    else
+    {
+        return a == b;
+    }
+}
+
 template <typename Tuple, size_t... I>
 bool tuple_values_equal(const Tuple& a, const Tuple& b, std::index_sequence<I...>)
 {
     bool ok = true;
-    ((ok = ok && (std::get<I>(a) == std::get<I>(b))), ...);
+    ((ok = ok && values_equal(std::get<I>(a), std::get<I>(b))), ...);
     return ok;
 }
 
@@ -527,6 +543,7 @@ void test_character_cases()
 }
 
 //==============================================================================
+
 template <typename C>
 void test_bool_cases()
 {
@@ -672,12 +689,236 @@ void test_bool_cases()
 }
 
 //==============================================================================
+template <typename C>
+void test_float_cases()
+{
+    using F = double;
+
+    VX_SECTION("float")
+    {
+        constexpr auto inf = std::numeric_limits<F>::infinity();
+        constexpr auto nan = std::numeric_limits<F>::quiet_NaN();
+
+        constexpr scan_test_case<C, F> basic_cases[] = {
+            // no specifier accept either form
+            { LIT("42"),           LIT("{}"),    fmt::scan_error::none,                 2,  { 42.0 }   },
+            { LIT("42"),           LIT("{:g}"),  fmt::scan_error::none,                 2,  { 42.0 }   },
+            { LIT("42"),           LIT("{:f}"),  fmt::scan_error::none,                 2,  { 42.0 }   },
+            { LIT("42"),           LIT("{:G}"),  fmt::scan_error::none,                 2,  { 42.0 }   },
+            { LIT("42"),           LIT("{:F}"),  fmt::scan_error::none,                 2,  { 42.0 }   },
+            { LIT("3.14"),         LIT("{}"),    fmt::scan_error::none,                 4,  { 3.14 }   },
+            { LIT("3."),           LIT("{}"),    fmt::scan_error::none,                 2,  { 3.0 }    },
+            { LIT(".5"),           LIT("{}"),    fmt::scan_error::none,                 2,  { 0.5 }    },
+            { LIT("0.5"),          LIT("{}"),    fmt::scan_error::none,                 3,  { 0.5 }    },
+            { LIT("+3.14"),        LIT("{}"),    fmt::scan_error::none,                 5,  { 3.14 }   },
+            { LIT("-3.14"),        LIT("{}"),    fmt::scan_error::none,                 5,  { -3.14 }  },
+            { LIT("-0.0"),         LIT("{}"),    fmt::scan_error::none,                 4,  { -0.0 }   },
+
+            { LIT("42"),           LIT("{:e}"),  fmt::scan_error::invalid_scaned_field, 0,  {}         },
+            { LIT("42"),           LIT("{:E}"),  fmt::scan_error::invalid_scaned_field, 0,  {}         },
+
+            // whitespace
+            { LIT(" 3.14"),        LIT("{}"),    fmt::scan_error::none,                 5,  { 3.14 }   },
+            { LIT(" \t\n3.14"),    LIT("{}"),    fmt::scan_error::none,                 7,  { 3.14 }   },
+
+            // scientific
+            { LIT("1e3"),          LIT("{}"),    fmt::scan_error::none,                 3,  { 1000.0 } },
+            { LIT("1E3"),          LIT("{}"),    fmt::scan_error::none,                 3,  { 1000.0 } },
+            { LIT("1e+3"),         LIT("{}"),    fmt::scan_error::none,                 4,  { 1000.0 } },
+            { LIT("1e-3"),         LIT("{}"),    fmt::scan_error::none,                 4,  { 0.001 }  },
+            { LIT("3.14e2"),       LIT("{}"),    fmt::scan_error::none,                 6,  { 314.0 }  },
+            { LIT("1e3"),          LIT("{:e}"),  fmt::scan_error::none,                 3,  { 1000.0 } },
+            { LIT("1e3"),          LIT("{:E}"),  fmt::scan_error::none,                 3,  { 1000.0 } },
+            { LIT("1e3"),          LIT("{:g}"),  fmt::scan_error::none,                 3,  { 1000.0 } },
+            { LIT("1e3"),          LIT("{:G}"),  fmt::scan_error::none,                 3,  { 1000.0 } },
+
+            // hexadecimal floating point
+            { LIT("0x1p0"),        LIT("{:a}"),  fmt::scan_error::none,                 5,  { 1.0 }    },
+            { LIT("0X1P0"),        LIT("{:A}"),  fmt::scan_error::none,                 5,  { 1.0 }    },
+            { LIT("0x1p1"),        LIT("{:a}"),  fmt::scan_error::none,                 5,  { 2.0 }    },
+            { LIT("0x1.8p1"),      LIT("{:a}"),  fmt::scan_error::none,                 7,  { 3.0 }    },
+            { LIT("0x1.fp3"),      LIT("{:a}"),  fmt::scan_error::none,                 7,  { 15.5 }   },
+            // optional prefix
+            { LIT("1p0"),          LIT("{:a}"),  fmt::scan_error::none,                 3,  { 1.0 }    },
+            { LIT("1.8p1"),        LIT("{:a}"),  fmt::scan_error::none,                 5,  { 3.0 }    },
+            { LIT("1.fp3"),        LIT("{:a}"),  fmt::scan_error::none,                 5,  { 15.5 }   },
+            { LIT("+0x1.fp3"),     LIT("{:a}"),  fmt::scan_error::none,                 8,  { 15.5 }   },
+            { LIT("-0x1.fp3"),     LIT("{:A}"),  fmt::scan_error::none,                 8,  { -15.5 }  },
+
+            // infinities
+            { LIT("inf"),          LIT("{}"),    fmt::scan_error::none,                 3,  { inf }    },
+            { LIT("+inf"),         LIT("{}"),    fmt::scan_error::none,                 4,  { inf }    },
+            { LIT("-inf"),         LIT("{}"),    fmt::scan_error::none,                 4,  { -inf }   },
+            { LIT("infinity"),     LIT("{}"),    fmt::scan_error::none,                 8,  { inf }    },
+
+            // NaN
+            { LIT("nan"),          LIT("{}"),    fmt::scan_error::none,                 3,  { nan }    },
+            { LIT("nan(payload)"), LIT("{}"),    fmt::scan_error::none,                 12, { nan }    },
+
+            // stop at invalid character
+            { LIT("3.14abc"),      LIT("{}"),    fmt::scan_error::none,                 4,  { 3.14 }   },
+            { LIT("1e3xyz"),       LIT("{}"),    fmt::scan_error::none,                 3,  { 1000.0 } },
+            { LIT("0x1.fp3!"),     LIT("{:a}"),  fmt::scan_error::none,                 7,  { 15.5 }   },
+            { LIT("3..14"),        LIT("{}"),    fmt::scan_error::none,                 2,  { 3.0 }    },
+            { LIT("1e"),           LIT("{}"),    fmt::scan_error::none,                 1,  { 1.0 }    },
+            { LIT("1e+"),          LIT("{}"),    fmt::scan_error::none,                 1,  { 1.0 }    },
+            { LIT("0x1p"),         LIT("{:a}"),  fmt::scan_error::none,                 3,  { 1.0 }    },
+
+            // default alignment (right)
+            { LIT("  3.14"),       LIT("{:6}"),  fmt::scan_error::none,                 6,  { 3.14 }   },
+            { LIT("3.14  "),       LIT("{:6}"),  fmt::scan_error::invalid_scaned_field, 0,  {}         },
+            { LIT("  3.14"),       LIT("{:6f}"), fmt::scan_error::none,                 6,  { 3.14 }   },
+            { LIT("3.14  "),       LIT("{:6f}"), fmt::scan_error::invalid_scaned_field, 0,  {}         },
+            { LIT(" 1e3"),         LIT("{:4e}"), fmt::scan_error::none,                 4,  { 1000.0 } },
+            { LIT("1e3 "),         LIT("{:4e}"), fmt::scan_error::invalid_scaned_field, 0,  {}         },
+            { LIT(" 0x1p0"),       LIT("{:6a}"), fmt::scan_error::none,                 6,  { 1.0 }    },
+            { LIT("0x1p0 "),       LIT("{:6a}"), fmt::scan_error::invalid_scaned_field, 0,  {}         },
+
+            // overflow
+            { LIT("1e5000"),       LIT("{}"),    fmt::scan_error::result_out_of_range,  0,  {}         },
+            { LIT("-1e5000"),      LIT("{}"),    fmt::scan_error::result_out_of_range,  0,  {}         },
+            // underflow
+            { LIT("1e-5000"),      LIT("{}"),    fmt::scan_error::result_out_of_range,  0,  {}         },
+        };
+
+        run_test_batch(basic_cases);
+    }
+}
+
+//==============================================================================
+
+template <typename C>
+void test_string_view_cases()
+{
+    using SV = str::basic_string_view<C>;
+
+    VX_SECTION("string_view")
+    {
+        constexpr scan_test_case<C, SV> basic_cases[] = {
+            // default / s specifier
+            { LIT("hello"),        LIT("{}"),    fmt::scan_error::none,                 5, { SV{ LIT("hello") } } },
+            { LIT("hello"),        LIT("{:s}"),  fmt::scan_error::none,                 5, { SV{ LIT("hello") } } },
+
+            // whitespace skipping
+            { LIT(" hello"),       LIT("{}"),    fmt::scan_error::none,                 6, { SV{ LIT("hello") } } },
+            { LIT("\t\nhello"),    LIT("{:s}"),  fmt::scan_error::none,                 7, { SV{ LIT("hello") } } },
+
+            // stop at whitespace
+            { LIT("hello world"),  LIT("{}"),    fmt::scan_error::none,                 5, { SV{ LIT("hello") } } },
+            { LIT("hello\tworld"), LIT("{}"),    fmt::scan_error::none,                 5, { SV{ LIT("hello") } } },
+            { LIT("hello\nworld"), LIT("{}"),    fmt::scan_error::none,                 5, { SV{ LIT("hello") } } },
+
+            // width
+            { LIT("abcdef"),       LIT("{:3s}"), fmt::scan_error::none,                 3, { SV{ LIT("abc") } }   },
+            { LIT("abc"),          LIT("{:3s}"), fmt::scan_error::none,                 3, { SV{ LIT("abc") } }   },
+            { LIT("abc"),          LIT("{:5s}"), fmt::scan_error::end_of_input,         0, {}                     },
+
+            // default alignment (left)
+            { LIT("abc   "),       LIT("{:6s}"), fmt::scan_error::none,                 6, { SV{ LIT("abc") } }   },
+            { LIT("   abc"),       LIT("{:6s}"), fmt::scan_error::invalid_scaned_field, 0, {}                     },
+
+            // c specifier scans exactly width characters
+            { LIT("abc"),          LIT("{:3c}"), fmt::scan_error::none,                 3, { SV{ LIT("abc") } }   },
+            { LIT("abcdef"),       LIT("{:3c}"), fmt::scan_error::none,                 3, { SV{ LIT("abc") } }   },
+
+            // preserves whitespace
+            { LIT("a b"),          LIT("{:3c}"), fmt::scan_error::none,                 3, { SV{ LIT("a b") } }   },
+            { LIT("   "),          LIT("{:3c}"), fmt::scan_error::none,                 3, { SV{ LIT("   ") } }   },
+            { LIT("\t\n "),        LIT("{:3c}"), fmt::scan_error::none,                 3, { SV{ LIT("\t\n ") } } },
+
+            // exact width required
+            { LIT("ab"),           LIT("{:3c}"), fmt::scan_error::end_of_input,         2, {}                     },
+            { LIT(""),             LIT("{:1c}"), fmt::scan_error::end_of_input,         0, {}                     },
+
+            // invalid format
+            { LIT("abc"),          LIT("{:c}"),  fmt::scan_error::invalid_format,       0, {}                     }, // c requires width
+            { LIT("abc"),          LIT("{:d}"),  fmt::scan_error::invalid_format,       0, {}                     },
+            { LIT("abc"),          LIT("{:b}"),  fmt::scan_error::invalid_format,       0, {}                     },
+            { LIT("abc"),          LIT("{:o}"),  fmt::scan_error::invalid_format,       0, {}                     },
+            { LIT("abc"),          LIT("{:x}"),  fmt::scan_error::invalid_format,       0, {}                     },
+            { LIT("abc"),          LIT("{:f}"),  fmt::scan_error::invalid_format,       0, {}                     },
+            { LIT("abc"),          LIT("{:p}"),  fmt::scan_error::invalid_format,       0, {}                     },
+        };
+
+        run_test_batch(basic_cases);
+    }
+}
+
+//==============================================================================
+
+template <typename C>
+void test_pointer_cases()
+{
+    using P = void*;
+
+    VX_SECTION("pointer")
+    {
+        const scan_test_case<C, P> basic_cases[] = {
+            // default / p specifier
+            { LIT("0x0"),                       LIT("{}"),    fmt::scan_error::none,                 3, { reinterpret_cast<P>(uintptr_t{ 0 }) }    },
+            { LIT("0x42"),                      LIT("{}"),    fmt::scan_error::none,                 4, { reinterpret_cast<P>(uintptr_t{ 0x42 }) } },
+            { LIT("0x2a"),                      LIT("{:p}"),  fmt::scan_error::none,                 4, { reinterpret_cast<P>(uintptr_t{ 0x2a }) } },
+            { LIT("0X2A"),                      LIT("{:p}"),  fmt::scan_error::none,                 4, { reinterpret_cast<P>(uintptr_t{ 0x2a }) } },
+
+            // required prefix
+            { LIT(" 0x2a"),                     LIT("{:p}"),  fmt::scan_error::none,                 5, { reinterpret_cast<P>(uintptr_t{ 0x2a }) } },
+            { LIT("\t\n0x2a"),                  LIT("{:p}"),  fmt::scan_error::none,                 6, { reinterpret_cast<P>(uintptr_t{ 0x2a }) } },
+
+            // stop at first invalid digit
+            { LIT("0x2ag"),                     LIT("{:p}"),  fmt::scan_error::none,                 4, { reinterpret_cast<P>(uintptr_t{ 0x2a }) } },
+            { LIT("0x2axyz"),                   LIT("{:p}"),  fmt::scan_error::none,                 4, { reinterpret_cast<P>(uintptr_t{ 0x2a }) } },
+
+            // default alignment (right)
+            { LIT("  0x2a"),                    LIT("{:6p}"), fmt::scan_error::none,                 6, { reinterpret_cast<P>(uintptr_t{ 0x2a }) } },
+            { LIT("0x2a  "),                    LIT("{:6p}"), fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+
+            // invalid input
+            { LIT(""),                          LIT("{:p}"),  fmt::scan_error::end_of_input,         0, {}                                         },
+            { LIT("0x"),                        LIT("{:p}"),  fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+            { LIT("xyz"),                       LIT("{:p}"),  fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+
+            // missing required prefix
+            { LIT("0"),                         LIT("{}"),    fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+            { LIT("42"),                        LIT("{}"),    fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+            { LIT("2a"),                        LIT("{:p}"),  fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+            { LIT("2A"),                        LIT("{:p}"),  fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+            { LIT("2ag"),                       LIT("{:p}"),  fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+
+            // signs are not permitted
+            { LIT("+2a"),                       LIT("{:p}"),  fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+            { LIT("-2a"),                       LIT("{:p}"),  fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+            { LIT("+0x2a"),                     LIT("{:p}"),  fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+            { LIT("-0x2a"),                     LIT("{:p}"),  fmt::scan_error::invalid_scaned_field, 0, {}                                         },
+
+            // invalid presentation types
+            { LIT("0x2a"),                      LIT("{:P}"),  fmt::scan_error::invalid_format,       0, {}                                         },
+            { LIT("0x2a"),                      LIT("{:d}"),  fmt::scan_error::invalid_format,       0, {}                                         },
+            { LIT("0x2a"),                      LIT("{:x}"),  fmt::scan_error::invalid_format,       0, {}                                         },
+            { LIT("0x2a"),                      LIT("{:X}"),  fmt::scan_error::invalid_format,       0, {}                                         },
+            { LIT("0x2a"),                      LIT("{:b}"),  fmt::scan_error::invalid_format,       0, {}                                         },
+            { LIT("0x2a"),                      LIT("{:o}"),  fmt::scan_error::invalid_format,       0, {}                                         },
+            { LIT("0x2a"),                      LIT("{:s}"),  fmt::scan_error::invalid_format,       0, {}                                         },
+            { LIT("0x2a"),                      LIT("{:c}"),  fmt::scan_error::invalid_format,       0, {}                                         },
+            { LIT("0x2a"),                      LIT("{:f}"),  fmt::scan_error::invalid_format,       0, {}                                         },
+
+            // overflow
+            { LIT("0xfffffffffffffffffffffff"), LIT("{:p}"),  fmt::scan_error::result_out_of_range,  0, {}                                         },
+        };
+
+        run_test_batch(basic_cases);
+    }
+}
+
+//==============================================================================
 
 VX_TEST_CASE(test_scan)
 {
     test_common_cases<char>();
     test_integer_cases<char>();
     test_bool_cases<char>();
+    test_float_cases<char>();
+    test_string_view_cases<char>();
+    test_pointer_cases<char>();
 }
 
 int main()

@@ -29,9 +29,17 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/unique_ptr.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/utf.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_cast.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/_priv/string_convert_common.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_priv/from_string.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_priv/to_string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/string_utils.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/_priv/format_scan_common.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/format.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/scan.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/string_utils.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/to_string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/single_linked_list.hpp"
 

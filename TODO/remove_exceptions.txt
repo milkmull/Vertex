@@ -17,9 +17,6 @@ x string format
 - string scan
 
 - numeric format use stack buffer and cap precision for partial output
-- break up large template functions in strconv and format
-- add parse base 10 function
-- handle 0 width
 - test 0 size array
 
 - packed string array
