@@ -219,6 +219,8 @@ void run_format_test(
                 {
                     VX_CHECK(res.err == fmt::format_error::buffer_too_small);
                     VX_CHECK(res.count == n);
+                    // The formatter should have written the prefix that fits.
+                    VX_CHECK(str::compare(first, n, correct.data(), n) == 0);
                 }
                 else
                 {
@@ -781,6 +783,116 @@ void test_common_cases()
         run_test_batch(float_cases);
     }
 
+    VX_SECTION("float special values")
+    {
+        using limits = std::numeric_limits<float>;
+
+        constexpr float nan = limits::quiet_NaN();
+        constexpr float pos_inf = limits::infinity();
+        constexpr float neg_inf = -limits::infinity();
+        constexpr float neg_zero = -0.0f;
+
+        constexpr format_test_case<C, float> special_cases[] = {
+            // Nan
+            { LIT("{}"),        LIT("nan"),           fmt::format_error::none, { nan }      },
+            { LIT("{:f}"),      LIT("nan"),           fmt::format_error::none, { nan }      },
+            { LIT("{:e}"),      LIT("nan"),           fmt::format_error::none, { nan }      },
+            { LIT("{:E}"),      LIT("NAN"),           fmt::format_error::none, { nan }      },
+            { LIT("{:a}"),      LIT("nan"),           fmt::format_error::none, { nan }      },
+            { LIT("{:A}"),      LIT("NAN"),           fmt::format_error::none, { nan }      },
+            { LIT("{:g}"),      LIT("nan"),           fmt::format_error::none, { nan }      },
+            { LIT("{:G}"),      LIT("NAN"),           fmt::format_error::none, { nan }      },
+
+            // sign handling
+            { LIT("{:+f}"),     LIT("+nan"),          fmt::format_error::none, { nan }      },
+            { LIT("{: f}"),     LIT(" nan"),          fmt::format_error::none, { nan }      },
+
+            // width/alignment
+            { LIT("{:8f}"),     LIT("     nan"),      fmt::format_error::none, { nan }      },
+            { LIT("{:<8f}"),    LIT("nan     "),      fmt::format_error::none, { nan }      },
+            { LIT("{:^8f}"),    LIT("  nan   "),      fmt::format_error::none, { nan }      },
+            { LIT("{:*^8f}"),   LIT("**nan***"),      fmt::format_error::none, { nan }      },
+
+            // zero padding
+            { LIT("{:08f}"),    LIT("00000nan"),      fmt::format_error::none, { nan }      },
+            { LIT("{:+08f}"),   LIT("+0000nan"),      fmt::format_error::none, { nan }      },
+            { LIT("{: 08f}"),   LIT(" 0000nan"),      fmt::format_error::none, { nan }      },
+
+            // inf
+            { LIT("{}"),        LIT("inf"),           fmt::format_error::none, { pos_inf }  },
+            { LIT("{:f}"),      LIT("inf"),           fmt::format_error::none, { pos_inf }  },
+            { LIT("{:e}"),      LIT("inf"),           fmt::format_error::none, { pos_inf }  },
+            { LIT("{:E}"),      LIT("INF"),           fmt::format_error::none, { pos_inf }  },
+            { LIT("{:a}"),      LIT("inf"),           fmt::format_error::none, { pos_inf }  },
+            { LIT("{:A}"),      LIT("INF"),           fmt::format_error::none, { pos_inf }  },
+            { LIT("{:g}"),      LIT("inf"),           fmt::format_error::none, { pos_inf }  },
+            { LIT("{:G}"),      LIT("INF"),           fmt::format_error::none, { pos_inf }  },
+
+            // sign handling
+            { LIT("{:+f}"),     LIT("+inf"),          fmt::format_error::none, { pos_inf }  },
+            { LIT("{: f}"),     LIT(" inf"),          fmt::format_error::none, { pos_inf }  },
+
+            // width/alignment
+            { LIT("{:8f}"),     LIT("     inf"),      fmt::format_error::none, { pos_inf }  },
+            { LIT("{:<8f}"),    LIT("inf     "),      fmt::format_error::none, { pos_inf }  },
+            { LIT("{:^8f}"),    LIT("  inf   "),      fmt::format_error::none, { pos_inf }  },
+            { LIT("{:*^8f}"),   LIT("**inf***"),      fmt::format_error::none, { pos_inf }  },
+
+            // zero padding
+            { LIT("{:08f}"),    LIT("00000inf"),      fmt::format_error::none, { pos_inf }  },
+            { LIT("{:+08f}"),   LIT("+0000inf"),      fmt::format_error::none, { pos_inf }  },
+            { LIT("{: 08f}"),   LIT(" 0000inf"),      fmt::format_error::none, { pos_inf }  },
+
+            // -inf
+            { LIT("{}"),        LIT("-inf"),          fmt::format_error::none, { neg_inf }  },
+            { LIT("{:f}"),      LIT("-inf"),          fmt::format_error::none, { neg_inf }  },
+            { LIT("{:e}"),      LIT("-inf"),          fmt::format_error::none, { neg_inf }  },
+            { LIT("{:E}"),      LIT("-INF"),          fmt::format_error::none, { neg_inf }  },
+            { LIT("{:a}"),      LIT("-inf"),          fmt::format_error::none, { neg_inf }  },
+            { LIT("{:A}"),      LIT("-INF"),          fmt::format_error::none, { neg_inf }  },
+            { LIT("{:g}"),      LIT("-inf"),          fmt::format_error::none, { neg_inf }  },
+            { LIT("{:G}"),      LIT("-INF"),          fmt::format_error::none, { neg_inf }  },
+
+            // width/alignment
+            { LIT("{:8f}"),     LIT("    -inf"),      fmt::format_error::none, { neg_inf }  },
+            { LIT("{:<8f}"),    LIT("-inf    "),      fmt::format_error::none, { neg_inf }  },
+            { LIT("{:^8f}"),    LIT("  -inf  "),      fmt::format_error::none, { neg_inf }  },
+            { LIT("{:*^8f}"),   LIT("**-inf**"),      fmt::format_error::none, { neg_inf }  },
+
+            // zero padding
+            { LIT("{:08f}"),    LIT("-0000inf"),      fmt::format_error::none, { neg_inf }  },
+            { LIT("{:+08f}"),   LIT("-0000inf"),      fmt::format_error::none, { neg_inf }  },
+
+            // -0
+            { LIT("{}"),        LIT("-0.000000"),     fmt::format_error::none, { neg_zero } },
+            { LIT("{:f}"),      LIT("-0.000000"),     fmt::format_error::none, { neg_zero } },
+            { LIT("{:.2f}"),    LIT("-0.00"),         fmt::format_error::none, { neg_zero } },
+
+            { LIT("{:+.2f}"),   LIT("-0.00"),         fmt::format_error::none, { neg_zero } },
+            { LIT("{: .2f}"),   LIT("-0.00"),         fmt::format_error::none, { neg_zero } },
+
+            { LIT("{:08.2f}"),  LIT("-0000.00"),      fmt::format_error::none, { neg_zero } },
+            { LIT("{:+08.2f}"), LIT("-0000.00"),      fmt::format_error::none, { neg_zero } },
+
+            { LIT("{:e}"),      LIT("-0.000000e0"),   fmt::format_error::none, { neg_zero } },
+            { LIT("{:E}"),      LIT("-0.000000E0"),   fmt::format_error::none, { neg_zero } },
+
+            { LIT("{:a}"),      LIT("-0x0.000000p0"), fmt::format_error::none, { neg_zero } },
+            { LIT("{:A}"),      LIT("-0X0.000000P0"), fmt::format_error::none, { neg_zero } },
+
+            // large precision should not affect output
+            { LIT("{:.2000f}"), LIT("inf"),           fmt::format_error::none, { pos_inf }  },
+            { LIT("{:.2000e}"), LIT("inf"),           fmt::format_error::none, { pos_inf }  },
+            { LIT("{:.2000a}"), LIT("inf"),           fmt::format_error::none, { pos_inf }  },
+
+            { LIT("{:.2000f}"), LIT("nan"),           fmt::format_error::none, { nan }      },
+            { LIT("{:.2000e}"), LIT("nan"),           fmt::format_error::none, { nan }      },
+            { LIT("{:.2000a}"), LIT("nan"),           fmt::format_error::none, { nan }      },
+        };
+
+        run_test_batch(special_cases);
+    }
+
     VX_SECTION("bool formatting")
     {
         constexpr format_test_case<C, bool> bool_cases[] = {
@@ -832,13 +944,16 @@ void test_common_cases()
             // Basic formatting
             { LIT("{}"),       LIT("0x2a"),         fmt::format_error::none,           { p_2a }     },
             { LIT("{:p}"),     LIT("0x2a"),         fmt::format_error::none,           { p_2a }     },
+            { LIT("{:P}"),     LIT("0X2A"),         fmt::format_error::none,           { p_2a }     },
 
             // Null pointer
             { LIT("{}"),       LIT("0x0"),          fmt::format_error::none,           { null_ptr } },
             { LIT("{:p}"),     LIT("0x0"),          fmt::format_error::none,           { null_ptr } },
+            { LIT("{:P}"),     LIT("0X0"),          fmt::format_error::none,           { null_ptr } },
 
             // Larger address
             { LIT("{}"),       LIT("0xdeadbeef"),   fmt::format_error::none,           { p_dead }   },
+            { LIT("{:P}"),     LIT("0XDEADBEEF"),   fmt::format_error::none,           { p_dead }   },
 
             // Alignment
             { LIT("{:<12p}"),  LIT("0x2a        "), fmt::format_error::none,           { p_2a }     },
@@ -847,8 +962,13 @@ void test_common_cases()
             { LIT("{:*^12p}"), LIT("****0x2a****"), fmt::format_error::none,           { p_2a }     },
             { LIT("{:*^11p}"), LIT("***0x2a****"),  fmt::format_error::none,           { p_2a }     },
 
+            { LIT("{:<12P}"),  LIT("0X2A        "), fmt::format_error::none,           { p_2a }     },
+            { LIT("{:^12P}"),  LIT("    0X2A    "), fmt::format_error::none,           { p_2a }     },
+            { LIT("{:>12P}"),  LIT("        0X2A"), fmt::format_error::none,           { p_2a }     },
+            { LIT("{:*^12P}"), LIT("****0X2A****"), fmt::format_error::none,           { p_2a }     },
+            { LIT("{:*^11P}"), LIT("***0X2A****"),  fmt::format_error::none,           { p_2a }     },
+
             // Invalid type specifiers (pointers shouldn't accept numeric-style specs)
-            { LIT("{:P}"),     LIT(""),             fmt::format_error::invalid_format, { p_2a }     },
             { LIT("{:d}"),     LIT(""),             fmt::format_error::invalid_format, { p_2a }     },
             { LIT("{:x}"),     LIT(""),             fmt::format_error::invalid_format, { p_2a }     },
             { LIT("{:+p}"),    LIT(""),             fmt::format_error::invalid_format, { p_2a }     },
