@@ -5,6 +5,7 @@
 
 vx_add_test(test_std_memory                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/memory.cpp")
 vx_add_test(test_std_aligned_storage        "std" "${CMAKE_CURRENT_SOURCE_DIR}/aligned_storage.cpp")
+vx_add_test(test_std_packed_string_array    "std" "${CMAKE_CURRENT_SOURCE_DIR}/packed_string_array.cpp")
 vx_add_test(test_std_io                     "std" "${CMAKE_CURRENT_SOURCE_DIR}/io.cpp")
 
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/vector")

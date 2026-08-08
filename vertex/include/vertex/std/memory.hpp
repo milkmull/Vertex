@@ -50,6 +50,11 @@ VX_ALLOCATOR inline void* allocate(const size_t bytes) noexcept
     return ::malloc(bytes);
 }
 
+inline void deallocate_raw(void* ptr) noexcept
+{
+    ::free(ptr);
+}
+
 inline void deallocate(void* ptr, VX_MAYBE_UNUSED const size_t bytes) noexcept
 {
     ::free(ptr);
