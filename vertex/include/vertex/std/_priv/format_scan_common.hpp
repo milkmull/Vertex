@@ -8,6 +8,7 @@ namespace fmt {
 
 // #define VX_FORMAT_DISABLE_FORMAT_STRING_CHECKS
 // #define VX_FORMAT_DISABLE_OUTPUT_SIZE_CHECKS
+#define VX_FORMAT_ESCAPED_SUPPORT
 
 #define _VX_FAIL_IF(cond, ret) \
     do \
@@ -89,13 +90,7 @@ struct basic_float_format_spec : basic_integer_format_spec<C>
 //==============================================================================
 
 template <typename C>
-struct basic_scan_spec
-{
-    C fill = C(' ');
-    alignment align = alignment::none;
-    alignment default_align = alignment::none;
-    size_t width = 0;
-};
+using basic_scan_spec = basic_format_spec<C>;
 
 //==============================================================================
 // parsing
@@ -597,7 +592,7 @@ private:
     whitespace_mode m_whitespace_mode;
 };
 
-template<typename C>
+template <typename C>
 inline constexpr int parse_integer_base(const C c) noexcept
 {
     switch (c)
@@ -634,6 +629,151 @@ struct boolean_strings
     static constexpr C true_str[] = { C('t'), C('r'), C('u'), C('e') };
     static constexpr C false_str[] = { C('f'), C('a'), C('l'), C('s'), C('e') };
 };
+
+#if defined VX_FORMAT_ESCAPED_SUPPORT
+
+// Writes the backslash-escaped body for `c` (no surrounding quotes) into
+// `out`, which must have room for at least 4 characters. Returns the
+// number of characters written. `quote` is escaped unconditionally
+// (e.g. pass '"' when escaping string contents, '\'' for a character)
+// since which character needs escaping is context-dependent.
+template <typename C>
+constexpr size_t escape_char_body(const C c, const C quote, C* out) noexcept
+{
+    switch (c)
+    {
+        case C('\\'):
+        {
+            out[0] = C('\\');
+            out[1] = C('\\');
+            return 2;
+        }
+        case C('\n'):
+        {
+            out[0] = C('\\');
+            out[1] = C('n');
+            return 2;
+        }
+        case C('\t'):
+        {
+            out[0] = C('\\');
+            out[1] = C('t');
+            return 2;
+        }
+        case C('\r'):
+        {
+            out[0] = C('\\');
+            out[1] = C('r');
+            return 2;
+        }
+        case C('\0'):
+        {
+            out[0] = C('\\');
+            out[1] = C('0');
+            return 2;
+        }
+        default:
+        {
+            if (c == quote)
+            {
+                out[0] = C('\\');
+                out[1] = quote;
+                return 2;
+            }
+
+            if (c >= C(0x20) && c < C(0x7f))
+            {
+                out[0] = c;
+                return 1;
+            }
+
+            // \xHH — everything else outside printable ASCII
+            const unsigned char byte = static_cast<unsigned char>(c);
+            out[0] = C('\\');
+            out[1] = C('x');
+            out[2] = hex::digits[(byte >> 4) & 0xF];
+            out[3] = hex::digits[byte & 0xF];
+            return 4;
+        }
+    }
+}
+
+// Decodes a single backslash-escape sequence starting at data[0] (the
+// character *after* the backslash). On success, writes the decoded
+// character to `out` and returns the number of input characters
+// consumed (not counting the backslash). Returns 0 on an unrecognized
+// or truncated escape.
+template <typename C>
+constexpr size_t unescape_char_body(const C* data, size_t size, C& out) noexcept
+{
+    if (size == 0)
+    {
+        return 0;
+    }
+
+    switch (data[0])
+    {
+        case C('\\'):
+        {
+            out = C('\\');
+            return 1;
+        }
+        case C('\''):
+        {
+            out = C('\'');
+            return 1;
+        }
+        case C('"'):
+        {
+            out = C('"');
+            return 1;
+        }
+        case C('n'):
+        {
+            out = C('\n');
+            return 1;
+        }
+        case C('t'):
+        {
+            out = C('\t');
+            return 1;
+        }
+        case C('r'):
+        {
+            out = C('\r');
+            return 1;
+        }
+        case C('0'):
+        {
+            out = C('\0');
+            return 1;
+        }
+        case C('x'):
+        {
+            if (size < 3)
+            {
+                return 0;
+            }
+
+            const auto hi = strconv::char_to_digit(data[1], 16);
+            const auto lo = strconv::char_to_digit(data[2], 16);
+
+            if (hi == strconv::invalid_digit || lo == strconv::invalid_digit)
+            {
+                return 0;
+            }
+
+            out = static_cast<C>((hi << 4) | lo);
+            return 3;
+        }
+        default:
+        {
+            return 0;
+        }
+    }
+}
+
+#endif // VX_FORMAT_ESCAPED_SUPPORT
 
 } // namespace _fmt_priv
 

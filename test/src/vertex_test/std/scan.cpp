@@ -1,8 +1,9 @@
+#define VX_FORMAT_ESCAPED_SUPPORT
 #define VX_STRING_CONVERT_IND_NAN_SUPPORT
 #define VX_STRING_CONVERT_SNAN_SUPPORT
 
+#include "vertex/std/scan.hpp"
 #include "vertex/std/array.hpp"
-#include "vertex/std/format.hpp"
 #include "vertex/std/io.hpp"
 #include "vertex/std/string.hpp"
 #include "vertex/std/string_view.hpp"
@@ -11,6 +12,119 @@
 #define LIT(x) VX_LIT(C, x)
 
 using namespace vx;
+
+//==============================================================================
+
+namespace fmt_test_types {
+
+struct point
+{
+    int x;
+    int y;
+};
+
+constexpr bool operator==(const point& a, const point& b) noexcept
+{
+    return a.x == b.x && a.y == b.y;
+}
+
+} // namespace fmt_test_types
+
+namespace vx {
+namespace fmt {
+
+template <typename C>
+struct scanner<fmt_test_types::point, C> : basic_scanner<fmt_test_types::point, C>
+{
+private:
+
+    using base = basic_scanner<fmt_test_types::point, C>;
+    using P = fmt_test_types::point;
+
+    static constexpr scan_error scan_int(basic_scan_context<C>& ctx, int& out) noexcept
+    {
+        const C* ptr = ctx.in();
+        const size_t remaining = ctx.remaining();
+
+        const auto res = strconv::_strconv_priv::parse_integer_impl<int, C, true, true>(
+            ptr, remaining, out, 10);
+
+        ctx.consume(res.count);
+
+        if (res.err == strconv::from_string_error::out_of_range)
+        {
+            return scan_error::result_out_of_range;
+        }
+
+        return (res.err == strconv::from_string_error::none)
+            ? scan_error::none
+            : scan_error::invalid_scaned_field;
+    }
+
+public:
+
+    constexpr bool parse(const basic_parse_context<C>& ctx) noexcept
+    {
+        if (!base::parse(ctx))
+        {
+            return false;
+        }
+
+        return (base::type == C('\0')) || (base::type == C('p'));
+    }
+
+    constexpr scan_error scan_field(
+        basic_scan_context<C>& ctx,
+        P& value) const noexcept
+    {
+        return ctx.scan_field(*this, value, alignment::right);
+    }
+
+    constexpr scan_error scan(
+        basic_scan_context<C>& ctx,
+        P& value) const noexcept
+    {
+        if (base::width == 0)
+        {
+            ctx.consume_whitespace();
+        }
+
+        if (!ctx.consume_character(C('{')))
+        {
+            return scan_error::invalid_scaned_field;
+        }
+
+        int x = 0;
+        if (auto err = scan_int(ctx, x); err != scan_error::none)
+        {
+            return err;
+        }
+
+        if (!ctx.consume_character(C(',')))
+        {
+            return scan_error::invalid_scaned_field;
+        }
+
+        int y = 0;
+        if (auto err = scan_int(ctx, y); err != scan_error::none)
+        {
+            return err;
+        }
+
+        if (!ctx.consume_character(C('}')))
+        {
+            return scan_error::invalid_scaned_field;
+        }
+
+        value.x = x;
+        value.y = y;
+
+        return scan_error::none;
+    }
+};
+
+} // namespace fmt
+} // namespace vx
 
 //==============================================================================
 // Test harness
@@ -585,10 +699,10 @@ void test_bool_cases()
             { LIT("0"),          LIT("{:d}"),  fmt::scan_error::none,                 1,  { false } },
 
             // parsing is case sensative
-            { LIT("TRUE"),       LIT("{:s}"),  fmt::scan_error::invalid_scaned_field, 0,  {}        },
-            { LIT("truE"),       LIT("{:s}"),  fmt::scan_error::invalid_scaned_field, 0,  {}        },
-            { LIT("FALSE"),      LIT("{:s}"),  fmt::scan_error::invalid_scaned_field, 0,  {}        },
-            { LIT("falsE"),      LIT("{:s}"),  fmt::scan_error::invalid_scaned_field, 0,  {}        },
+            { LIT("TRUE"),       LIT("{:s}"),  fmt::scan_error::none,                 4,  { true }  },
+            { LIT("truE"),       LIT("{:s}"),  fmt::scan_error::none,                 4,  { true }  },
+            { LIT("FALSE"),      LIT("{:s}"),  fmt::scan_error::none,                 5,  { false } },
+            { LIT("falsE"),      LIT("{:s}"),  fmt::scan_error::none,                 5,  { false } },
 
             // whitespace skipping
             { LIT(" true"),      LIT("{}"),    fmt::scan_error::none,                 5,  { true }  },
@@ -911,6 +1025,125 @@ void test_pointer_cases()
 
 //==============================================================================
 
+template <typename C>
+void test_escaped_cases()
+{
+    using SV = str::basic_string_view<C>;
+
+    VX_SECTION("escaped string_view")
+    {
+        constexpr scan_test_case<C, SV> basic_cases[] = {
+            // basic quoted string, no escapes
+            { LIT("\"hi\""),        LIT("{:?}"), fmt::scan_error::none,                 4, { SV{ LIT("hi") } }        },
+            { LIT("\"\""),          LIT("{:?}"), fmt::scan_error::none,                 2, { SV{ LIT("") } }          },
+
+            // leading whitespace is skipped (unbounded field)
+            { LIT("  \"hi\""),      LIT("{:?}"), fmt::scan_error::none,                 6, { SV{ LIT("hi") } }        },
+
+            // escaped closing quote does not terminate the string early;
+            // the RETURNED VIEW is the raw content, backslashes included
+            { LIT("\"he\\\"llo\""), LIT("{:?}"), fmt::scan_error::none,                 9, { SV{ LIT("he\\\"llo") } } },
+
+            // escaped backslash, raw view keeps both backslashes
+            { LIT("\"a\\\\b\""),    LIT("{:?}"), fmt::scan_error::none,                 6, { SV{ LIT("a\\\\b") } }    },
+
+            // valid \xHH escape, raw view keeps the literal escape text
+            { LIT("\"\\x41\""),     LIT("{:?}"), fmt::scan_error::none,                 6, { SV{ LIT("\\x41") } }     },
+
+            // missing opening quote
+            { LIT("hi\""),          LIT("{:?}"), fmt::scan_error::invalid_scaned_field, 0, {}                         },
+
+            // unrecognized escape sequence
+            { LIT("\"a\\qb\""),     LIT("{:?}"), fmt::scan_error::invalid_scaned_field, 0, {}                         },
+
+            // truncated \xHH escape (second hex digit missing/invalid)
+            { LIT("\"a\\x1\""),     LIT("{:?}"), fmt::scan_error::invalid_scaned_field, 0, {}                         },
+
+            // unterminated string (no closing quote at all)
+            { LIT("\"hello"),       LIT("{:?}"), fmt::scan_error::invalid_scaned_field, 0, {}                         },
+
+            // invalid type combo (string_view doesn't reject ? at parse
+            // time for other reasons, but a numeric type should still fail)
+            { LIT("\"hi\""),        LIT("{:d}"), fmt::scan_error::invalid_format,       0, {}                         },
+        };
+
+        run_test_batch(basic_cases);
+    }
+
+    VX_SECTION("escaped character")
+    {
+        constexpr scan_test_case<C, char> basic_cases[] = {
+            // basic quoted character, no escape
+            { LIT("'A'"),     LIT("{:?}"), fmt::scan_error::none,                 3, { 'A' }  },
+
+            // escapes ARE decoded (owned value, not a view)
+            { LIT("'\\n'"),   LIT("{:?}"), fmt::scan_error::none,                 4, { '\n' } },
+            { LIT("'\\t'"),   LIT("{:?}"), fmt::scan_error::none,                 4, { '\t' } },
+            { LIT("'\\r'"),   LIT("{:?}"), fmt::scan_error::none,                 4, { '\r' } },
+            { LIT("'\\\\'"),  LIT("{:?}"), fmt::scan_error::none,                 4, { '\\' } },
+            { LIT("'\\''"),   LIT("{:?}"), fmt::scan_error::none,                 4, { '\'' } },
+            { LIT("'\\x41'"), LIT("{:?}"), fmt::scan_error::none,                 6, { 'A' }  },
+
+            // does not skip leading whitespace before the opening quote
+            { LIT(" 'A'"),    LIT("{:?}"), fmt::scan_error::invalid_scaned_field, 0, {}       },
+
+            // missing opening quote
+            { LIT("A'"),      LIT("{:?}"), fmt::scan_error::invalid_scaned_field, 0, {}       },
+
+            // unrecognized escape sequence
+            { LIT("'\\q'"),   LIT("{:?}"), fmt::scan_error::invalid_scaned_field, 0, {}       },
+
+            // missing closing quote after an unescaped character
+            { LIT("'A"),      LIT("{:?}"), fmt::scan_error::end_of_input,         0, {}       },
+
+            // missing closing quote after a decoded multi-char escape
+            { LIT("'\\x41"),  LIT("{:?}"), fmt::scan_error::end_of_input,         0, {}       },
+
+            // empty input after the opening quote
+            { LIT("'"),       LIT("{:?}"), fmt::scan_error::end_of_input,         0, {}       },
+        };
+
+        run_test_batch(basic_cases);
+    }
+}
+
+//==============================================================================
+
+template <typename C>
+void test_custom_type_cases()
+{
+    using P = fmt_test_types::point;
+
+    VX_SECTION("custom type (point)")
+    {
+        constexpr scan_test_case<C, P> basic_cases[] = {
+            // basic
+            { LIT("{42,43}"),    LIT("{}"),      fmt::scan_error::none,                 7,  { P{ 42, 43 } } },
+            { LIT("{42,43}"),    LIT("{:p}"),    fmt::scan_error::none,                 7,  { P{ 42, 43 } } },
+            { LIT("{-1,-2}"),    LIT("{}"),      fmt::scan_error::none,                 7,  { P{ -1, -2 } } },
+
+            // leading whitespace is skipped like other unbounded fields
+            { LIT("  {42,43}"),  LIT("{}"),      fmt::scan_error::none,                 9,  { P{ 42, 43 } } },
+
+            // malformed input
+            { LIT("42,43}"),     LIT("{}"),      fmt::scan_error::invalid_scaned_field, 0,  {}              },
+            { LIT("{42;43}"),    LIT("{}"),      fmt::scan_error::invalid_scaned_field, 0,  {}              },
+            { LIT("{42,43"),     LIT("{}"),      fmt::scan_error::end_of_input,         0,  {}              },
+
+            // invalid presentation type
+            { LIT("{42,43}"),    LIT("{:x}"),    fmt::scan_error::invalid_format,       0,  {}              },
+
+            // width + explicit fill/alignment
+            { LIT("***{42,43}"), LIT("{:*>10}"), fmt::scan_error::none,                 10, { P{ 42, 43 } } },
+            { LIT("{42,43}xxx"), LIT("{:*>10}"), fmt::scan_error::invalid_scaned_field, 0,  {}              },
+        };
+
+        run_test_batch(basic_cases);
+    }
+}
+
+//==============================================================================
+
 VX_TEST_CASE(test_scan)
 {
     test_common_cases<char>();
@@ -919,6 +1152,8 @@ VX_TEST_CASE(test_scan)
     test_float_cases<char>();
     test_string_view_cases<char>();
     test_pointer_cases<char>();
+    test_custom_type_cases<char>();
+    test_escaped_cases<char>();
 }
 
 int main()

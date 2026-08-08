@@ -1,5 +1,266 @@
 #pragma once
 
+//==============================================================================
+// vx::fmt — compile-time-friendly, allocation-free scanning of formatted
+// input; the read-side mirror of vx::fmt's formatting facility
+//==============================================================================
+// SUPPORTED TYPES
+// ---------------
+// The following builtin argument types are scannable:
+//
+//   string_view
+//     - string-like types recognized by `str::is_string_view<S>`
+//
+//     Supported options:
+//       fill, alignment, width, type
+//
+//     Supported types:
+//       `s`       string presentation (default) — skips leading
+//                 whitespace (when unbounded), then reads up to the next
+//                 whitespace character or the end of input/width
+//       `c`       raw character presentation — requires an explicit
+//                 width, does not skip or stop at whitespace; reads
+//                 exactly `width` characters verbatim
+//       `?`       escaped/quoted presentation: expects the input to
+//                 begin with `"`, skipping leading whitespace first
+//                 (when unbounded), and scans until an unescaped
+//                 closing `"`. Recognizes the same escapes `format`
+//                 produces (`\\`, `\"`, `\n`, `\t`, `\r`, `\0`, `\xHH`)
+//                 well enough to correctly find the closing quote even
+//                 when it's preceded by an escaped one — but does NOT
+//                 decode them. The input must be a well-formed
+//                 quoted+escaped token (a malformed or unterminated
+//                 escape sequence fails to scan with
+//                 `invalid_scaned_field`), but the returned view spans
+//                 the raw quoted content verbatim, backslashes and all,
+//                 since string_view scanning is zero-copy and has
+//                 nowhere to write a decoded value. Use `char` scanning
+//                 with `?` if you need the actual decoded character(s).
+//
+//   Integral types
+//     All integral types except `bool` and character types.
+//
+//     Supported options:
+//       fill, alignment, width, type
+//
+//     Supported types:
+//       `d`       decimal (default)
+//       `o`       octal
+//       `x`       hexadecimal
+//       `X`       hexadecimal (case-insensitive on input; same as `x`)
+//       `b`       binary
+//       `B`       binary (case-insensitive on input; same as `b`)
+//       `c`       reads a single raw character and reinterprets its code
+//                 unit as the integer value
+//
+//     Leading whitespace is skipped first (when unbounded). A leading
+//     `+` or `-` is always accepted. For `x`/`X`, `b`/`B`, and `o`, an
+//     optional radix prefix (`0x`/`0X`, `0b`/`0B`, `0`) is accepted but
+//     not required. Scanning stops at the first character that doesn't
+//     belong to the field; it is not an error to have trailing input
+//     left over ("42abc" successfully scans 42).
+//
+//   Characters
+//     Character types recognized by `type_traits::is_char`.
+//
+//     Supported options:
+//       fill, alignment, width, type
+//
+//     Supported type:
+//       `c`       character presentation (default) — reads exactly one
+//                 raw character; does NOT skip leading whitespace
+//       `?`       escaped/quoted presentation: expects a single
+//                 character wrapped in `'...'`, using the same escape
+//                 grammar as string_view's `?`. Unlike the string_view
+//                 case, this DOES decode the escape into the actual
+//                 character value — a single `char` is an owned value
+//                 rather than a view, so there's nowhere for the
+//                 zero-copy constraint to bite. An unrecognized or
+//                 truncated escape, or a missing closing `'`, fails
+//                 with `invalid_scaned_field`.
+//
+//     Character values may also use the integer presentation types
+//     (`d`, `o`, `x`, `X`, `b`, `B`), in which case the value is parsed
+//     numerically (with whitespace skipping, per the integer rules
+//     above) and narrowed to the character type.
+//
+//   bool
+//     Supported options:
+//       fill, alignment, width, type
+//
+//     Supported types:
+//       (none)    tries the textual form first, then falls back to the
+//                 numeric form on failure (default)
+//       `s`       textual presentation only: exactly `true` or `false`,
+//                 case-sensitive
+//       `d/o/x/X/b/B`  numeric presentation only, per the integer rules
+//                 above; any nonzero value scans as `true`
+//
+//   Floating-point types
+//     All types for which `std::is_floating_point<F>::value` is true.
+//
+//     Supported options:
+//       fill, alignment, width, type
+//
+//     Supported types:
+//       `f/F`     fixed-point decimal
+//       `e/E`     scientific notation
+//       `g/G`     general floating-point notation (default)
+//       `a/A`     hexadecimal floating-point notation
+//
+//     Leading whitespace is skipped first (when unbounded). A leading
+//     `+`/`-` is accepted for all forms. For `a`/`A`, an optional
+//     `0x`/`0X` prefix is accepted but not required. Also recognizes
+//     `inf`/`infinity` and `nan`/`nan(payload)`, case-insensitively per
+//     the sign rules above. Scanning stops at the first character that
+//     doesn't extend the field.
+//
+//   Pointers
+//     - `void*`
+//     - `T*` for non-character `T`
+//     - `std::nullptr_t`
+//
+//     Supported options:
+//       fill, alignment, width, type
+//
+//     Supported type:
+//       `p`       hexadecimal pointer (default)
+//
+//     Unlike integers, the `0x`/`0X` prefix is REQUIRED, and no sign
+//     (`+`/`-`) is permitted.
+//
+//
+// SCAN STRING SYNTAX
+// -------------------
+// Identical to the format string syntax: replacement fields are
+// `{}` / `{0}` / `{:spec}` / `{0:spec}`, auto- and manual-indexing
+// cannot be mixed, and literal braces are escaped by doubling
+// (`"{{"` matches a literal `{`).
+//
+// Any literal text in the scan string (outside of replacement fields)
+// must match the input exactly. Whitespace in the scan string (outside
+// a replacement field) matches zero or more whitespace characters in
+// the input, matching how `std::scanf`-family functions treat format
+// string whitespace.
+//
+//
+// SCAN SPECIFICATION
+// -------------------
+//     [fill][alignment][width][type]
+//
+// Sign, alternate form (`#`), zero-padding (`0`), and precision (`.N`)
+// are not part of the scan spec grammar — those are output-formatting
+// concerns with no scanning analog.
+//
+// Alignment governs how fill characters around the field are matched,
+// not produced:
+//
+//     `<`       expect the value, then fill (unbounded: any amount of
+//               trailing fill is consumed; bounded: exactly
+//               `width - value_size` trailing fill characters required)
+//     `^`       expect fill split evenly before/after the value (an odd
+//               leftover fill character goes on the right)
+//     `>`       expect fill, then the value
+//
+// If alignment is omitted:
+//   - With no width either: no fill/align logic runs at all — the
+//     type's own scanner reads the input directly, using its own
+//     whitespace rules (see SUPPORTED TYPES above).
+//   - With a width: the type's default alignment is used (left for
+//     strings/characters, right for everything else), fill defaults to
+//     a space, and the field is bounded to exactly `width` characters —
+//     it is an error if there's a mismatch between the required padding
+//     and what's actually present, or if fewer than `width` characters
+//     remain in the input.
+//
+// A fill character may precede an alignment character (`*<10`,
+// `.^10`); without one, padding is matched against a space. Fill
+// requires an explicit alignment character — `{:*}` alone (fill with
+// no alignment) is `invalid_format`.
+//
+// The type character selects presentation, exactly as in format specs;
+// see SUPPORTED TYPES for the valid characters per argument type.
+// Unsupported type/specification combinations result in
+// `scan_error::invalid_format`.
+//
+//
+// ERROR REPORTING
+// -----------------
+// `scan_result{ err, count }` is returned by every entry point. `count`
+// is only meaningful when `err == scan_error::none`, in which case it
+// is the total number of input characters consumed:
+//
+//   - none                  : every field scanned successfully
+//   - end_of_input           : the input was exhausted before a literal,
+//                             escape, or field could be fully matched
+//                             (this also replaces invalid_scaned_field
+//                             whenever the input buffer is empty at the
+//                             point of failure — running out of input
+//                             is reported as end_of_input rather than
+//                             a content mismatch)
+//   - invalid_format         : the scan string itself was malformed
+//                             (bad index, bad spec grammar, unsupported
+//                             type for the argument, etc.)
+//   - invalid_argument       : a manual index (e.g. "{5}") was out of
+//                             range for the number of arguments passed
+//   - invalid_scaned_field   : input was present but didn't match the
+//                             expected literal text, fill/alignment, or
+//                             a type's grammar (e.g. non-digit where a
+//                             digit was required). For `?` on strings
+//                             and characters, this also covers a missing
+//                             opening/closing quote and any malformed or
+//                             truncated escape sequence.
+//   - result_out_of_range    : the field matched the expected grammar
+//                             but the value didn't fit in the target
+//                             type (integer/float overflow, or a
+//                             pointer literal wider than `uintptr_t`)
+//   - index_mode_mismatch    : the scan string mixed "{}" (auto) and
+//                             "{N}" (manual) indexing
+//
+//
+// EXTENDING
+// -----------
+// To scan a custom type `T`, specialize:
+//
+//   template <typename C>
+//   struct vx::fmt::scanner<MyType, C>
+//   {
+//       constexpr bool parse(const basic_parse_context<C>& ctx) noexcept;
+//       constexpr scan_error scan_field(basic_scan_context<C>& ctx,
+//                                        MyType& value) const noexcept;
+//       constexpr scan_error scan(basic_scan_context<C>& ctx,
+//                                  MyType& value) const noexcept;
+//   };
+//
+// `parse()` typically delegates to `ctx.parse_basic_spec(*this)`.
+// `scan_field()` typically delegates to
+// `ctx.scan_field(*this, value, default_align)`, which applies the
+// fill/alignment/width machinery described above around a call to
+// `scan()`. `scan()` does the actual parsing of the (possibly
+// width-bounded) input range via `ctx.in()`/`ctx.remaining()`, and
+// must call `ctx.consume(n)` for however many characters it read —
+// even on failure, so that `end_of_input` promotion and error
+// `count`s stay accurate. `basic_scan_context` also exposes
+// `consume_whitespace()`, `consume_character(c)`, and
+// `consume_literal(data, count)` as building blocks for matching
+// fixed delimiters within a custom grammar.
+//
+//
+// EXAMPLES
+// ----------
+//     "{}"                  // default scanning
+//     "{:s}"                // string, stop at whitespace
+//     "{:10c}"              // read exactly 10 raw characters
+//     "{:x}"                // hexadecimal integer, optional 0x prefix
+//     "{:5}"                // bounded to exactly 5 characters, default
+//                           // alignment/fill for the type
+//     "{:*^10}"             // center-aligned within a 10-char field,
+//                           // '*' fill required on both sides
+//     "{:a}"                // hexadecimal floating-point
+//     "{:p}"                // pointer, REQUIRES 0x/0X prefix
+//     "x = {}, y = {}"      // literal text must match verbatim
+//==============================================================================
+
 #include "vertex/std/_priv/format_scan_common.hpp"
 
 namespace vx {
@@ -34,6 +295,49 @@ template <typename T, typename C, typename Enable = void>
 struct scanner
 {
     VX_STATIC_ASSERT_MSG((!std::is_same<T, T>::value), "No scanner available");
+    static constexpr bool s_not_scannable = true;
+};
+
+//==============================================================================
+// traits
+//==============================================================================
+
+template <typename T, typename C>
+struct is_scannable
+{
+private:
+
+    template <typename U>
+    static auto test(int)
+        -> decltype(scanner<U, C>::s_not_scannable,
+            std::false_type{});
+
+    template <typename>
+    static auto test(...)
+        -> std::true_type;
+
+public:
+
+    static constexpr bool value =
+        decltype(test<T>(0))::value;
+};
+
+template <typename T, typename C>
+struct is_builtin_scannable
+{
+private:
+
+    template <typename U>
+    static auto test(int) -> decltype(scanner<U, C>::s_is_builtin,
+        std::true_type{});
+
+    template <typename>
+    static auto test(...) -> std::false_type;
+
+public:
+
+    static constexpr bool value =
+        decltype(test<T>(0))::value;
 };
 
 //==============================================================================
@@ -45,8 +349,6 @@ namespace _fmt_priv {
 template <typename C>
 struct input_reader
 {
-    using interator = const C*;
-
     const C* ptr;
     size_t remaining;
 
@@ -55,48 +357,67 @@ struct input_reader
         return starting_size - remaining;
     }
 
-    constexpr bool consume(size_t count) noexcept
+    constexpr bool empty() const noexcept
     {
-        const size_t stop = (count < remaining) ? count : remaining;
-        ptr += stop;
-        remaining -= stop;
-        return (stop == count);
+        return remaining == 0;
     }
 
-    constexpr bool consume_literal(const C* data, size_t count) noexcept
+    // Skip up to n characters unconditionally. Returns true if data remains.
+    constexpr bool consume(size_t n) noexcept
     {
-        const size_t n = remaining < count ? remaining : count;
-
-        for (size_t i = 0; i < n; ++i)
-        {
-            if (ptr[i] != data[i])
-            {
-                return false;
-            }
-        }
-
-        ptr += n;
-        remaining -= n;
-
-        return n == count;
+        const size_t n_consumed = n < remaining ? n : remaining;
+        ptr += n_consumed;
+        remaining -= n_consumed;
+        return remaining != 0;
     }
 
-    constexpr bool consume_characters(size_t count, const C c) noexcept
+    // Consumes the longest matching prefix of `count` copies of `c`
+    // (bounded by whatever's left in the buffer). Returns true only if
+    // the full run of `count` was matched.
+    constexpr bool consume_repeated(size_t count, const C c) noexcept
     {
-        const size_t n = remaining < count ? remaining : count;
+        const size_t n = count < remaining ? count : remaining;
+        size_t i = 0;
 
-        for (size_t i = 0; i < n; ++i)
+        for (; i < n; ++i)
         {
             if (ptr[i] != c)
             {
-                return false;
+                break;
             }
         }
 
-        ptr += n;
-        remaining -= n;
+        ptr += i;
+        remaining -= i;
 
-        return n == count;
+        return i == count;
+    }
+
+    constexpr bool consume_character(const C c) noexcept
+    {
+        return consume_repeated(1, c);
+    }
+
+    // Consumes the longest matching prefix shared with data[0..count)
+    // (bounded by whatever's left in the buffer). Returns true only if
+    // the full literal was matched.
+    constexpr bool consume_literal(const C* data, size_t count) noexcept
+    {
+        const size_t n = count < remaining ? count : remaining;
+
+        size_t i = 0;
+        for (; i < n; ++i)
+        {
+            if (ptr[i] != data[i])
+            {
+                break;
+            }
+        }
+
+        ptr += i;
+        remaining -= i;
+
+        return i == count;
     }
 
     constexpr size_t consume_whitespace() noexcept
@@ -114,7 +435,7 @@ struct input_reader
         return i;
     }
 
-    constexpr size_t consume_next(const C c) noexcept
+    constexpr size_t consume_characters(const C c) noexcept
     {
         size_t i = 0;
 
@@ -126,19 +447,6 @@ struct input_reader
         ptr += i;
         remaining -= i;
 
-        return i;
-    }
-
-    constexpr size_t consume_next_n(const C c, const size_t n) noexcept
-    {
-        size_t i = 0;
-        const size_t stop = (n < remaining) ? n : remaining;
-        while (i < stop && ptr[i] == c)
-        {
-            ++i;
-        }
-        ptr += i;
-        remaining -= i;
         return i;
     }
 };
@@ -168,12 +476,12 @@ public:
         return m_in.consumed(starting_size);
     }
 
-    constexpr const C* ptr() const noexcept
+    constexpr const C* in() const noexcept
     {
         return m_in.ptr;
     }
 
-    constexpr const C* ptr() noexcept
+    constexpr const C* in() noexcept
     {
         return m_in.ptr;
     }
@@ -185,7 +493,7 @@ public:
 
     constexpr bool empty() const noexcept
     {
-        return (m_in.remaining == 0);
+        return m_in.empty();
     }
 
     constexpr bool consume(size_t n) noexcept
@@ -193,14 +501,19 @@ public:
         return m_in.consume(n);
     }
 
-    constexpr size_t consume_next(const C c) noexcept
-    {
-        return m_in.consume_next(c);
-    }
-
     constexpr size_t consume_whitespace() noexcept
     {
         return m_in.consume_whitespace();
+    }
+
+    constexpr bool consume_character(const C c) noexcept
+    {
+        return m_in.consume_character(c);
+    }
+
+    constexpr bool consume_literal(const C* data, size_t count) noexcept
+    {
+        return m_in.consume_literal(data, count);
     }
 
 private:
@@ -229,25 +542,25 @@ private:
         scan_error err = scan_error::none;
 
         // create a new input bound to the width
-        _fmt_priv::input_reader<C> field_in{ ptr(), max_width };
+        _fmt_priv::input_reader<C> field_in{ in(), max_width };
         basic_scan_context<C> field_ctx{ field_in };
 
         switch (align)
         {
-            case alignment::none:
+            default:
             case alignment::left:
             {
                 err = callback(field_ctx);
-                const size_t value_size = field_in.consumed(max_width);
-                consume(value_size);
+                const size_t total_consumed = field_in.consumed(max_width);
+                consume(total_consumed);
 
                 if (err != scan_error::none)
                 {
                     return err;
                 }
 
-                const size_t expected_right_pad = width - value_size;
-                if (!m_in.consume_characters(expected_right_pad, fill))
+                const size_t expected_right_pad = width - total_consumed;
+                if (!m_in.consume_repeated(expected_right_pad, fill))
                 {
                     return scan_error::invalid_scaned_field;
                 }
@@ -256,7 +569,7 @@ private:
             }
             case alignment::right:
             {
-                const size_t left_pad = field_in.consume_next(fill);
+                const size_t left_pad = field_in.consume_characters(fill);
 
                 err = callback(field_ctx);
                 const size_t total_consumed = field_in.consumed(max_width);
@@ -278,7 +591,7 @@ private:
             }
             case alignment::center:
             {
-                const size_t left_pad = field_in.consume_next(fill);
+                const size_t left_pad = field_in.consume_characters(fill);
 
                 err = callback(field_ctx);
                 const size_t total_consumed = field_in.consumed(max_width);
@@ -297,7 +610,7 @@ private:
                 }
 
                 const size_t expected_right_pad = width - value_size - expected_left_pad;
-                if (!m_in.consume_characters(expected_right_pad, fill))
+                if (!m_in.consume_repeated(expected_right_pad, fill))
                 {
                     return scan_error::invalid_scaned_field;
                 }
@@ -318,7 +631,7 @@ private:
 
         switch (align)
         {
-            case alignment::none:
+            default:
             case alignment::left:
             {
                 err = callback(*this);
@@ -327,12 +640,12 @@ private:
                     return err;
                 }
 
-                m_in.consume_next(fill);
+                m_in.consume_characters(fill);
                 break;
             }
             case alignment::right:
             {
-                m_in.consume_next(fill);
+                m_in.consume_characters(fill);
 
                 err = callback(*this);
                 if (err != scan_error::none)
@@ -344,7 +657,7 @@ private:
             }
             case alignment::center:
             {
-                const size_t left_pad = m_in.consume_next(fill);
+                const size_t left_pad = m_in.consume_characters(fill);
 
                 err = callback(*this);
                 if (err != scan_error::none)
@@ -354,7 +667,7 @@ private:
 
                 // with unbounded width and center alignment,
                 // padding is expected to be the same on both sides
-                if (!m_in.consume_characters(left_pad, fill))
+                if (!m_in.consume_repeated(left_pad, fill))
                 {
                     return scan_error::invalid_scaned_field;
                 }
@@ -378,7 +691,7 @@ private:
             return callback(*this);
         }
 
-        basic_format_spec_base<C> bounded_spec;
+        basic_format_spec<C> bounded_spec;
 
         // Width specified, no align: default alignment for the type is used
         // default fill (' ') is used, matching is bounded/exact
@@ -443,24 +756,16 @@ public:
     }
 
     template <typename T>
-    constexpr scan_error scan_field(
-        const scanner<T, C>& scn,
-        T& value) noexcept
-    {
-        return scan_field(scn, value, scn.default_align);
-    }
-
-    template <typename T>
     constexpr bool try_scan_field(
         const scanner<T, C>& scn,
         T& value,
         const alignment default_align) noexcept
     {
         const size_t r = remaining();
-        _fmt_priv::input_reader<C> field_in{ ptr(), r };
+        _fmt_priv::input_reader<C> field_in{ in(), r };
         basic_scan_context<C> field_ctx{ field_in };
 
-        const auto err = field_ctx.scan_field(scn, value);
+        const auto err = field_ctx.scan_field(scn, value, default_align);
         if (err != scan_error::none)
         {
             return false;
@@ -469,14 +774,6 @@ public:
         const size_t value_size = field_in.consumed(r);
         consume(value_size);
         return true;
-    }
-
-    template <typename T>
-    constexpr bool try_scan_field(
-        const scanner<T, C>& scn,
-        T& value) noexcept
-    {
-        return try_scan_field(scn, value, scn.default_align);
     }
 
 private:
@@ -522,36 +819,14 @@ constexpr scan_error invoke_scanner(
 
     scanner<DT, C> s;
 
-    auto err = s.parse(parse_ctx);
-    if (err != scan_error::none)
+    if (!s.parse(parse_ctx))
     {
-        return err;
+        return scan_error::invalid_format;
     }
 
     // reinterpret as the *actual* stored object type, not the decayed one
     U& ref = *static_cast<U*>(ptr);
-    err = s.scan_field(scan_ctx, ref);
-    return err;
-}
-
-template <typename T, typename C>
-constexpr scan_error invoke_scanner_consteval(
-    const basic_parse_context<C>& parse_ctx,
-    basic_scan_context<C>& scan_ctx,
-    T& value) noexcept
-{
-    using U = std::remove_reference_t<T>;
-    using DT = std::remove_cv_t<U>;
-
-    scanner<DT, C> s;
-
-    const auto err = s.parse(parse_ctx);
-    if (err != scan_error::none)
-    {
-        return err;
-    }
-
-    return s.scan(scan_ctx, value);
+    return s.scan_field(scan_ctx, ref);
 }
 
 //==============================================================================
@@ -559,31 +834,34 @@ constexpr scan_error invoke_scanner_consteval(
 template <typename C, typename... Args>
 constexpr scan_result scan_impl(
     const C* in,
-    size_t in_size,
-    const C* fmt,
-    size_t fmt_size,
-    const scan_options& ops,
-    Args&&... args) noexcept
-{
-    constexpr size_t argc = sizeof...(Args);
-    const array<void*, argc> values = { &args... };
-    const array<scan_fn<C>, argc> funcs = { &invoke_scanner<Args, C>... };
+    const size_t in_size,
 
-    basic_format_parser<C> parser{ fmt, fmt_size, ops.ws_mode };
+    const C* fmt,
+    const size_t fmt_size,
+
+    const whitespace_mode ws_mode,
+
+    const size_t argc,
+    void* const* values,
+    const scan_fn<C>* funcs) noexcept
+{
+    basic_format_parser<C> parser{ fmt, fmt_size, ws_mode };
     input_reader<C> input{ in, in_size };
 
     size_t next_arg = 0;
     basic_format_token<C> tok;
-
     scan_error err = scan_error::none;
-    bool scanning = true;
-    bool format_error = false;
 
-    while (scanning && !format_error)
+    while (true)
     {
         if (!parser.next(tok))
         {
-            format_error = true;
+            err = scan_error::invalid_format;
+            break;
+        }
+
+        if (tok.type == token_type::end)
+        {
             break;
         }
 
@@ -591,16 +869,9 @@ constexpr scan_result scan_impl(
         {
             case token_type::literal:
             {
-                if (input.remaining == 0)
-                {
-                    err = scan_error::end_of_input;
-                    break;
-                }
-
                 if (!input.consume_literal(tok.first, tok.calculate_size()))
                 {
-                    err = scan_error::invalid_scaned_field;
-                    break;
+                    err = scan_error::end_of_input;
                 }
                 break;
             }
@@ -611,22 +882,15 @@ constexpr scan_result scan_impl(
             }
             case token_type::escaped:
             {
-                if (input.remaining == 0)
+                if (!input.consume_character(*tok.first))
                 {
                     err = scan_error::end_of_input;
-                    break;
-                }
-
-                if (!input.consume_characters(1, *tok.first))
-                {
-                    err = scan_error::invalid_scaned_field;
-                    scanning = false;
                 }
                 break;
             }
             case token_type::replacement:
             {
-                if (input.remaining == 0)
+                if (input.empty())
                 {
                     err = scan_error::end_of_input;
                     break;
@@ -636,185 +900,96 @@ constexpr scan_result scan_impl(
                 if (!parser.update_mode(tok.has_index ? index_mode::manual : index_mode::auto_))
                 {
                     err = scan_error::index_mode_mismatch;
-                    scanning = false;
                     break;
                 }
 
-                const size_t index = (tok.has_index)
-                    ? tok.index
-                    : next_arg++;
-
-                // verify arg index
+                const size_t index = tok.has_index ? tok.index : next_arg++;
                 if (index >= argc)
                 {
                     err = scan_error::invalid_argument;
-                    scanning = false;
                     break;
                 }
 
-                auto parse_ctx = context_creator<C>::create_parse_context(tok.first, tok.calculate_size());
-                auto scan_ctx = context_creator<C>::create_scan_context(input);
+                auto parse_ctx = parse_context_creator<C>::create(tok.first, tok.calculate_size());
+                auto scan_ctx = scan_context_creator<C>::create(input);
                 err = funcs[index](parse_ctx, scan_ctx, values[index]);
-
-                if (err == scan_error::invalid_scaned_field && input.remaining == 0)
-                {
-                    // we consumed all of the input and did not find what we needed
-                    err = scan_error::end_of_input;
-                }
-
-                if (err != scan_error::none)
-                {
-                    scanning = false;
-                }
-
                 break;
             }
             case token_type::end:
             {
-                scanning = false;
-                break;
+                VX_UNREACHABLE();
             }
+        }
+
+        if (err == scan_error::invalid_scaned_field && input.empty())
+        {
+            err = scan_error::end_of_input;
+        }
+
+        if (err != scan_error::none)
+        {
+            break;
         }
     }
 
-    if (format_error)
-    {
-        err = scan_error::invalid_format;
-    }
-
-    const size_t count = input.consumed(in_size);
+    const size_t count = in_size - input.remaining;
     return { err, count };
 }
 
-template <size_t I = 0, typename Tuple, typename C>
-constexpr scan_error scan_arg(
-    input_reader<C>& input,
-    const basic_format_token<C>& tok,
-    Tuple&& tuple,
-    size_t index)
-{
-    VX_IF_CONSTEXPR (I < std::tuple_size<typename std::remove_reference<Tuple>::type>::value)
-    {
-        if (I == index)
-        {
-            auto parse_ctx =
-                context_creator<C>::create_parse_context(
-                    tok.first,
-                    tok.calculate_size());
-
-            return invoke_scanner_consteval(
-                input,
-                parse_ctx,
-                std::get<I>(std::forward<Tuple>(tuple)));
-        }
-
-        return scan_arg<I + 1>(
-            input,
-            tok,
-            std::forward<Tuple>(tuple),
-            index);
-    }
-    else
-    {
-        return scan_error::invalid_argument;
-    }
-}
-
 template <typename C, typename... Args>
-constexpr scan_result scan_impl_consteval(
+constexpr scan_result scan_begin(
     const C* in,
-    size_t in_size,
+    const size_t in_size,
     const C* fmt,
-    size_t fmt_size,
-    const scan_options& ops,
+    const size_t fmt_size,
+    const whitespace_mode ws_mode,
     Args&&... args) noexcept
 {
-    //constexpr size_t argc = sizeof...(Args);
-    //
-    //auto values = std::forward_as_tuple(std::forward<Args>(args)...);
-    //
-    //basic_format_parser<C> parser{ fmt, fmt_size, ops.ws_mode };
-    //input_reader<C> input{ in, in_size };
-    //
-    //size_t next_arg = 0;
-    //basic_format_token<C> tok;
-    //
-    //while (true)
-    //{
-    //    if (!parser.next(tok))
-    //    {
-    //        return { scan_error::invalid_format, 0 };
-    //    }
-    //
-    //    switch (tok.type)
-    //    {
-    //        case token_type::literal:
-    //        {
-    //            if (!input.consume_literal(tok.first, tok.calculate_size()))
-    //            {
-    //                return { scan_error::invalid_format, 0 };
-    //            }
-    //
-    //            break;
-    //        }
-    //        case token_type::escaped:
-    //        {
-    //            if (!input.consume_characters(2, *tok.first))
-    //            {
-    //                return { scan_error::invalid_format, 0 };
-    //            }
-    //
-    //            break;
-    //        }
-    //        case token_type::replacement:
-    //        {
-    //            //_FORMAT_RET_IF(
-    //            //    (!parser.update_mode(
-    //            //        tok.has_index
-    //            //            ? index_mode::manual
-    //            //            : index_mode::auto_)),
-    //            //    (scan_error{ scan_error::index_mode_mismatch, 0 }));
-    //            //
-    //            //const size_t index = tok.has_index
-    //            //    ? tok.index
-    //            //    : next_arg++;
-    //            //
-    //            //_FORMAT_RET_IF(
-    //            //    (index >= argc),
-    //            //    (scan_error{ scan_error::invalid_argument, 0 }));
-    //            //
-    //            //const auto fmt_err = scan_arg(
-    //            //    input,
-    //            //    tok,
-    //            //    values,
-    //            //    index);
-    //            //
-    //            //if (fmt_err != scan_error::none)
-    //            //{
-    //            //    return { fmt_err, 0 };
-    //            //}
-    //
-    //            break;
-    //        }
-    //        case token_type::end:
-    //        {
-    //            const size_t count = in_size - input.remaining;
-    //            return { scan_error::none, count };
-    //        }
-    //    }
-    //}
+    constexpr size_t argc = sizeof...(Args);
+    const array<void*, argc> values = { &args... };
+    const array<scan_fn<C>, argc> funcs = { &invoke_scanner<Args, C>... };
 
-    return { scan_error::none, 0 };
+    return scan_impl<C>(in, in_size, fmt, fmt_size, ws_mode, argc, values.data(), funcs.data());
+}
+
+template <typename C, typename T>
+constexpr scan_result scan_simple_begin(
+    const C* in,
+    size_t in_size,
+    T& value) noexcept
+{
+    using DT = typename std::decay<T>::type;
+    scanner<DT, C> s;
+
+    // The builtin types don't do any setup in their parse
+    // function, so it can be skipped
+    VX_IF_CONSTEXPR (!is_builtin_scannable<T, C>::value)
+    {
+        const C end = closed_brace;
+        auto parse_ctx = parse_context_creator<C>::create(&end, 1);
+        if (!s.parse(parse_ctx))
+        {
+            return { scan_error::invalid_format, 0 };
+        }
+    }
+
+    input_reader<C> input{ in, in_size };
+    auto scan_ctx = scan_context_creator<C>::create(input);
+
+    const auto err = s.scan(scan_ctx, value);
+
+    const size_t count = in_size - input.remaining;
+    return { err, count };
 }
 
 } // namespace _fmt_priv
 
 //==============================================================================
-// integer
+// basic scanner
 //==============================================================================
 
-template <typename I, typename C>
-struct scanner<I, C, VX_REQUIRES_TYPE(std::is_integral<I>::value && !type_traits::is_char<I>::value && !std::is_same<I, bool>::value)> : basic_scan_spec<C>
+template <typename T, typename C>
+struct basic_scanner : basic_scan_spec<C>
 {
 private:
 
@@ -822,24 +997,192 @@ private:
 
 public:
 
-    constexpr scan_error parse(const basic_parse_context<C>& ctx) noexcept
+    constexpr bool parse(const basic_parse_context<C>& ctx) noexcept
     {
-        const auto err = ctx.parse_basic_spec(*this);
-        if (err != format_error::none)
+        return ctx.parse_basic_spec(*this);
+    }
+};
+
+//==============================================================================
+// string like types
+//==============================================================================
+
+namespace _fmt_priv {
+
+template <typename C>
+static constexpr size_t find_string_size(const C* ptr, const size_t size) noexcept
+{
+    size_t i = 0;
+    while (i < size && !str::is_space(ptr[i]))
+    {
+        ++i;
+    }
+
+    return i;
+}
+
+} // namespace _fmt_priv
+
+//==============================================================================
+
+template <typename S, typename C>
+struct scanner<S, C, VX_REQUIRES_TYPE(str::is_string_view<S>::value&& std::is_same<typename S::value_type, C>::value)> : basic_scanner<S, C>
+{
+private:
+
+    using base = basic_scanner<S, C>;
+
+    friend is_scannable;
+    static constexpr bool s_is_builtin = true;
+
+#if defined(VX_FORMAT_ESCAPED_SUPPORT)
+
+    constexpr scan_error scan_escaped(basic_scan_context<C>& ctx, S& value) const noexcept
+    {
+        if (base::width == 0)
         {
-            return scan_error::invalid_format;
+            ctx.consume_whitespace();
         }
 
-        base::default_align = (base::type == C('c'))
-            ? alignment::left
-            : alignment::right;
+        if (!ctx.consume_character(C('"')))
+        {
+            return scan_error::invalid_scaned_field;
+        }
+
+        const C* start = ctx.in();
+        const size_t remaining = ctx.remaining();
+        size_t i = 0;
+        bool closed = false;
+
+        while (i < remaining)
+        {
+            const C c = start[i];
+
+            if (c == C('"'))
+            {
+                closed = true;
+                break;
+            }
+
+            if (c == C('\\'))
+            {
+                C decoded;
+                const size_t n = _fmt_priv::unescape_char_body<C>(start + i + 1, remaining - i - 1, decoded);
+
+                if (n == 0)
+                {
+                    return scan_error::invalid_scaned_field;
+                }
+
+                i += 1 + n;
+                continue;
+            }
+
+            ++i;
+        }
+
+        if (!closed)
+        {
+            return scan_error::invalid_scaned_field;
+        }
+
+        value = S{ start, i };
+        ctx.consume(i);
+        ctx.consume(1); // closing quote, already verified present
 
         return scan_error::none;
     }
 
+#endif // VX_FORMAT_ESCAPED_SUPPORT
+
+public:
+
+    constexpr bool parse(const basic_parse_context<C>& ctx) noexcept
+    {
+        if (!base::parse(ctx))
+        {
+            return false;
+        }
+
+        if (base::type == C('c') && !base::width)
+        {
+            return false;
+        }
+
+        return !base::type || (base::type == C('s') || base::type == C('c')
+#if defined(VX_FORMAT_ESCAPED_SUPPORT)
+                                  || base::type == C('?')
+#endif // VX_FORMAT_ESCAPED_SUPPORT
+                              );
+    }
+
+    constexpr scan_error scan_field(
+        basic_scan_context<C>& ctx,
+        S& value) const noexcept
+    {
+        return ctx.scan_field(*this, value, alignment::left);
+    }
+
+    constexpr scan_error scan(
+        basic_scan_context<C>& ctx,
+        S& value) const noexcept
+    {
+#if defined(VX_FORMAT_ESCAPED_SUPPORT)
+
+        if (base::type == C('?'))
+        {
+            return scan_escaped(ctx, value);
+        }
+
+#endif // VX_FORMAT_ESCAPED_SUPPORT
+
+        if (base::type != C('c') && base::width == 0)
+        {
+            ctx.consume_whitespace();
+        }
+
+        const C* ptr = ctx.in();
+        const size_t remaining = ctx.remaining();
+
+        const size_t count = (base::type == C('c'))
+            ? base::width
+            : _fmt_priv::find_string_size(ptr, remaining);
+
+        if (count == 0)
+        {
+            return scan_error::invalid_scaned_field;
+        }
+
+        value = S{ ptr, count };
+        ctx.consume(count);
+
+        return scan_error::none;
+    }
+};
+
+//==============================================================================
+// integer
+//==============================================================================
+
+template <typename I, typename C>
+struct scanner<I, C, VX_REQUIRES_TYPE(std::is_integral<I>::value && !type_traits::is_char<I>::value && !std::is_same<I, bool>::value)> : basic_scanner<I, C>
+{
+private:
+
+    using base = basic_scan_spec<C>;
+
+    friend is_scannable;
+    static constexpr bool s_is_builtin = true;
+
+public:
+
     constexpr scan_error scan_field(basic_scan_context<C>& ctx, I& value) const noexcept
     {
-        return ctx.scan_field(*this, value);
+        const alignment default_alignment = (base::type == C('c'))
+            ? alignment::left
+            : alignment::right;
+
+        return ctx.scan_field(*this, value, default_alignment);
     }
 
     constexpr scan_error scan(
@@ -853,7 +1196,7 @@ public:
 
         if (base::type == C('c'))
         {
-            value = static_cast<I>(*ctx.ptr());
+            value = static_cast<I>(*ctx.in());
             ctx.consume(1);
             return scan_error::none;
         }
@@ -863,7 +1206,7 @@ public:
             ctx.consume_whitespace();
         }
 
-        const C* ptr = ctx.ptr();
+        const C* ptr = ctx.in();
         const size_t remaining = ctx.remaining();
 
         const int b = _fmt_priv::parse_integer_base(base::type);
@@ -890,51 +1233,115 @@ public:
 // character
 //==============================================================================
 
-template <typename C1, typename C2>
-struct scanner<C1, C2, VX_REQUIRES_TYPE(type_traits::is_char<C1>::value)> : scanner<typename std::make_unsigned<C1>::type, C2>
+template <typename Cin, typename C>
+struct scanner<Cin, C, VX_REQUIRES_TYPE(type_traits::is_char<Cin>::value)> : scanner<typename std::make_unsigned<Cin>::type, C>
 {
 private:
 
-    VX_STATIC_ASSERT_MSG(sizeof(C1) <= sizeof(C2), "Narrowing conversion not allowed");
-    using U = typename std::make_unsigned<C1>::type;
-    using base = scanner<U, C2>;
+    VX_STATIC_ASSERT_MSG(sizeof(Cin) <= sizeof(C), "Narrowing conversion not allowed");
+    using U = typename std::make_unsigned<Cin>::type;
+    using base = scanner<U, C>;
+
+    friend is_scannable;
+    static constexpr bool s_is_builtin = true;
+
+#if defined(VX_FORMAT_ESCAPED_SUPPORT)
+
+    constexpr scan_error scan_escaped(basic_scan_context<C>& ctx, Cin& value) const noexcept
+    {
+        if (!ctx.consume_character(C('\'')))
+        {
+            return scan_error::invalid_scaned_field;
+        }
+
+        if (ctx.empty())
+        {
+            return scan_error::invalid_scaned_field;
+        }
+
+        C decoded;
+        const C c = *ctx.in();
+
+        if (c == C('\\'))
+        {
+            ctx.consume(1);
+
+            const size_t n = _fmt_priv::unescape_char_body<C>(ctx.in(), ctx.remaining(), decoded);
+            if (n == 0)
+            {
+                return scan_error::invalid_scaned_field;
+            }
+
+            ctx.consume(n);
+        }
+        else
+        {
+            decoded = c;
+            ctx.consume(1);
+        }
+
+        if (!ctx.consume_character(C('\'')))
+        {
+            return scan_error::invalid_scaned_field;
+        }
+
+        value = static_cast<Cin>(decoded);
+        return scan_error::none;
+    }
+
+#endif // VX_FORMAT_ESCAPED_SUPPORT
 
 public:
 
-    constexpr scan_error parse(const basic_parse_context<C2>& ctx) noexcept
+    constexpr bool parse(const basic_parse_context<C>& ctx) noexcept
     {
-        const auto err = ctx.parse_basic_spec(*this);
-        if (err != format_error::none)
+        if (!ctx.parse_basic_spec(*this))
         {
-            return scan_error::invalid_format;
+            return false;
         }
 
-        if (base::type == C2('\0'))
+        if (base::type == C('\0'))
         {
-            base::type = C2('c');
+            base::type = C('c');
         }
 
-        base::default_align = (base::type == C2('c'))
-            ? alignment::left
-            : alignment::right;
-
-        return scan_error::none;
+        return true;
     }
 
     constexpr scan_error scan_field(
-        basic_scan_context<C2>& ctx,
-        C1& value) const noexcept
+        basic_scan_context<C>& ctx,
+        Cin& value) const noexcept
     {
-        U uvalue;
-        const auto err = base::scan_field(ctx, uvalue);
-        if (err != scan_error::none)
+        if (base::type == C('?'))
         {
-            return err;
+#if defined(VX_FORMAT_ESCAPED_SUPPORT)
+            return ctx.scan_field(*this, value, alignment::left);
+#else
+            return scan_error::invalid_format;
+#endif // VX_FORMAT_ESCAPED_SUPPORT
         }
 
-        value = static_cast<C2>(uvalue);
-        return scan_error::none;
+        U uvalue;
+        const auto err = base::scan_field(ctx, uvalue);
+
+        if (err == scan_error::none)
+        {
+            value = static_cast<C>(uvalue);
+        }
+
+        return err;
     }
+
+#if defined(VX_FORMAT_ESCAPED_SUPPORT)
+
+    constexpr scan_error scan(
+        basic_scan_context<C>& ctx,
+        Cin& value) const noexcept
+    {
+        return scan_escaped(ctx, value);
+    }
+
+#endif // VX_FORMAT_ESCAPED_SUPPORT
 };
 
 //==============================================================================
@@ -949,8 +1356,24 @@ private:
     using I = int;
     using base = scanner<I, C>;
 
-    static constexpr C true_str[] = { C('t'), C('r'), C('u'), C('e') };
-    static constexpr C false_str[] = { C('f'), C('a'), C('l'), C('s'), C('e') };
+    friend is_scannable;
+    static constexpr bool s_is_builtin = true;
+
+    using boolean_string_t = _fmt_priv::boolean_strings<C>;
+
+    static bool case_compare(const C* in, const C* cmp, size_t count) noexcept
+    {
+        for (; 0 < count; --count, ++in, ++cmp)
+        {
+            const C in_lower = str::to_lower(*in);
+            if (in_lower != *cmp)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
 public:
 
@@ -974,13 +1397,13 @@ public:
 
         I ivalue;
         const auto err = base::scan_field(ctx, ivalue);
-        if (err != scan_error::none)
+
+        if (err == scan_error::none)
         {
-            return err;
+            value = static_cast<bool>(ivalue);
         }
 
-        value = static_cast<bool>(ivalue);
-        return scan_error::none;
+        return err;
     }
 
     constexpr scan_error scan(
@@ -994,23 +1417,27 @@ public:
             ctx.consume_whitespace();
         }
 
-        const C* ptr = ctx.ptr();
+        constexpr size_t true_size = mem::array_size(boolean_string_t::true_str);
+        constexpr size_t false_size = mem::array_size(boolean_string_t::false_str);
+
+        const C* ptr = ctx.in();
         const size_t remaining = ctx.remaining();
-        if (remaining < 4)
+
+        if (remaining < true_size)
         {
             return scan_error::invalid_scaned_field;
         }
 
-        if (str::compare(ptr, 4, true_str, 4) == 0)
+        if (case_compare(ptr, boolean_string_t::true_str, true_size))
         {
             value = true;
-            ctx.consume(4);
+            ctx.consume(true_size);
             return scan_error::none;
         }
-        if (remaining >= 5 && str::compare(ptr, 5, false_str, 5) == 0)
+        if (remaining >= false_size && case_compare(ptr, boolean_string_t::false_str, false_size))
         {
             value = false;
-            ctx.consume(5);
+            ctx.consume(false_size);
             return scan_error::none;
         }
 
@@ -1019,130 +1446,73 @@ public:
 };
 
 //==============================================================================
-// string like types
+// float
 //==============================================================================
 
-namespace _fmt_priv {
-
-template <typename C>
-struct string_scanner : basic_scan_spec<C>
+template <typename F, typename C>
+struct scanner<F, C, VX_REQUIRES_TYPE(std::is_floating_point<F>::value)> : basic_scanner<F, C>
 {
 private:
 
-    using base = basic_scan_spec<C>;
+    using base = basic_scanner<F, C>;
 
-public:
+    friend is_scannable;
+    static constexpr bool s_is_builtin = true;
 
-    constexpr scan_error parse(const basic_parse_context<C>& ctx) noexcept
+    static constexpr strconv::from_string_result parse_float(
+        const C* ptr,
+        const size_t count,
+        F& value,
+        const strconv::float_from_string_format_options<C>& fmt) noexcept
     {
-        const auto err = ctx.parse_basic_spec(*this);
-        if (err != format_error::none)
+        if (count == 0)
         {
-            return scan_error::invalid_format;
+            return { 0, strconv::from_string_error::invalid_argument };
         }
 
-        if (base::type == C('c') && !base::width)
-        {
-            return scan_error::invalid_format;
-        }
-
-        base::default_align = alignment::left;
-        return scan_error::none;
-    }
-
-    static constexpr size_t find_size(const C* ptr, const size_t size) noexcept
-    {
         size_t i = 0;
-        while (i < size && !str::is_space(ptr[i]))
+        bool is_negative = false;
+
+        if (ptr[0] == C('-') || ptr[0] == C('+'))
         {
+            if (count == 1)
+            {
+                return { 0, strconv::from_string_error::invalid_argument };
+            }
+
             ++i;
+            is_negative = ptr[0] == C('-');
         }
 
-        return i;
+        if ((count - i >= 2) &&
+            (ptr[i] == C('0')) &&
+            (ptr[i + 1] == C('x') || ptr[i + 1] == C('X')))
+        {
+            i += 2;
+        }
+
+        auto res = strconv::parse_float(ptr + i, count - i, value, fmt);
+
+        if (res.err == strconv::from_string_error::none)
+        {
+            if (is_negative)
+            {
+                value = -value;
+            }
+
+            res.count += i;
+        }
+
+        return res;
     }
-};
-
-} // namespace _fmt_priv
-
-//==============================================================================
-
-template <typename S, typename C>
-struct scanner<S, C, VX_REQUIRES_TYPE(str::is_string_of<S, C>::value)> : _fmt_priv::string_scanner<C>
-{
-private:
-
-    using base = _fmt_priv::string_scanner<C>;
 
 public:
 
     constexpr scan_error scan_field(
         basic_scan_context<C>& ctx,
-        S& value) const noexcept
+        F& value) const noexcept
     {
-        return ctx.scan_field(*this, value);
-    }
-
-    constexpr scan_error scan(
-        basic_scan_context<C>& ctx,
-        S& value) const noexcept
-    {
-        if (base::type != C('c') && base::width == 0)
-        {
-            if (!(base::type == C('\0') || base::type == C('s')))
-            {
-                return scan_error::invalid_format;
-            }
-
-            ctx.consume_whitespace();
-        }
-
-        const C* ptr = ctx.ptr();
-        const size_t remaining = ctx.remaining();
-
-        const size_t count = (base::type == C('c'))
-            ? base::width
-            : base::find_size(ptr, remaining);
-
-        if (count == 0)
-        {
-            return scan_error::invalid_scaned_field;
-        }
-
-        value = S{ ptr, count };
-        ctx.consume(count);
-
-        return scan_error::none;
-    }
-};
-
-//==============================================================================
-// float
-//==============================================================================
-
-template <typename F, typename C>
-struct scanner<F, C, VX_REQUIRES_TYPE(std::is_floating_point<F>::value)> : basic_scan_spec<C>
-{
-private:
-
-    using base = basic_scan_spec<C>;
-
-public:
-
-    constexpr scan_error parse(const basic_parse_context<C>& ctx) noexcept
-    {
-        const auto err = ctx.parse_basic_spec(*this);
-        if (err != format_error::none)
-        {
-            return scan_error::invalid_format;
-        }
-
-        base::default_align = alignment::right;
-        return scan_error::none;
-    }
-
-    constexpr scan_error scan_field(basic_scan_context<C>& ctx, F& value) const noexcept
-    {
-        return ctx.scan_field(*this, value);
+        return ctx.scan_field(*this, value, alignment::right);
     }
 
     constexpr scan_error scan(
@@ -1178,24 +1548,10 @@ public:
             ctx.consume_whitespace();
         }
 
-        const C* ptr = ctx.ptr();
+        const C* ptr = ctx.in();
         const size_t remaining = ctx.remaining();
 
-        strconv::from_string_result res;
-
-        if (lower_type == C('a'))
-        {
-            res = strconv::_strconv_priv::parse_float_start<F, C, true>(
-                ptr, remaining,
-                value, fmt);
-        }
-        else
-        {
-            res = strconv::_strconv_priv::parse_float_start<F, C, false>(
-                ptr, remaining,
-                value, fmt);
-        }
-
+        const auto res = parse_float(ptr, remaining, value, fmt);
         ctx.consume(res.count);
 
         if (res.err == strconv::from_string_error::out_of_range)
@@ -1203,7 +1559,7 @@ public:
             return scan_error::result_out_of_range;
         }
 
-        return (res.err == strconv::from_string_error::none)
+        return res.err == strconv::from_string_error::none
             ? scan_error::none
             : scan_error::invalid_scaned_field;
     }
@@ -1214,41 +1570,34 @@ public:
 //==============================================================================
 
 template <typename C>
-struct scanner<void*, C> : basic_scan_spec<C>
+struct scanner<void*, C> : basic_scanner<void*, C>
 {
 private:
 
-    using base = basic_scan_spec<C>;
+    using base = basic_scanner<void*, C>;
     using U = uintptr_t;
+
+    friend is_scannable;
+    static constexpr bool s_is_builtin = true;
 
     static constexpr scan_result scan_pointer(const C* s, size_t size, U& value) noexcept
     {
-        size_t i = 0;
-
         if (size <= 2)
         {
             return { scan_error::invalid_scaned_field, 0 };
         }
 
-        if (s[i] != C('0'))
+        if (s[0] != C('0') || (s[1] != C('x') && s[1] != C('X')))
         {
             return { scan_error::invalid_scaned_field, 0 };
         }
-
-        ++i;
-
-        if (!(s[i] == C('x') || s[i] == C('X')))
-        {
-            return { scan_error::invalid_scaned_field, 0 };
-        }
-
-        ++i;
 
         constexpr U uint_max = static_cast<U>(-1);
         constexpr U risky_value = static_cast<U>(uint_max / 16);
         constexpr U max_digit = static_cast<U>(uint_max % 16);
 
-        const size_t start = i;
+        constexpr size_t start = 2;
+        size_t i = start;
         bool overflow = false;
 
         U uvalue = 0;
@@ -1288,26 +1637,21 @@ private:
 
 public:
 
-    constexpr scan_error parse(const basic_parse_context<C>& ctx) noexcept
+    constexpr scan_error scan_field(
+        basic_scan_context<C>& ctx,
+        void*& value) const noexcept
     {
-        const auto err = ctx.parse_basic_spec(*this);
-        if (err != format_error::none)
-        {
-            return scan_error::invalid_format;
-        }
-
-        if (!(base::type == C('\0') || base::type == C('p')))
-        {
-            return scan_error::invalid_format;
-        }
-
-        base::default_align = alignment::right;
-        return scan_error::none;
+        return ctx.scan_field(*this, value, alignment::right);
     }
 
-    constexpr scan_error scan_field(basic_scan_context<C>& ctx, void*& value) noexcept
+    constexpr bool parse(const basic_parse_context<C>& ctx) noexcept
     {
-        return ctx.scan_field(*this, value);
+        if (!ctx.parse_basic_spec(*this))
+        {
+            return false;
+        }
+
+        return (base::type == C('\0') || base::type == C('p'));
     }
 
     constexpr scan_error scan(
@@ -1319,7 +1663,7 @@ public:
             ctx.consume_whitespace();
         }
 
-        const C* ptr = ctx.ptr();
+        const C* ptr = ctx.in();
         const size_t remaining = ctx.remaining();
 
         U uvalue;
@@ -1352,7 +1696,33 @@ struct scanner<std::nullptr_t, C> : scanner<void*, C>
 // scan
 //==============================================================================
 
-template <typename C, typename... Args, VX_REQUIRES(type_traits::is_char<C>::value)>
+//------------------------------------------------------------------------------
+// Scan a single value from a caller-provided buffer
+//------------------------------------------------------------------------------
+
+template <
+    typename C,
+    typename T,
+    VX_REQUIRES(type_traits::is_char<C>::value)>
+constexpr scan_result scan_simple(
+    const C* in,
+    size_t in_size,
+    T& value) noexcept
+{
+    return _fmt_priv::scan_simple_begin(
+        in,
+        in_size,
+        value);
+}
+
+//------------------------------------------------------------------------------
+// Scan from a caller-provided buffer
+//------------------------------------------------------------------------------
+
+template <
+    typename C,
+    typename... Args,
+    VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr scan_result scan(
     const C* in,
     size_t in_size,
@@ -1360,26 +1730,58 @@ constexpr scan_result scan(
     size_t fmt_size,
     Args&&... args) noexcept
 {
-    if (VX_IS_CONSTANT_EVALUATED())
-    {
-        return _fmt_priv::scan_impl_consteval(
-            in,
-            in_size,
-            fmt,
-            fmt_size,
-            {},
-            std::forward<Args>(args)...);
-    }
-    else
-    {
-        return _fmt_priv::scan_impl(
-            in,
-            in_size,
-            fmt,
-            fmt_size,
-            {},
-            std::forward<Args>(args)...);
-    }
+    return _fmt_priv::scan_begin(
+        in,
+        in_size,
+        fmt,
+        fmt_size,
+        whitespace_mode::greedy,
+        std::forward<Args>(args)...);
+}
+
+//------------------------------------------------------------------------------
+// Scan a single value from a string-like input
+//------------------------------------------------------------------------------
+
+template <
+    typename S,
+    typename T,
+    VX_REQUIRES(str::is_string_like<S>::value)>
+scan_result scan_simple(
+    const S& in,
+    T& value)
+{
+    using C = typename S::value_type;
+
+    return scan_simple<C>(
+        in.data(),
+        in.size(),
+        value);
+}
+
+//------------------------------------------------------------------------------
+// Scan from a string-like input
+//------------------------------------------------------------------------------
+
+template <
+    typename S,
+    typename FMT,
+    typename... Args,
+    VX_REQUIRES(
+        str::is_string_like<S>::value&&
+            str::is_string_like<FMT>::value&&
+                str::is_string_compatible<S, FMT>::value)>
+scan_result scan_string(
+    const S& in,
+    const FMT& fmt,
+    Args&&... args)
+{
+    return scan(
+        in.data(),
+        in.size(),
+        fmt.data(),
+        fmt.size(),
+        std::forward<Args>(args)...);
 }
 
 } // namespace fmt

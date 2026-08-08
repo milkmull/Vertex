@@ -69,6 +69,18 @@ struct integer_to_string_format_options
 
 //==============================================================================
 
+template <typename I>
+struct integer_buffer_traits
+{
+    // Number of binary digits required.
+    static constexpr size_t max_precision = sizeof(I) * CHAR_BIT;
+
+    // +1 for sign.
+    static constexpr size_t buffer_size = max_precision + (std::is_signed<I>::value ? 1 : 0);
+};
+
+//==============================================================================
+
 namespace _strconv_priv {
 
 template <typename I, typename C>
@@ -241,6 +253,27 @@ struct float_to_string_format_options
 
 //==============================================================================
 // general helpers
+//==============================================================================
+
+template <typename F>
+struct float_buffer_traits
+{
+    using traits = float_traits<F>;
+
+    // Smallest subnormal is radix^(min_exponent - digits); the number of
+    // fractional decimal digits it needs is digits - min_exponent
+    // (min_exponent is negative).
+    static constexpr size_t max_precision =
+        static_cast<size_t>(traits::digits) -
+        static_cast<size_t>(traits::min_exponent);
+
+    // +3 for: sign, the ones-place digit not covered by max_exponent10, and
+    // the decimal point.
+    static constexpr size_t buffer_size =
+        max_precision +
+        static_cast<size_t>(traits::max_exponent10) + 3;
+};
+
 //==============================================================================
 
 // https://github.com/microsoft/STL/blob/f3ae96af460b8fcb7d77c46fc1ad7d312900d1e7/stl/inc/xcharconv_ryu.h#L2390

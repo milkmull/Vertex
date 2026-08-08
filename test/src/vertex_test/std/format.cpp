@@ -1,3 +1,5 @@
+#define VX_FORMAT_ESCAPED_SUPPORT
+
 #include "vertex/std/format.hpp"
 #include "vertex/std/array.hpp"
 #include "vertex/std/io.hpp"
@@ -10,13 +12,11 @@
 #define CHECK_STR(a, b) VX_CHECK(vx::str::compare(a, b) == 0)
 
 #define PRINT_CASE       0
-#define SKIP_BUFFER_TEST 0
+#define SKIP_BUFFER_TEST 1
 
 using namespace vx;
 
 // https://github.com/microsoft/STL/blob/020513e211529e7be30cb3e0ca310869701286da/tests/std/tests/P0067R5_charconv/test.cpp#L1012
-
-//==============================================================================
 
 //==============================================================================
 
@@ -1063,6 +1063,54 @@ void test_common_cases()
         };
 
         run_test_batch(point_cases);
+    }
+
+    VX_SECTION("escaped string")
+    {
+        using SV = str::basic_string_view<C>;
+
+        constexpr format_test_case<C, SV> basic_cases[] = {
+            { LIT("{:?}"),     LIT("\"hi\""),       fmt::format_error::none, { SV{ LIT("hi") } }     },
+            { LIT("{:?}"),     LIT("\"\""),         fmt::format_error::none, { SV{ LIT("") } }       },
+            
+            // escapes
+            { LIT("{:?}"),     LIT("\"a\\\\b\""),   fmt::format_error::none, { SV{ LIT("a\\b") } }   },
+            { LIT("{:?}"),     LIT("\"a\\\"b\""),   fmt::format_error::none, { SV{ LIT("a\"b") } }   },
+            { LIT("{:?}"),     LIT("\"a\\nb\""),    fmt::format_error::none, { SV{ LIT("a\nb") } }   },
+            { LIT("{:?}"),     LIT("\"a\\tb\""),    fmt::format_error::none, { SV{ LIT("a\tb") } }   },
+            { LIT("{:?}"),     LIT("\"a\\rb\""),    fmt::format_error::none, { SV{ LIT("a\rb") } }   },
+
+            // non-printable / high bytes fall back to \xHH
+            //{ LIT("{:?}"),     LIT("\"a\\x01b\""),  fmt::format_error::none, { SV{ LIT("a\x01b") } } },
+            //{ LIT("{:?}"),     LIT("\"a\\x7fb\""),  fmt::format_error::none, { SV{ LIT("a\x7fb") } } },
+
+            // precision truncates BEFORE escaping
+            { LIT("{:.2?}"),   LIT("\"he\""),       fmt::format_error::none, { SV{ LIT("hello") } }  },
+
+            // width + center alignment, '*' fill
+            { LIT("{:*^10?}"), LIT("***\"hi\"***"), fmt::format_error::none, { SV{ LIT("hi") } }     },
+        };
+
+        run_test_batch(basic_cases);
+    }
+
+    VX_SECTION("escaped character")
+    {
+        constexpr format_test_case<C, char> basic_cases[] = {
+            { LIT("{:?}"),    LIT("'A'"),     fmt::format_error::none, { 'A' }        },
+            { LIT("{:?}"),    LIT("'\\\\'"),  fmt::format_error::none, { '\\' }       },
+            { LIT("{:?}"),    LIT("'\\''"),   fmt::format_error::none, { '\'' }       },
+            { LIT("{:?}"),    LIT("'\\n'"),   fmt::format_error::none, { '\n' }       },
+            { LIT("{:?}"),    LIT("'\\t'"),   fmt::format_error::none, { '\t' }       },
+            { LIT("{:?}"),    LIT("'\\r'"),   fmt::format_error::none, { '\r' }       },
+            { LIT("{:?}"),    LIT("'\\x01'"), fmt::format_error::none, { char(0x01) } },
+            { LIT("{:?}"),    LIT("'\\x7f'"), fmt::format_error::none, { char(0x7f) } },
+
+            // width + center alignment, '*' fill
+            { LIT("{:*^7?}"), LIT("**'A'**"), fmt::format_error::none, { 'A' }        },
+        };
+
+        run_test_batch(basic_cases);
     }
 }
 

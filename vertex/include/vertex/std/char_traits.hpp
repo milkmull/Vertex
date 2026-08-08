@@ -1595,6 +1595,24 @@ struct is_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
 //=========================================================================
 
 template <typename T>
+struct is_string_view : std::false_type
+{};
+
+template <typename T>
+struct is_string_view<basic_string_view<T>> : std::true_type
+{};
+
+#if defined(__cpp_lib_string_view)
+
+template <typename T, typename Traits>
+struct is_string_view<std::basic_string_view<T, Traits>> : std::true_type
+{};
+
+#endif // defined(__cpp_lib_string_view)
+
+//=========================================================================
+
+template <typename T>
 struct is_mutable_string_like : std::false_type
 {};
 
