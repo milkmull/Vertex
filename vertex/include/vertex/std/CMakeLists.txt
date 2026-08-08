@@ -40,7 +40,8 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/scan.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/string_utils.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/to_string.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/packed_string_array.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/single_linked_list.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/crypto/fnv1a.hpp"

@@ -8,7 +8,7 @@ namespace fmt {
 
 // #define VX_FORMAT_DISABLE_FORMAT_STRING_CHECKS
 // #define VX_FORMAT_DISABLE_OUTPUT_SIZE_CHECKS
-#define VX_FORMAT_ESCAPED_SUPPORT
+// #define VX_FORMAT_ESCAPED_SUPPORT
 
 #define _VX_FAIL_IF(cond, ret) \
     do \

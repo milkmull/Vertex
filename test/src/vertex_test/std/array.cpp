@@ -230,34 +230,54 @@ VX_TEST_CASE(test_zero_length_array)
 {
     using A = array<size_t, 0>;
 
-    // Aggregate initialization
-    array<size_t, 0> a{};
-    array<size_t, 0> b = {};
+    //-------------------------------------------------------------------------
+    // Initialization
+    //-------------------------------------------------------------------------
+
+    A a{};
+    A b = {};
+
+    //-------------------------------------------------------------------------
+    // Size
+    //-------------------------------------------------------------------------
 
     VX_CHECK(A::empty());
     VX_CHECK(A::size() == 0);
     VX_CHECK(A::size_bytes() == 0);
-    VX_CHECK(A::max_size() >= 0);
+    VX_CHECK(A::max_size() > 0);
+
+    //-------------------------------------------------------------------------
+    // Data
+    //-------------------------------------------------------------------------
+
+    VX_CHECK(a.data() == nullptr);
+
+    const A& c = a;
+
+    VX_CHECK(c.data() == nullptr);
+
+    //-------------------------------------------------------------------------
+    // Iterators
+    //-------------------------------------------------------------------------
 
     VX_CHECK(a.begin() == a.end());
     VX_CHECK(a.cbegin() == a.cend());
 
+    VX_CHECK(c.begin() == c.end());
+    VX_CHECK(c.cbegin() == c.cend());
+
     VX_CHECK(a.rbegin() == a.rend());
     VX_CHECK(a.crbegin() == a.crend());
 
-    VX_CHECK(a.data() == nullptr);
+    VX_CHECK(c.rbegin() == c.rend());
+    VX_CHECK(c.crbegin() == c.crend());
 
-    a.fill(123); // should be a no-op
-    a.swap(b);   // should be a no-op
-
-    VX_CHECK(a == b);
-    VX_CHECK(!(a != b));
-    VX_CHECK(!(a < b));
-    VX_CHECK(!(a > b));
-    VX_CHECK(a <= b);
-    VX_CHECK(a >= b);
+    //-------------------------------------------------------------------------
+    // Forward iteration
+    //-------------------------------------------------------------------------
 
     size_t count = 0;
+
     for (auto it = a.begin(); it != a.end(); ++it)
     {
         ++count;
@@ -266,12 +286,103 @@ VX_TEST_CASE(test_zero_length_array)
     VX_CHECK(count == 0);
 
     count = 0;
+
+    for (auto it = c.begin(); it != c.end(); ++it)
+    {
+        ++count;
+    }
+
+    VX_CHECK(count == 0);
+
+    //-------------------------------------------------------------------------
+    // Reverse iteration
+    //-------------------------------------------------------------------------
+
+    count = 0;
+
     for (auto it = a.rbegin(); it != a.rend(); ++it)
     {
         ++count;
     }
 
     VX_CHECK(count == 0);
+
+    count = 0;
+
+    for (auto it = c.rbegin(); it != c.rend(); ++it)
+    {
+        ++count;
+    }
+
+    VX_CHECK(count == 0);
+
+    //-------------------------------------------------------------------------
+    // Operations
+    //-------------------------------------------------------------------------
+
+    a.fill(123); // should be a no-op
+    a.swap(b);   // should be a no-op
+
+    VX_CHECK(a == b);
+    VX_CHECK(!(a != b));
+
+    //-------------------------------------------------------------------------
+    // Ordering
+    //-------------------------------------------------------------------------
+
+    VX_CHECK(!(a < b));
+    VX_CHECK(!(a > b));
+    VX_CHECK(a <= b);
+    VX_CHECK(a >= b);
+
+    //-------------------------------------------------------------------------
+    // Const comparisons
+    //-------------------------------------------------------------------------
+
+    const A& ca = a;
+    const A& cb = b;
+
+    VX_CHECK(ca == cb);
+    VX_CHECK(!(ca != cb));
+    VX_CHECK(!(ca < cb));
+    VX_CHECK(!(ca > cb));
+    VX_CHECK(ca <= cb);
+    VX_CHECK(ca >= cb);
+}
+
+//==============================================================================
+
+VX_TEST_CASE(test_zero_length_array_const_access)
+{
+    using A = array<size_t, 0>;
+
+    A arr{};
+    const A& c = arr;
+
+    // These specifically exercise the const overloads.
+    const size_t* data = c.data();
+
+    auto begin = c.begin();
+    auto end = c.end();
+    auto cbegin = c.cbegin();
+    auto cend = c.cend();
+
+    auto rbegin = c.rbegin();
+    auto rend = c.rend();
+    auto crbegin = c.crbegin();
+    auto crend = c.crend();
+
+    VX_CHECK(data == nullptr);
+
+    VX_CHECK(begin == end);
+    VX_CHECK(cbegin == cend);
+    VX_CHECK(begin == cbegin);
+    VX_CHECK(end == cend);
+
+    VX_CHECK(rbegin == rend);
+    VX_CHECK(crbegin == crend);
+    VX_CHECK(rbegin == crbegin);
+    VX_CHECK(rend == crend);
 }
 
 //==============================================================================

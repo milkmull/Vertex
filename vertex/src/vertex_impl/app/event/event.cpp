@@ -135,7 +135,7 @@ const char** create_temporary_string_array(const char* const* src, size_t count)
     // Space for the pointer table:
     // (count + 1) entries of 'const char*'
     // The +1 is for the final nullptr terminator.
-    size_t total_length = (count + 1) * sizeof(char);
+    size_t total_length = (count + 1) * sizeof(const char*);
 
     // Add the space required for all strings stored consecutively,
     // each including its null terminator.
@@ -161,6 +161,7 @@ const char** create_temporary_string_array(const char* const* src, size_t count)
     for (size_t i = 0; i < count; ++i)
     {
         const size_t length = std::strlen(src[i]) + 1;
+        dst[i] = ptr;
         std::memcpy(ptr, src[i], length);
         ptr += length;
     }

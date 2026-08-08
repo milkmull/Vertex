@@ -11,14 +11,6 @@ x string view
 x static string
 x string
 
-x numeric printing
-x io
-x string format
-- string scan
-
-- numeric format use stack buffer and cap precision for partial output
-- test 0 size array
-
 - packed string array
 - single link list
 - double link list
