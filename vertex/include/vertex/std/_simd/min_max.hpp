@@ -15,6 +15,8 @@ namespace _priv {
 
 // https://github.com/microsoft/STL/blob/stl/inc/__msvc_minmax.hpp
 
+#if _VX_USE_SIMD_ALGORITHMS
+
 extern "C" {
 
 struct min_max_element_t
@@ -90,6 +92,8 @@ struct min_max_p
 };
 
 } // extern "C"
+
+#endif // _VX_USE_SIMD_ALGORITHMS
 
 } // namespace _priv
 } // namespace vx

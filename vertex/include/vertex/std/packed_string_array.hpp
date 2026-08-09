@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vertex/std/math/checked_arithmetic.hpp"
 #include "vertex/std/memory.hpp"
 #include "vertex/std/string_utils.hpp"
 
@@ -62,60 +63,72 @@ public:
     {
         VX_ASSERT(src);
         VX_ASSERT(count);
-        constexpr size_t max_size = std::numeric_limits<size_t>::max();
 
         packed_string_array result;
 
         // Space for the pointer table:
         // (count + 1) entries of 'const C*'
         // The +1 is for the final nullptr terminator.
-        const size_t pointer_count = count + 1;
+        size_t pointer_count;
+        size_t pointer_bytes;
+        size_t string_bytes = 0;
+        size_t total_bytes;
 
-#if !defined(VX_PACKED_STRING_ARRAY_DISABLE_MAX_SIZE_CHECKS)
+#if defined(VX_PACKED_STRING_ARRAY_DISABLE_MAX_SIZE_CHECKS)
+
+        pointer_count = count + 1;
+        pointer_bytes = pointer_count * sizeof(array_type);
+
+        // Add the space required for all strings stored consecutively,
+        // each including its null terminator.
+        for (size_t i = 0; i < count; ++i)
+        {
+            VX_ASSERT(src[i]);
+            const size_t length = str::length(src[i]) + 1;
+            string_bytes += (length * sizeof(C));
+        }
+
+        total_bytes = pointer_bytes + string_bytes;
+
+#else
 
         // pointer_count must not have overflowed, and must not overflow
         // when multiplied by the pointer size.
-        if (pointer_count == 0 || pointer_count > max_size / sizeof(array_type))
+        if (!math::checked_add(count, size_t(1), pointer_count) ||
+            !math::checked_mul(pointer_count, sizeof(array_type), pointer_bytes))
+        {
+            err::set(err::size_error);
+            return result;
+        }
+
+        // Add the space required for all strings stored consecutively,
+        // each including its null terminator.
+        for (size_t i = 0; i < count; ++i)
+        {
+            VX_ASSERT(src[i]);
+
+            size_t length;
+            size_t bytes;
+            size_t new_string_bytes;
+
+            if (!math::checked_add(str::length(src[i]), size_t(1), length) ||
+                !math::checked_mul(length, sizeof(C), bytes) ||
+                !math::checked_add(string_bytes, bytes, new_string_bytes))
+            {
+                err::set(err::size_error);
+                return result;
+            }
+
+            string_bytes = new_string_bytes;
+        }
+
+        if (!math::checked_add(pointer_bytes, string_bytes, total_bytes))
         {
             err::set(err::size_error);
             return result;
         }
 
 #endif // VX_PACKED_STRING_ARRAY_DISABLE_MAX_SIZE_CHECKS
-
-        const size_t pointer_bytes = pointer_count * sizeof(array_type);
-
-        // Add the space required for all strings stored consecutively,
-        // each including its null terminator.
-        size_t string_bytes = 0;
-        for (size_t i = 0; i < count; ++i)
-        {
-            VX_ASSERT(src[i]);
-            const size_t length = str::length(src[i]) + 1;
-
-#if !defined(VX_PACKED_STRING_ARRAY_DISABLE_MAX_SIZE_CHECKS)
-
-            if (length == 0 || length > max_size / sizeof(C) || (length * sizeof(C)) > (max_size - string_bytes))
-            {
-                err::set(err::size_error);
-                return result;
-            }
-
-#endif // VX_PACKED_STRING_ARRAY_DISABLE_MAX_SIZE_CHECKS
-
-            string_bytes += (length * sizeof(C));
-        }
-
-#if !defined(VX_PACKED_STRING_ARRAY_DISABLE_MAX_SIZE_CHECKS)
-
-        if (string_bytes > (max_size - pointer_bytes))
-        {
-            return result;
-        }
-
-#endif // VX_PACKED_STRING_ARRAY_DISABLE_MAX_SIZE_CHECKS
-
-        const size_t total_bytes = pointer_bytes + string_bytes;
 
         // Allocate a single contiguous block:
         // [pointer table][string data...]

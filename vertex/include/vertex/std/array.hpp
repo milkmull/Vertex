@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/std/_priv/pointer_iterator.hpp"
+#include "vertex/std/_tools/pointer_iterator.hpp"
 #include "vertex/std/memory.hpp"
 
 namespace vx {

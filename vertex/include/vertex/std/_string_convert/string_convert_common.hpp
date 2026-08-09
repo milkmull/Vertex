@@ -3,7 +3,7 @@
 #include "vertex/config/assert.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/type_traits.hpp"
-#include "vertex/std/float_traits.hpp"
+#include "vertex/std/math/float_traits.hpp"
 #include "vertex/std/hex.hpp"
 #include "vertex/std/string_utils.hpp"
 #include "vertex/util/bit.hpp"

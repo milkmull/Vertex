@@ -311,7 +311,7 @@
 //     "{:P}"                // uppercase hexadecimal pointer
 //==============================================================================
 
-#include "vertex/std/_priv/format_scan_common.hpp"
+#include "vertex/std/_format/format_scan_common.hpp"
 
 namespace vx {
 namespace fmt {

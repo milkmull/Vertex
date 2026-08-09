@@ -11,7 +11,7 @@ x string view
 x static string
 x string
 
-- packed string array
+x packed string array
 - single link list
 - double link list
 - hash

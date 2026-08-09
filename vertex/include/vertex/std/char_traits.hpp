@@ -6,7 +6,7 @@
 #include <wchar.h>
 
 #include "vertex/config/type_traits.hpp"
-#include "vertex/std/_priv/simd_algorithms.hpp"
+#include "vertex/std/_simd/simd_algorithms.hpp"
 #include "vertex/std/crypto/fnv1a.hpp"
 #include "vertex/std/memory.hpp"
 
@@ -423,7 +423,7 @@ struct char_traits_base
     {
         for (; first != last; ++first)
         {
-            _priv::assign(*dst, *first);
+            assign(*dst, *first);
             ++dst;
         }
 

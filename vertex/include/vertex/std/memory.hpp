@@ -735,7 +735,6 @@ constexpr T* fill_range(T* ptr, size_t count, const U& value)
             ++ptr;
         }
         return ptr;
-    
     }
 
     VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<T*, U>::value))
@@ -1388,6 +1387,38 @@ public:
 
 template <typename T>
 using aligned_allocator = default_allocator<T, ideal_align, alignment_policy::exact>;
+
+namespace _mem_priv {
+
+template <typename Alloc, typename T, bool = std::is_empty<Alloc>::value && !std::is_final<Alloc>::value>
+struct alloc_storage : private Alloc
+{
+    T value;
+
+    alloc_storage() = default;
+    alloc_storage(const Alloc& a) : Alloc(a) {}
+    alloc_storage(Alloc&& a) noexcept : Alloc(std::move(a)) {}
+
+    Alloc& allocator() noexcept { return *this; }
+    const Alloc& allocator() const noexcept { return *this; }
+};
+
+// fallback for stateful / non-empty allocators
+template <typename Alloc, typename T>
+struct alloc_storage<Alloc, T, false>
+{
+    Alloc alloc;
+    T value;
+
+    alloc_storage() = default;
+    alloc_storage(const Alloc& a) : alloc(a) {}
+    alloc_storage(Alloc&& a) noexcept : alloc(std::move(a)) {}
+
+    Alloc& allocator() noexcept { return alloc; }
+    const Alloc& allocator() const noexcept { return alloc; }
+};
+
+} // namespace _mem_priv
 
 } // namespace mem
 } // namespace vx

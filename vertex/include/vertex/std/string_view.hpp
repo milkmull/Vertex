@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "vertex/std/_priv/pointer_iterator.hpp"
+#include "vertex/std/_tools/pointer_iterator.hpp"
 #include "vertex/std/char_traits.hpp"
 
 namespace vx {

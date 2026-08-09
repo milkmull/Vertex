@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/std/_priv/string_convert_common.hpp"
+#include "vertex/std/_string_convert/string_convert_common.hpp"
 
 namespace vx {
 namespace strconv {
