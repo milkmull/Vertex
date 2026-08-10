@@ -194,7 +194,7 @@ private:
 
     // pthread_t can be an opaque type whose size varies by platform and libc
     // implementation. It is *not* guaranteed to be an integer or pointer.
-    // We reserve a conservative buffer to hold whatever pthread_t requires.
+    // We reserve a conservative buffer_type to hold whatever pthread_t requires.
     //
     // If needed, tune this per-platform or add compile-time checks against
     // sizeof(pthread_t).

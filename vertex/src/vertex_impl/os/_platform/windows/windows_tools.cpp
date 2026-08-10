@@ -30,16 +30,16 @@ void error_message(const char* msg)
     //const size_t msg_size = std::strlen(msg);
     //
     //DWORD code = ::GetLastError();
-    //WCHAR buffer[1024]{};
+    //WCHAR buffer_type[1024]{};
     //
     //::FormatMessageW(
     //    FORMAT_MESSAGE_FROM_SYSTEM,
     //    NULL, code, 0,
-    //    buffer, static_cast<DWORD>(mem::array_size(buffer)), NULL
+    //    buffer_type, static_cast<DWORD>(mem::array_size(buffer_type)), NULL
     //);
     //
     //// Kill CR/LF that FormatMessage() sticks at the end
-    //for (WCHAR* it = buffer; *it; ++it)
+    //for (WCHAR* it = buffer_type; *it; ++it)
     //{
     //    if (*it == L'\r')
     //    {
@@ -51,7 +51,7 @@ void error_message(const char* msg)
     //VX_ERR(vx::err::system_error)
     //    << msg
     //    << ((msg_size == 0) ? "" : ": ")
-    //    << str::string_cast<char>(buffer);
+    //    << str::string_cast<char>(buffer_type);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,7 @@ const char* check_default_args(int* pargc, char*** pargv, void** pallocated)
 
     const LPWSTR command_line = ::GetCommandLineW();
 
-    // Compute the UTF-8 buffer size needed to hold the entire command line.
+    // Compute the UTF-8 buffer_type size needed to hold the entire command line.
     // WideCharToMultiByte() guarantees that converting individual arguments
     // will not exceed this size.
     const int arg_data_size = ::WideCharToMultiByte(CP_UTF8, 0, command_line, -1, NULL, 0, NULL, NULL);
@@ -109,7 +109,7 @@ const char* check_default_args(int* pargc, char*** pargv, void** pallocated)
     }
 
     // Allocate one contiguous block:
-    // [argv pointers] + [UTF - 8 argument string buffer]
+    // [argv pointers] + [UTF - 8 argument string buffer_type]
     // This simplifies cleanup and ensures efficient access.
     argv = static_cast<char**>(::HeapAlloc(::GetProcessHeap(), HEAP_ZERO_MEMORY, (argc + 1ull) * sizeof(*argv) + arg_data_size));
     if (!argv)
@@ -122,7 +122,7 @@ const char* check_default_args(int* pargc, char*** pargv, void** pallocated)
     int arg_data_index = 0;
 
     // Convert each wide argument to UTF-8 and populate argv[].
-    // Each string is written into the contiguous arg_data buffer.
+    // Each string is written into the contiguous arg_data buffer_type.
     for (int i = 0; i < argc; ++i)
     {
         const int bytes_written = ::WideCharToMultiByte(CP_UTF8, 0, argvw[i], -1, arg_data + arg_data_index, arg_data_size - arg_data_index, NULL, NULL);

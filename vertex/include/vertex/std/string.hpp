@@ -57,9 +57,9 @@ private:
         size_type capacity;
     };
 
-    // holds the allocator alongside the buffer; empty-base-optimized when
+    // holds the allocator alongside the buffer_type; empty-base-optimized when
     // Allocator is stateless, so sizeof(basic_string) is unaffected in that case
-    mem::_mem_priv::alloc_storage<Allocator, buffer_type> m_storage;
+    mem::_mem_priv::allocator_storage<Allocator, buffer_type> m_storage;
 
     Allocator& get_alloc() noexcept
     { return m_storage.allocator(); }
@@ -296,8 +296,8 @@ public:
         construct_n<construct_method::from_string>(other.size(), other.data());
     }
 
-    // move takes over the source's allocator along with its buffer, since
-    // the buffer must always be freed by the allocator that produced it
+    // move takes over the source's allocator along with its buffer_type, since
+    // the buffer_type must always be freed by the allocator that produced it
     basic_string(basic_string&& other) noexcept
         : m_storage(std::move(other.get_alloc()))
     {
@@ -1528,14 +1528,11 @@ public:
         return true;
     }
 
-    // swap keeps allocator and buffer glued together, same reasoning as move:
-    // each buffer must stay paired with the allocator that produced it
+    // swap keeps allocator and buffer_type glued together, same reasoning as move:
+    // each buffer_type must stay paired with the allocator that produced it
     void swap(basic_string& other) noexcept
     {
-        std::swap(get_alloc(), other.get_alloc());
-        std::swap(m_storage.value.ptr, other.m_storage.value.ptr);
-        std::swap(m_storage.value.size, other.m_storage.value.size);
-        std::swap(m_storage.value.capacity, other.m_storage.value.capacity);
+        mem::swap(m_storage, other.m_storage);
     }
 
     //=========================================================================

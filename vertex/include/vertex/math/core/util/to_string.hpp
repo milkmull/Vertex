@@ -16,11 +16,11 @@ namespace _priv {
 ///////////////////////////////////////////////////////////////////////////////
 
 template <size_t size, typename... Args>
-VX_FORCE_INLINE void format(char buffer[size], const char* fmt, Args&&... args)
+VX_FORCE_INLINE void format(char buffer_type[size], const char* fmt, Args&&... args)
 {
     VX_ASSERT(fmt);
     VX_ASSERT(std::strlen(fmt) < size);
-    std::snprintf(buffer, size, fmt, std::forward<Args>(args)...);
+    std::snprintf(buffer_type, size, fmt, std::forward<Args>(args)...);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -19,7 +19,7 @@ namespace str {
  * @tparam from_char_t Source character type.
  * @param src Reference to the current input pointer. Advanced after decoding.
  * @param end Pointer past the end of the input range.
- * @param dst Output buffer.
+ * @param dst Output buffer_type.
  * @param replacement Replacement character for invalid sequences.
  * @return Pointer after the last written output character.
  */
@@ -78,7 +78,7 @@ IT2 string_cast(IT1 first, IT1 last, IT2 out, to_char_t replacement = to_char_t(
  * @tparam from_char_t Source character type.
  * @param src Pointer to the beginning of the input range.
  * @param size Number of characters in the input range.
- * @param dst Pointer to the output buffer.
+ * @param dst Pointer to the output buffer_type.
  * @param replacement Replacement character to use for invalid sequences.
  * @return Pointer after the last written character.
  */

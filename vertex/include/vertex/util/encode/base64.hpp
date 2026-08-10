@@ -11,11 +11,11 @@ namespace base64 {
 /**
  * @brief Encodes binary data into a Base64-encoded string.
  *
- * This function converts the input binary buffer into a Base64 string representation.
+ * This function converts the input binary buffer_type into a Base64 string representation.
  * It processes input in 3-byte blocks and appends padding ('=') as necessary.
  *
- * @param data Pointer to the binary data buffer to encode. Must not be null.
- * @param size The number of bytes in the input buffer.
+ * @param data Pointer to the binary data buffer_type to encode. Must not be null.
+ * @param size The number of bytes in the input buffer_type.
  * @param encoded Output string that will be populated with the Base64 result. Cleared and overwritten on success.
  * @return True if encoding was successful, false if input is null.
  *

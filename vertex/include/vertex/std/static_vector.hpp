@@ -56,13 +56,13 @@ private:
         iterator_range // construct from iterator range
     };
 
-    struct buffer
+    struct buffer_type
     {
         T ptr[N];
         size_type size;
     };
 
-    buffer m_buffer = {};
+    buffer_type m_buffer = {};
 
     //=========================================================================
     // construction helpers

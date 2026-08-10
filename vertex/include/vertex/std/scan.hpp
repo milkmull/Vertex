@@ -194,7 +194,7 @@
 //   - end_of_input           : the input was exhausted before a literal,
 //                             escape, or field could be fully matched
 //                             (this also replaces invalid_scaned_field
-//                             whenever the input buffer is empty at the
+//                             whenever the input buffer_type is empty at the
 //                             point of failure — running out of input
 //                             is reported as end_of_input rather than
 //                             a content mismatch)
@@ -372,7 +372,7 @@ struct input_reader
     }
 
     // Consumes the longest matching prefix of `count` copies of `c`
-    // (bounded by whatever's left in the buffer). Returns true only if
+    // (bounded by whatever's left in the buffer_type). Returns true only if
     // the full run of `count` was matched.
     constexpr bool consume_repeated(size_t count, const C c) noexcept
     {
@@ -399,7 +399,7 @@ struct input_reader
     }
 
     // Consumes the longest matching prefix shared with data[0..count)
-    // (bounded by whatever's left in the buffer). Returns true only if
+    // (bounded by whatever's left in the buffer_type). Returns true only if
     // the full literal was matched.
     constexpr bool consume_literal(const C* data, size_t count) noexcept
     {
@@ -1697,7 +1697,7 @@ struct scanner<std::nullptr_t, C> : scanner<void*, C>
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// Scan a single value from a caller-provided buffer
+// Scan a single value from a caller-provided buffer_type
 //------------------------------------------------------------------------------
 
 template <
@@ -1716,7 +1716,7 @@ constexpr scan_result scan_simple(
 }
 
 //------------------------------------------------------------------------------
-// Scan from a caller-provided buffer
+// Scan from a caller-provided buffer_type
 //------------------------------------------------------------------------------
 
 template <

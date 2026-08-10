@@ -33,7 +33,7 @@ private:
 #if defined(VX_HAVE_PTHREADS)
 
     // POSIX pthread_mutex_t is an opaque type whose size varies by platform and libc.
-    // We use a conservative fixed buffer (64 bytes) to safely hold it.
+    // We use a conservative fixed buffer_type (64 bytes) to safely hold it.
     // Alignment uses the platform max alignment.
     static constexpr size_t storage_size = 64;
     static constexpr size_t storage_alignment = mem::max_align;

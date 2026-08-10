@@ -57,11 +57,11 @@ void print_integer(os::stream s, I v)
     using traits = strconv::integer_buffer_traits<I>;
 
     constexpr size_t buffer_size = traits::buffer_size;
-    char buffer[buffer_size];
+    char buffer_type[buffer_size];
 
-    const auto res = strconv::write_integer_base10(v, buffer, buffer_size);
+    const auto res = strconv::write_integer_base10(v, buffer_type, buffer_size);
     VX_ASSERT(res.err == strconv::to_string_error::none);
-    os::write_raw(s, buffer, res.count);
+    os::write_raw(s, buffer_type, res.count);
 }
 
 template <typename I, VX_REQUIRES(std::is_integral<I>::value && !type_traits::is_char<I>::value)>
@@ -85,11 +85,11 @@ void print_one(os::stream s, F v)
     using traits = strconv::float_buffer_traits<F>;
 
     constexpr size_t buffer_size = traits::buffer_size;
-    char buffer[buffer_size];
+    char buffer_type[buffer_size];
 
-    const auto res = strconv::write_float(v, buffer, buffer_size);
+    const auto res = strconv::write_float(v, buffer_type, buffer_size);
     VX_ASSERT(res.err == strconv::to_string_error::none);
-    os::write_raw(s, buffer, res.count);
+    os::write_raw(s, buffer_type, res.count);
 }
 
 // ============================================================
@@ -98,18 +98,18 @@ inline void print_pointer(os::stream s, const void* v)
 {
     // 2 hex digits per byte, no sign + prefix
     constexpr size_t buffer_size = (sizeof(uintptr_t) * 2) + 2;
-    char buffer[buffer_size];
+    char buffer_type[buffer_size];
 
-    buffer[0] = '0';
-    buffer[1] = 'x';
+    buffer_type[0] = '0';
+    buffer_type[1] = 'x';
 
     strconv::integer_to_string_format_options fmt{ 16 };
 
     const auto addr = reinterpret_cast<uintptr_t>(v);
-    const auto res = strconv::write_integer(addr, buffer + 2, buffer_size - 2, fmt);
+    const auto res = strconv::write_integer(addr, buffer_type + 2, buffer_size - 2, fmt);
     VX_ASSERT(res.err == strconv::to_string_error::none);
 
-    os::write_raw(s, buffer, res.count);
+    os::write_raw(s, buffer_type, res.count);
 }
 
 template <typename T, VX_REQUIRES(!type_traits::is_char<T>::value)>

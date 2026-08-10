@@ -168,7 +168,7 @@ bool update_permissions_impl(
 union reparse_point_data
 {
     REPARSE_DATA_BUFFER rdb;
-    BYTE buffer[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
+    BYTE buffer_type[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
 };
 
 static bool get_reparse_point_data_from_handle(
@@ -184,8 +184,8 @@ static bool get_reparse_point_data_from_handle(
         FSCTL_GET_REPARSE_POINT,
         NULL,
         0,
-        data->buffer,
-        static_cast<DWORD>(sizeof(data->buffer)),
+        data->buffer_type,
+        static_cast<DWORD>(sizeof(data->buffer_type)),
         &count,
         NULL))
     {
@@ -502,7 +502,7 @@ path read_symlink_impl(const path& p)
         return symlink_path;
     }
 
-    const wchar_t* buffer = nullptr;
+    const wchar_t* buffer_type = nullptr;
     size_t size = 0;
     size_t offset = 0;
 
@@ -510,7 +510,7 @@ path read_symlink_impl(const path& p)
     {
         case IO_REPARSE_TAG_SYMLINK:
         {
-            buffer = reinterpret_cast<const wchar_t*>(reparse_data->rdb.SymbolicLinkReparseBuffer.PathBuffer);
+            buffer_type = reinterpret_cast<const wchar_t*>(reparse_data->rdb.SymbolicLinkReparseBuffer.PathBuffer);
 
             if (reparse_data->rdb.SymbolicLinkReparseBuffer.PrintNameLength != 0)
             {
@@ -531,7 +531,7 @@ path read_symlink_impl(const path& p)
         }
     }
 
-    symlink_path.assign(buffer + offset, buffer + offset + size);
+    symlink_path.assign(buffer_type + offset, buffer_type + offset + size);
     return symlink_path;
 }
 
@@ -541,14 +541,14 @@ path read_symlink_impl(const path& p)
 
 path get_current_path_impl()
 {
-    WCHAR buffer[MAX_PATH]{};
-    if (!::GetCurrentDirectoryW(MAX_PATH, buffer))
+    WCHAR buffer_type[MAX_PATH]{};
+    if (!::GetCurrentDirectoryW(MAX_PATH, buffer_type))
     {
         windows::error_message("GetCurrentDirectoryW()");
         return {};
     }
 
-    return path{ buffer };
+    return path{ buffer_type };
 }
 
 bool set_current_path_impl(const path& p)
@@ -603,15 +603,15 @@ path canonical_impl(const path& p)
         }
     }
 
-    std::vector<WCHAR> buffer(size);
-    if (::GetFinalPathNameByHandleW(h.get(), buffer.data(), size, flags) == 0)
+    std::vector<WCHAR> buffer_type(size);
+    if (::GetFinalPathNameByHandleW(h.get(), buffer_type.data(), size, flags) == 0)
     {
         windows::error_message("GetFinalPathNameByHandleW()");
         return res;
     }
 
     size -= 1; // ignore null terminator
-    WCHAR* data = buffer.data();
+    WCHAR* data = buffer_type.data();
 
     if (!(flags & VOLUME_NAME_NT))
     {
@@ -731,10 +731,10 @@ static inline std::wstring wgetenv(const wchar_t* name)
 
     if (size > 0)
     {
-        std::vector<WCHAR> buffer(size);
-        if (::GetEnvironmentVariableW(name, buffer.data(), size) > 0)
+        std::vector<WCHAR> buffer_type(size);
+        if (::GetEnvironmentVariableW(name, buffer_type.data(), size) > 0)
         {
-            env.assign(buffer.data());
+            env.assign(buffer_type.data());
         }
     }
 
@@ -778,13 +778,13 @@ path get_temp_path_impl()
             }
         }
 
-        std::vector<WCHAR> buffer(size);
-        if (::GetWindowsDirectoryW(buffer.data(), size) == 0)
+        std::vector<WCHAR> buffer_type(size);
+        if (::GetWindowsDirectoryW(buffer_type.data(), size) == 0)
         {
             goto error;
         }
 
-        tmp.assign(buffer.data());
+        tmp.assign(buffer_type.data());
         tmp /= tmp_dir;
     }
 

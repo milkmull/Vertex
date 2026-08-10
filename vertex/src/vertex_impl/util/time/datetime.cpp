@@ -58,15 +58,15 @@ bool datetime::is_valid() const noexcept
 std::string datetime::to_string() const
 {
     // YYYY-MM-DDTHH:MM:SS±HH:MM or YYYY-MM-DDTHH:MM:SSZ
-    char buffer[26]{};
+    char buffer_type[26]{};
 
     if (!check_datetime(*this, err::invalid_argument))
     {
-        return buffer;
+        return buffer_type;
     }
 
     // Format the date and time in ISO 8601 format
-    std::sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d",
+    std::sprintf(buffer_type, "%04d-%02d-%02dT%02d:%02d:%02d",
         year,
         static_cast<int32_t>(month),
         day,
@@ -78,7 +78,7 @@ std::string datetime::to_string() const
     // If the offset is 0, append 'Z' (for UTC)
     if (utc_offset_seconds == 0)
     {
-        buffer[19] = 'Z';
+        buffer_type[19] = 'Z';
     }
     else
     {
@@ -94,14 +94,14 @@ std::string datetime::to_string() const
         const int32_t offset_hours = static_cast<int32_t>(abs_offset_seconds / seconds_per_hour) % 15; // Limit to range [0, 14]
         const int32_t offset_minutes = static_cast<int32_t>(abs_offset_seconds % seconds_per_hour) / seconds_per_minute;
 
-        buffer[19] = (utc_offset_seconds < 0) ? '-' : '+';
-        std::sprintf(&buffer[20], "%02d:%02d",
+        buffer_type[19] = (utc_offset_seconds < 0) ? '-' : '+';
+        std::sprintf(&buffer_type[20], "%02d:%02d",
             offset_hours,
             offset_minutes
         );
     }
 
-    return buffer;
+    return buffer_type;
 }
 
 } // namespace time

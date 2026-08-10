@@ -201,7 +201,7 @@ public:
     VX_API bool eof() const;
 
     /**
-     * @brief Flushes the file buffer.
+     * @brief Flushes the file buffer_type.
      *
      * Ensures that all buffered data is written to the file.
      *
@@ -218,9 +218,9 @@ public:
     /**
      * @brief Reads data from the file.
      *
-     * Reads the specified number of bytes into the provided buffer.
+     * Reads the specified number of bytes into the provided buffer_type.
      *
-     * @param data The buffer to read data into.
+     * @param data The buffer_type to read data into.
      * @param size The number of bytes to read.
      * @return The number of bytes actually read.
      */
@@ -264,9 +264,9 @@ public:
     /**
      * @brief Writes data to the file.
      *
-     * Writes the specified number of bytes from the provided buffer to the file.
+     * Writes the specified number of bytes from the provided buffer_type to the file.
      *
-     * @param data The buffer containing the data to write.
+     * @param data The buffer_type containing the data to write.
      * @param size The number of bytes to write.
      * @return The number of bytes actually written.
      */
@@ -391,10 +391,10 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * @brief Reads the entire contents of a file into a buffer.
+     * @brief Reads the entire contents of a file into a buffer_type.
      *
      * @param p The path to the file.
-     * @param data The buffer to store the file contents.
+     * @param data The buffer_type to store the file contents.
      * @return True if the file was successfully read, false otherwise.
      */
     static bool read_file(const path& p, std::vector<uint8_t>& data)

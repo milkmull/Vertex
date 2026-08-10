@@ -1082,7 +1082,7 @@ T* swap_range(T* a, T* b, size_t count) noexcept
 {
     VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
-        // For trivially copyable/movable types, swap using a small local block stack buffer
+        // For trivially copyable/movable types, swap using a small local block stack buffer_type
         // to minimize loop overhead and leverage vectorization if possible.
         constexpr size_t buffer_bytes = 64;
         constexpr size_t elements_per_block = buffer_bytes / sizeof(T) > 0 ? buffer_bytes / sizeof(T) : 1;
@@ -1334,31 +1334,34 @@ public:
     VX_STATIC_ASSERT_MSG(Alignment >= alignof(T), "Alignment must be at alignof(T)");
     VX_STATIC_ASSERT_MSG(_priv::is_pow_2(Alignment), "Alignment must be power of 2");
 
+    using value_type = T;
+    using pointer_type = value_type*;
+
     static constexpr size_t alignment = Alignment;
     static constexpr alignment_policy policy = Policy;
 
-    VX_ALLOCATOR static T* allocate(const size_t count) noexcept
+    VX_ALLOCATOR static pointer_type allocate(const size_t count) noexcept
     {
         VX_UNLIKELY_COLD_PATH(count == 0,
             {
                 return nullptr;
             });
 
-        const size_t bytes = count * sizeof(T);
+        const size_t bytes = count * sizeof(value_type);
 
         VX_IF_CONSTEXPR (policy == alignment_policy::at_least && alignment <= max_align)
         {
-            return static_cast<T*>(mem::allocate(bytes));
+            return static_cast<pointer_type>(mem::allocate(bytes));
         }
         else
         {
-            return static_cast<T*>(allocate_aligned<alignment>(bytes));
+            return static_cast<pointer_type>(allocate_aligned<alignment>(bytes));
         }
     }
 
-    static T* reallocate(T* ptr, const size_t count) noexcept
+    static pointer_type reallocate(pointer_type ptr, const size_t count) noexcept
     {
-        const size_t bytes = count * sizeof(T);
+        const size_t bytes = count * sizeof(value_type);
 
         VX_IF_CONSTEXPR (policy == alignment_policy::at_least && alignment <= max_align)
         {
@@ -1370,9 +1373,9 @@ public:
         }
     }
 
-    static void deallocate(T* ptr, const size_t count) noexcept
+    static void deallocate(pointer_type ptr, const size_t count) noexcept
     {
-        const size_t bytes = count * sizeof(T);
+        const size_t bytes = count * sizeof(value_type);
 
         VX_IF_CONSTEXPR (policy == alignment_policy::at_least && alignment <= max_align)
         {
@@ -1388,34 +1391,45 @@ public:
 template <typename T>
 using aligned_allocator = default_allocator<T, ideal_align, alignment_policy::exact>;
 
+template <size_t Alignment = alignof(unsigned char), alignment_policy Policy = alignment_policy::at_least>
+using byte_allocator = default_allocator<unsigned char, Alignment, Policy>;
+
 namespace _mem_priv {
 
-template <typename Alloc, typename T, bool = std::is_empty<Alloc>::value && !std::is_final<Alloc>::value>
-struct alloc_storage : private Alloc
+template <typename Allocator, typename T, bool = std::is_empty<Allocator>::value && !std::is_final<Allocator>::value>
+struct allocator_storage : private Allocator
 {
     T value;
 
-    alloc_storage() = default;
-    alloc_storage(const Alloc& a) : Alloc(a) {}
-    alloc_storage(Alloc&& a) noexcept : Alloc(std::move(a)) {}
+    allocator_storage() = default;
+    allocator_storage(const Allocator& a) : Allocator(a)
+    {}
+    allocator_storage(Allocator&& a) noexcept : Allocator(std::move(a))
+    {}
 
-    Alloc& allocator() noexcept { return *this; }
-    const Alloc& allocator() const noexcept { return *this; }
+    Allocator& allocator() noexcept
+    { return *this; }
+    const Allocator& allocator() const noexcept
+    { return *this; }
 };
 
 // fallback for stateful / non-empty allocators
-template <typename Alloc, typename T>
-struct alloc_storage<Alloc, T, false>
+template <typename Allocator, typename T>
+struct allocator_storage<Allocator, T, false>
 {
-    Alloc alloc;
+    Allocator Allocator;
     T value;
 
-    alloc_storage() = default;
-    alloc_storage(const Alloc& a) : alloc(a) {}
-    alloc_storage(Alloc&& a) noexcept : alloc(std::move(a)) {}
+    allocator_storage() = default;
+    allocator_storage(const Allocator& a) : Allocator(a)
+    {}
+    allocator_storage(Allocator&& a) noexcept : Allocator(std::move(a))
+    {}
 
-    Alloc& allocator() noexcept { return alloc; }
-    const Alloc& allocator() const noexcept { return alloc; }
+    Allocator& allocator() noexcept
+    { return Allocator; }
+    const Allocator& allocator() const noexcept
+    { return Allocator; }
 };
 
 } // namespace _mem_priv

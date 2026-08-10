@@ -61,39 +61,39 @@ private:
         iterator_range // construct from iterator range
     };
 
-    struct buffer
+    struct buffer_type
     {
         pointer ptr = nullptr;
         size_type size = 0;
         size_type capacity = 0;
     };
 
-    // holds the allocator alongside the buffer; empty-base-optimized when
+    // holds the allocator alongside the buffer_type; empty-base-optimized when
     // Allocator is stateless, so sizeof(vector) is unaffected in that case
-    mem::_mem_priv::alloc_storage<Allocator, buffer> m_storage;
+    mem::_mem_priv::allocator_storage<Allocator, buffer_type> m_storage;
 
     Allocator& get_alloc() noexcept
     { return m_storage.allocator(); }
     const Allocator& get_alloc() const noexcept
     { return m_storage.allocator(); }
 
-    buffer& m_buffer_ref() noexcept
+    buffer_type& m_buffer_ref() noexcept
     { return m_storage.value; }
-    const buffer& m_buffer_ref() const noexcept
+    const buffer_type& m_buffer_ref() const noexcept
     { return m_storage.value; }
 
     //=========================================================================
     // construction helpers
     //=========================================================================
 
-    buffer release_buffer() noexcept
+    buffer_type release_buffer() noexcept
     {
         auto& b = m_storage.value;
         auto& ptr = b.ptr;
         auto& size = b.size;
         auto& capacity = b.capacity;
 
-        buffer old_buffer = std::move(b);
+        buffer_type old_buffer = std::move(b);
 
         ptr = nullptr;
         size = 0;
@@ -208,8 +208,8 @@ public:
             other.m_storage.value.ptr);
     }
 
-    // move takes over the source's allocator along with its buffer, since
-    // the buffer must always be freed by the allocator that produced it
+    // move takes over the source's allocator along with its buffer_type, since
+    // the buffer_type must always be freed by the allocator that produced it
     vector(vector&& other) noexcept
         : m_storage(std::move(other.get_alloc()))
     {
@@ -609,7 +609,7 @@ public:
 
     T* release() noexcept
     {
-        const buffer old_buffer = release_buffer();
+        const buffer_type old_buffer = release_buffer();
         return old_buffer.ptr;
     }
 
@@ -633,14 +633,11 @@ public:
         return true;
     }
 
-    // swap keeps allocator and buffer glued together, same reasoning as move:
-    // each buffer must stay paired with the allocator that produced it
+    // swap keeps allocator and buffer_type glued together, same reasoning as move:
+    // each buffer_type must stay paired with the allocator that produced it
     void swap(vector& other) noexcept
     {
-        std::swap(get_alloc(), other.get_alloc());
-        std::swap(m_storage.value.ptr, other.m_storage.value.ptr);
-        std::swap(m_storage.value.size, other.m_storage.value.size);
-        std::swap(m_storage.value.capacity, other.m_storage.value.capacity);
+        mem::swap(m_storage, other.m_storage);
     }
 
     //=========================================================================

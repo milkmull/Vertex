@@ -14,7 +14,7 @@ namespace os {
  * such as `/dev/urandom` on Unix-like systems or the Windows Crypto API on Windows systems.
  * It is commonly used for cryptographic or other applications that require secure random data.
  *
- * @param[out] bytes A pointer to a buffer where the random bytes will be stored.
+ * @param[out] bytes A pointer to a buffer_type where the random bytes will be stored.
  * @param[in] count The number of random bytes to generate.
  * @return `true` if the random bytes were successfully generated, `false` otherwise.
  *

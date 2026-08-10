@@ -1000,7 +1000,7 @@ constexpr from_string_error string_to_float_hex(float_digit_stream<C>& stream, F
     uint_type mantissa = 0;
     int exponent = initial_exponent + traits::mantissa_bits;
 
-    // Accumulate bits into the mantissa buffer
+    // Accumulate bits into the mantissa buffer_type
     size_t total_digits = stream.total_digits() + 1;
     while (--total_digits && mantissa <= traits::mantissa_with_implicit_bit_mask)
     {
@@ -1253,7 +1253,7 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
     // exponent
     //===========================================
 
-    // The exponent adjustment holds the number of digits in the mantissa buffer that appeared before the radix point.
+    // The exponent adjustment holds the number of digits in the mantissa buffer_type that appeared before the radix point.
     // It can be negative, and leading zeroes in the integer part are ignored. Examples:
     // For "03333.111", it is 4.
     // For "00000.111", it is 0.

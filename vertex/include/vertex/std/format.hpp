@@ -13,9 +13,9 @@
 // replacement field (a hand-rolled, allocation-free substitute for a
 // vtable) instead of RTTI or `std::function`.
 //
-// `format()` and its buffer-taking overloads never allocate. Only
+// `format()` and its buffer_type-taking overloads never allocate. Only
 // `format_string()` and the convenience `format()` overloads that return
-// a `str::basic_string` allocate, and only to grow an output buffer that
+// a `str::basic_string` allocate, and only to grow an output buffer_type that
 // turned out to be too small.
 //
 // `vx::fmt::scan` (see scan.hpp) is the read-side mirror of this file,
@@ -126,7 +126,7 @@
 //     an explicit exponent sign when an exponent is present.
 //
 //     Precision is passed to the floating-point conversion. If the
-//     requested precision exceeds the conversion buffer's native maximum,
+//     requested precision exceeds the conversion buffer_type's native maximum,
 //     the formatter extends the required fractional precision with zeros.
 //
 //   Pointers
@@ -238,7 +238,7 @@
 // ----------------
 // `format_result{ err, count }` is returned by every entry point. `count`
 // always reflects the number of bytes actually written to the output
-// buffer up to the point of failure (or completion) — never a
+// buffer_type up to the point of failure (or completion) — never a
 // hypothetical "would-have-been" count, and never a hardcoded 0:
 //
 //   - none               : fully formatted, `count` bytes written
@@ -247,8 +247,8 @@
 //                          truncation was detected. The call still runs
 //                          to completion so callers can determine how
 //                          much space would have been needed by retrying
-//                          with a larger buffer (this is how
-//                          `format_string()` grows its buffer internally)
+//                          with a larger buffer_type (this is how
+//                          `format_string()` grows its buffer_type internally)
 //   - invalid_format     : malformed format string, or a formatter's
 //                          spec parse failed (unsupported type character,
 //                          bad width/precision, etc.); `count` bytes were
@@ -289,7 +289,7 @@
 // themselves — see the integer and float formatters below for the
 // pattern.
 //
-// A formatter never owns the buffer it writes into; `basic_format_context`
+// A formatter never owns the buffer_type it writes into; `basic_format_context`
 // can only be constructed by `format_context_creator`, so all writes are
 // forced through the truncation-safe path — there's no way for a custom
 // formatter to write out of bounds.
@@ -436,7 +436,7 @@ inline constexpr padding_info align_padding(
 
 // Non-owning cursor over the caller-supplied output range. Every write
 // is clamped to `remaining`, so this type can never write past the end
-// of the buffer; once a write would overflow, `truncated` latches true
+// of the buffer_type; once a write would overflow, `truncated` latches true
 // and all further writes are silently clamped to 0 additional bytes
 // beyond whatever fits.
 template <typename C>
@@ -685,7 +685,7 @@ constexpr format_result format_impl(
     const format_fn<C>* funcs) noexcept
 {
     basic_format_parser<C> parser{ fmt, fmt_size, whitespace_mode::bounded };
-    output_buffer<C> buffer{ out, out_size, false };
+    output_buffer<C> buffer_type{ out, out_size, false };
 
     size_t next_arg = 0;
     basic_format_token<C> tok;
@@ -708,12 +708,12 @@ constexpr format_result format_impl(
         {
             case token_type::literal:
             {
-                buffer.append(tok.first, tok.calculate_size());
+                buffer_type.append(tok.first, tok.calculate_size());
                 break;
             }
             case token_type::escaped:
             {
-                buffer.push(*tok.first);
+                buffer_type.push(*tok.first);
                 break;
             }
             case token_type::replacement:
@@ -733,7 +733,7 @@ constexpr format_result format_impl(
 
 
                 auto parse_ctx = parse_context_creator<C>::create(tok.first, tok.calculate_size());
-                auto format_ctx = format_context_creator<C>::create(buffer);
+                auto format_ctx = format_context_creator<C>::create(buffer_type);
                 err = funcs[index](parse_ctx, format_ctx, values[index]);
                 break;
             }
@@ -743,7 +743,7 @@ constexpr format_result format_impl(
             }
         }
 
-        if (buffer.truncated)
+        if (buffer_type.truncated)
         {
             err = format_error::buffer_too_small;
         }
@@ -754,7 +754,7 @@ constexpr format_result format_impl(
         }
     }
 
-    const size_t count = out_size - buffer.remaining;
+    const size_t count = out_size - buffer_type.remaining;
     return { err, count };
 }
 
@@ -796,16 +796,16 @@ constexpr format_result format_simple_begin(
         }
     }
 
-    output_buffer<C> buffer{ out, out_size, false };
-    auto format_ctx = format_context_creator<C>::create(buffer);
+    output_buffer<C> buffer_type{ out, out_size, false };
+    auto format_ctx = format_context_creator<C>::create(buffer_type);
 
     auto err = f.format(format_ctx, value);
-    if (err == format_error::none && buffer.truncated)
+    if (err == format_error::none && buffer_type.truncated)
     {
         err = format_error::buffer_too_small;
     }
 
-    const size_t count = out_size - buffer.remaining;
+    const size_t count = out_size - buffer_type.remaining;
     return { err, count };
 }
 
@@ -1076,12 +1076,12 @@ inline constexpr format_error format_wide_integer(
     }
 
     constexpr size_t buffer_size = (sizeof(I) * CHAR_BIT) + 1; // +1 for sign
-    C buffer[buffer_size];
+    C buffer_type[buffer_size];
 
-    const auto res = strconv::to_string<I, C>(value, buffer, buffer_size, fmt);
+    const auto res = strconv::to_string<I, C>(value, buffer_type, buffer_size, fmt);
     VX_ASSERT(res.err == strconv::to_string_error::none);
 
-    return format_wide_integer_core<C>(spec, ctx, buffer, res.count, value >= 0, fmt.base);
+    return format_wide_integer_core<C>(spec, ctx, buffer_type, res.count, value >= 0, fmt.base);
 }
 
 } // namespace _fmt_priv
@@ -1421,12 +1421,12 @@ inline constexpr format_error format_float(
     }
 
     constexpr size_t buffer_size = traits::buffer_size;
-    C buffer[buffer_size];
+    C buffer_type[buffer_size];
 
-    const auto res = strconv::to_string<F, C>(value, buffer, buffer_size, details.fmt);
-    VX_ASSERT(res.err == strconv::to_string_error::none); // buffer is always large enough
+    const auto res = strconv::to_string<F, C>(value, buffer_type, buffer_size, details.fmt);
+    VX_ASSERT(res.err == strconv::to_string_error::none); // buffer_type is always large enough
 
-    return format_float_core<C>(spec, ctx, buffer, res.count, signbit(value), details);
+    return format_float_core<C>(spec, ctx, buffer_type, res.count, signbit(value), details);
 }
 
 } // namespace _fmt_priv
@@ -1499,7 +1499,7 @@ public:
         C data[data_size];
 
         const auto res = strconv::to_string<uintptr_t, C>(addr, data, data_size, fmt);
-        VX_ASSERT(res.err == strconv::to_string_error::none); // buffer is always large enough
+        VX_ASSERT(res.err == strconv::to_string_error::none); // buffer_type is always large enough
 
         const C prefix[] = { C('0'), fmt.uppercase ? C('X') : C('x') };
         constexpr size_t prefix_size = mem::array_size(prefix);
@@ -1533,7 +1533,7 @@ struct formatter<std::nullptr_t, C> : formatter<void*, C>
 //==============================================================================
 
 //------------------------------------------------------------------------------
-// Format a single value into a caller-provided buffer
+// Format a single value into a caller-provided buffer_type
 //------------------------------------------------------------------------------
 
 template <
@@ -1552,7 +1552,7 @@ constexpr format_result format_simple(
 }
 
 //------------------------------------------------------------------------------
-// Format into a caller-provided buffer
+// Format into a caller-provided buffer_type
 //------------------------------------------------------------------------------
 
 template <

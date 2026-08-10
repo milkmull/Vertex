@@ -7,7 +7,7 @@
 namespace vx {
 namespace str {
 
-template <typename C>
+template <typename C, typename Allocator = mem::byte_allocator<alignof(C)>>
 class packed_string_array
 {
 public:
@@ -15,11 +15,25 @@ public:
     using char_type = C;
     using string_type = const C*;
     using array_type = const C**;
+    using allocator_type = Allocator;
+
+    VX_STATIC_ASSERT_MSG(type_traits::is_char<C>::value, "C must be character type.");
+
+    VX_STATIC_ASSERT_MSG(
+        sizeof(typename Allocator::value_type) == 1,
+        "packed_string_array's Allocator must allocate in byte-sized units (use a byte_allocator)");
 
 private:
 
-    array_type m_data = nullptr;
-    size_t m_count = 0;
+    struct buffer_type
+    {
+        array_type data = nullptr;
+        size_t count = 0;
+    };
+
+    // allocator_storage gives EBO when Allocator is stateless (the common case),
+    // and falls back to a real member when it isn't.
+    mem::_mem_priv::allocator_storage<Allocator, buffer_type> m_storage;
 
 public:
 
@@ -34,11 +48,10 @@ public:
     packed_string_array& operator=(const packed_string_array&) = delete;
 
     packed_string_array(packed_string_array&& other) noexcept
-        : m_data(other.m_data)
-        , m_count(other.m_count)
+        : m_storage(std::move(other.m_storage))
     {
-        other.m_data = nullptr;
-        other.m_count = 0;
+        other.m_storage.value.data = nullptr;
+        other.m_storage.value.count = 0;
     }
 
     packed_string_array& operator=(packed_string_array&& other) noexcept
@@ -47,11 +60,10 @@ public:
         {
             reset();
 
-            m_data = other.m_data;
-            m_count = other.m_count;
+            m_storage = std::move(other.m_storage);
 
-            other.m_data = nullptr;
-            other.m_count = 0;
+            other.m_storage.value.data = nullptr;
+            other.m_storage.value.count = 0;
         }
 
         return *this;
@@ -59,16 +71,14 @@ public:
 
     VX_NO_DISCARD static packed_string_array create(
         const C* const* src,
-        const size_t count)
+        const size_t count,
+        const Allocator& alloc = Allocator())
     {
         VX_ASSERT(src);
         VX_ASSERT(count);
 
         packed_string_array result;
 
-        // Space for the pointer table:
-        // (count + 1) entries of 'const C*'
-        // The +1 is for the final nullptr terminator.
         size_t pointer_count;
         size_t pointer_bytes;
         size_t string_bytes = 0;
@@ -79,8 +89,6 @@ public:
         pointer_count = count + 1;
         pointer_bytes = pointer_count * sizeof(array_type);
 
-        // Add the space required for all strings stored consecutively,
-        // each including its null terminator.
         for (size_t i = 0; i < count; ++i)
         {
             VX_ASSERT(src[i]);
@@ -92,8 +100,6 @@ public:
 
 #else
 
-        // pointer_count must not have overflowed, and must not overflow
-        // when multiplied by the pointer size.
         if (!math::checked_add(count, size_t(1), pointer_count) ||
             !math::checked_mul(pointer_count, sizeof(array_type), pointer_bytes))
         {
@@ -101,8 +107,6 @@ public:
             return result;
         }
 
-        // Add the space required for all strings stored consecutively,
-        // each including its null terminator.
         for (size_t i = 0; i < count; ++i)
         {
             VX_ASSERT(src[i]);
@@ -130,26 +134,22 @@ public:
 
 #endif // VX_PACKED_STRING_ARRAY_DISABLE_MAX_SIZE_CHECKS
 
-        // Allocate a single contiguous block:
-        // [pointer table][string data...]
-        void* memory = mem::allocate(total_bytes);
+        // Allocate a single contiguous block via the allocator.
+        // Allocator::value_type is expected to be a 1-byte type, so `total_bytes`
+        // counts elements too.
+        typename Allocator::value_type* memory = result.m_storage.allocator().allocate(total_bytes);
         if (!memory)
         {
             return result;
         }
 
-        // Pointer to the pointer table
-        auto** table = static_cast<array_type>(memory);
+        auto** table = reinterpret_cast<array_type>(memory);
 
-        result.m_data = table;
-        result.m_count = count;
+        result.m_storage.value.data = table;
+        result.m_storage.value.count = count;
 
-        // Pointer where string storage begins.
-        // This jumps past the pointer table:
         auto* string_data = result.storage();
 
-        // Copy each string into the packed region and
-        // populate the pointer table to point at each copied string.
         for (size_t i = 0; i < count; ++i)
         {
             table[i] = string_data;
@@ -158,44 +158,57 @@ public:
             string_data += length;
         }
 
-        // Null-terminate the pointer array
         table[count] = nullptr;
         return result;
     }
 
     void reset() noexcept
     {
-        if (m_data)
+        if (m_storage.value.data)
         {
-            mem::deallocate_raw(m_data);
-            m_data = nullptr;
-            m_count = 0;
+            // Recompute the block size at destruction time rather than caching
+            // it separately. Relies on the string data still being intact and
+            // null-terminated (nothing in this class mutates it after create()).
+            const size_t bytes = calculate_total_bytes();
+
+            m_storage.allocator().deallocate(
+                reinterpret_cast<typename Allocator::value_type*>(
+                    const_cast<C**>(m_storage.value.data)),
+                bytes);
+
+            m_storage.value.data = nullptr;
+            m_storage.value.count = 0;
         }
     }
 
     array_type data() const noexcept
     {
-        return m_data;
+        return m_storage.value.data;
     }
 
     size_t size() const noexcept
     {
-        return m_count;
+        return m_storage.value.count;
     }
 
     bool empty() const noexcept
     {
-        return m_count == 0;
+        return m_storage.value.count == 0;
     }
 
     string_type operator[](size_t index) const noexcept
     {
-        return m_data[index];
+        return m_storage.value.data[index];
     }
 
     explicit operator bool() const noexcept
     {
-        return m_data != nullptr;
+        return m_storage.value.data != nullptr;
+    }
+
+    const Allocator& get_allocator() const noexcept
+    {
+        return m_storage.allocator();
     }
 
 private:
@@ -203,20 +216,33 @@ private:
     C* storage() noexcept
     {
         return reinterpret_cast<C*>(
-            reinterpret_cast<unsigned char*>(m_data) +
+            reinterpret_cast<unsigned char*>(const_cast<C**>(m_storage.value.data)) +
             pointer_table_bytes());
     }
 
     const C* storage() const noexcept
     {
         return reinterpret_cast<const C*>(
-            reinterpret_cast<const unsigned char*>(m_data) +
+            reinterpret_cast<const unsigned char*>(m_storage.value.data) +
             pointer_table_bytes());
     }
 
     size_t pointer_table_bytes() const noexcept
     {
-        return (m_count + 1) * sizeof(const C*);
+        return (m_storage.value.count + 1) * sizeof(const C*);
+    }
+
+    size_t calculate_total_bytes() const noexcept
+    {
+        size_t bytes = pointer_table_bytes();
+
+        for (size_t i = 0; i < m_storage.value.count; ++i)
+        {
+            const size_t length = str::length(m_storage.value.data[i]) + 1;
+            bytes += length * sizeof(C);
+        }
+
+        return bytes;
     }
 };
 
