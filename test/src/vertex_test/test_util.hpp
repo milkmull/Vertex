@@ -91,6 +91,101 @@ constexpr const char32_t* get_string_literal<char32_t>(
 #endif
 
 //=============================================================================
+// custom allocator
+//=============================================================================
+
+struct allocator_stats
+{
+    size_t allocate_calls = 0;
+    size_t deallocate_calls = 0;
+    size_t reallocate_calls = 0;
+    size_t live_allocations = 0; // allocate() calls not yet matched by deallocate()
+};
+
+template <typename T>
+class tracking_allocator
+{
+public:
+
+    using value_type = T;
+
+    // default constructible (id -1 / no stats) so vector's default ctor works;
+    // in tests you should almost always use the (id, stats) constructor instead.
+    tracking_allocator() noexcept = default;
+
+    tracking_allocator(int id, allocator_stats* stats) noexcept
+        : m_id(id), m_stats(stats)
+    {}
+
+    tracking_allocator(const tracking_allocator&) noexcept = default;
+    tracking_allocator(tracking_allocator&&) noexcept = default;
+    tracking_allocator& operator=(const tracking_allocator&) noexcept = default;
+    tracking_allocator& operator=(tracking_allocator&&) noexcept = default;
+
+    int id() const noexcept
+    {
+        return m_id;
+    }
+    allocator_stats* stats() const noexcept
+    {
+        return m_stats;
+    }
+
+    T* allocate(size_t n)
+    {
+        T* p = static_cast<T*>(std::malloc(n * sizeof(T)));
+
+        if (p && m_stats)
+        {
+            ++m_stats->allocate_calls;
+            ++m_stats->live_allocations;
+        }
+
+        return p;
+    }
+
+    void deallocate(T* p, size_t /*n*/) noexcept
+    {
+        if (m_stats)
+        {
+            ++m_stats->deallocate_calls;
+            --m_stats->live_allocations;
+        }
+
+        std::free(p);
+    }
+
+    // Only exercised on the try_reallocate path in vector::reallocate (large,
+    // trivially-copyable/destructible buffers). realloc() preserves bytes,
+    // which is required there since no move-construct/destroy happens on
+    // that path.
+    T* reallocate(T* p, size_t n)
+    {
+        if (m_stats)
+        {
+            ++m_stats->reallocate_calls;
+        }
+
+        return static_cast<T*>(std::realloc(p, n * sizeof(T)));
+    }
+
+    friend bool operator==(const tracking_allocator& a, const tracking_allocator& b) noexcept
+    {
+        return a.m_id == b.m_id;
+    }
+
+    friend bool operator!=(const tracking_allocator& a, const tracking_allocator& b) noexcept
+    {
+        return !(a == b);
+    }
+
+private:
+
+    int m_id = -1;
+    allocator_stats* m_stats = nullptr;
+};
+
+//=============================================================================
 // specialized int types
 //=============================================================================
 

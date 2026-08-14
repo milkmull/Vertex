@@ -31,9 +31,18 @@ private:
         size_t count = 0;
     };
 
-    // allocator_storage gives EBO when Allocator is stateless (the common case),
+    // allocator_storage gives EBO when allocator_type is stateless (the common case),
     // and falls back to a real member when it isn't.
-    mem::_mem_priv::allocator_storage<Allocator, buffer_type> m_storage;
+    mem::_mem_priv::allocator_storage<allocator_type, buffer_type> m_storage;
+
+    allocator_type& allocator() noexcept
+    {
+        return m_storage.allocator();
+    }
+    const allocator_type& allocator() const noexcept
+    {
+        return m_storage.allocator();
+    }
 
 public:
 
@@ -72,7 +81,7 @@ public:
     VX_NO_DISCARD static packed_string_array create(
         const C* const* src,
         const size_t count,
-        const Allocator& alloc = Allocator())
+        const allocator_type& alloc = allocator_type())
     {
         VX_ASSERT(src);
         VX_ASSERT(count);
@@ -135,9 +144,9 @@ public:
 #endif // VX_PACKED_STRING_ARRAY_DISABLE_MAX_SIZE_CHECKS
 
         // Allocate a single contiguous block via the allocator.
-        // Allocator::value_type is expected to be a 1-byte type, so `total_bytes`
+        // allocator_type::value_type is expected to be a 1-byte type, so `total_bytes`
         // counts elements too.
-        typename Allocator::value_type* memory = result.m_storage.allocator().allocate(total_bytes);
+        typename allocator_type::value_type* memory = result.allocator().allocate(total_bytes);
         if (!memory)
         {
             return result;
@@ -171,8 +180,8 @@ public:
             // null-terminated (nothing in this class mutates it after create()).
             const size_t bytes = calculate_total_bytes();
 
-            m_storage.allocator().deallocate(
-                reinterpret_cast<typename Allocator::value_type*>(
+            allocator().deallocate(
+                reinterpret_cast<typename allocator_type::value_type*>(
                     const_cast<C**>(m_storage.value.data)),
                 bytes);
 
@@ -206,9 +215,9 @@ public:
         return m_storage.value.data != nullptr;
     }
 
-    const Allocator& get_allocator() const noexcept
+    const allocator_type& get_allocator() const noexcept
     {
-        return m_storage.allocator();
+        return allocator();
     }
 
 private:

@@ -691,7 +691,7 @@ constexpr format_result format_impl(
     basic_format_token<C> tok;
     format_error err = format_error::none;
 
-    while (true)
+    for (;;)
     {
         if (!parser.next(tok))
         {

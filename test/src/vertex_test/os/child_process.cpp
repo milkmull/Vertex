@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
         {
             log.write("running --stall");
 
-            while (true)
+            for (;;)
             {
                 os::sleep(time::milliseconds(100));
             }
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
             os::io_stream p_stdout = os::this_process::get_stdout();
 
             std::string line;
-            while (true)
+            for (;;)
             {
                 if (!p_stdin.read_line(line))
                 {
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
             os::io_stream p_stderr = os::this_process::get_stderr();
 
             std::string line;
-            while (true)
+            for (;;)
             {
                 if (!p_stdin.read_line(line))
                 {

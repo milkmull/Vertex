@@ -13,6 +13,9 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/unique_ptr.hpp"
 
     # Containers
+    "${CMAKE_CURRENT_SOURCE_DIR}/_container/static_array_base.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_container/dynamic_array_base.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/vector_traits.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/static_vector.hpp"

@@ -523,7 +523,7 @@ bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
     char data[size];
     size_t bytes_read, bytes_written;
 
-    while (true)
+    for (;;)
     {
         bytes_read = from_file.read(data, size);
         if (bytes_read == 0)

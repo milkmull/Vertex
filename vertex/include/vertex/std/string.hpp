@@ -5,6 +5,7 @@
 
 #include "vertex/std/char_traits.hpp"
 #include "vertex/std/string_view.hpp"
+#include "vertex/std/_container/dynamic_array_base.hpp"
 
 namespace vx {
 namespace str {
@@ -12,6 +13,10 @@ namespace str {
 template <typename T, typename Allocator = mem::default_allocator<T>>
 class basic_string
 {
+    //=========================================================================
+    // member types
+    //=========================================================================
+
 private:
 
     VX_STATIC_ASSERT_MSG(type_traits::is_char<T>::value, "T must be character type");
@@ -20,11 +25,9 @@ private:
     struct is_compatible_string : is_string_of<S, T>
     {};
 
-public:
+    using data_type = _dynamic_array_base_priv::dynamic_array_data<T>;
 
-    //=========================================================================
-    // member types
-    //=========================================================================
+public:
 
     using traits_type = char_traits<T>;
 
@@ -32,14 +35,15 @@ public:
     using growth_rate_type = std::ratio<N, D>;
     using default_growth_rate = growth_rate_type<3, 2>;
 
-    using value_type = T;
     using allocator_type = Allocator;
-    using pointer = T*;
-    using const_pointer = const T*;
-    using reference = T&;
-    using const_reference = const T&;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
+
+    using value_type = typename data_type::value_type;
+    using pointer = typename data_type::pointer;
+    using const_pointer = typename data_type::const_pointer;
+    using reference = typename data_type::reference;
+    using const_reference = typename data_type::const_reference;
+    using size_type = typename data_type::size_type;
+    using difference_type = typename data_type::difference_type;
 
     using iterator = vx::_priv::pointer_iterator<basic_string, T>;
     using const_iterator = vx::_priv::pointer_iterator<basic_string, const T>;
@@ -50,77 +54,33 @@ public:
 
 private:
 
-    struct buffer_type
-    {
-        pointer ptr;
-        size_type size;
-        size_type capacity;
-    };
-
     // holds the allocator alongside the buffer_type; empty-base-optimized when
-    // Allocator is stateless, so sizeof(basic_string) is unaffected in that case
-    mem::_mem_priv::allocator_storage<Allocator, buffer_type> m_storage;
+    // allocator_type is stateless, so sizeof(basic_string) is unaffected in that case
+    mem::_mem_priv::allocator_storage<allocator_type, data_type> m_storage;
 
-    Allocator& get_alloc() noexcept
-    { return m_storage.allocator(); }
-    const Allocator& get_alloc() const noexcept
-    { return m_storage.allocator(); }
+    allocator_type& m_allocator() noexcept
+    {
+        return m_storage.allocator();
+    }
+    const allocator_type& m_allocator() const noexcept
+    {
+        return m_storage.allocator();
+    }
+
+    data_type& m_data() noexcept
+    {
+        return m_storage.value;
+    }
+    const data_type& m_data() const noexcept
+    {
+        return m_storage.value;
+    }
 
 private:
 
     //=========================================================================
     // allocation helpers
     //=========================================================================
-
-    template <typename growth_rate>
-    size_type grow_capacity(size_type required_capacity, size_type current_capacity) const noexcept
-    {
-        constexpr size_type max_capacity = max_size();
-
-        VX_IF_CONSTEXPR (growth_rate::num == 1 && growth_rate::den == 1)
-        {
-            if (required_capacity > max_capacity)
-            {
-                return max_capacity;
-            }
-
-            return required_capacity;
-        }
-        else
-        {
-            current_capacity = current_capacity ? current_capacity : 1;
-
-            size_type new_capacity;
-
-            VX_IF_CONSTEXPR (growth_rate::num == 3 && growth_rate::den == 2)
-            {
-                // Guard against multiplication overflow: old_capacity * num
-                if (current_capacity > max_capacity - current_capacity / 2)
-                {
-                    return max_capacity;
-                }
-
-                new_capacity = current_capacity + current_capacity / 2;
-            }
-            else
-            {
-                // Guard against multiplication overflow: old_capacity * num
-                if (current_capacity > max_capacity / growth_rate::num)
-                {
-                    return max_capacity;
-                }
-
-                new_capacity = current_capacity * growth_rate::num / growth_rate::den;
-            }
-
-            if (new_capacity < required_capacity)
-            {
-                new_capacity = required_capacity;
-            }
-
-            return new_capacity;
-        }
-    }
 
     static void destroy_size(T* ptr, size_type size)
     {
@@ -130,7 +90,7 @@ private:
     // no longer static: freeing memory requires the instance's allocator
     void deallocate_capacity(T* ptr, size_type capacity)
     {
-        get_alloc().deallocate(ptr, capacity + 1);
+        m_allocator().deallocate(ptr, capacity + 1);
     }
 
     // no longer static, since it calls deallocate_capacity
@@ -142,18 +102,7 @@ private:
 
     void destroy_range()
     {
-        auto& ptr = m_storage.value.ptr;
-        auto& size = m_storage.value.size;
-        auto& capacity = m_storage.value.capacity;
-
-        if (ptr)
-        {
-            destroy_and_deallocate(ptr, size, capacity);
-        }
-
-        ptr = nullptr;
-        size = 0;
-        capacity = 0;
+        m_data().destroy(m_allocator());
     }
 
     //=========================================================================
@@ -169,25 +118,9 @@ private:
         from_iterator_range
     };
 
-    buffer_type release_buffer() noexcept
-    {
-        auto& b = m_storage.value;
-        auto& ptr = b.ptr;
-        auto& size = b.size;
-        auto& capacity = b.capacity;
-
-        buffer_type old_buffer = std::move(b);
-
-        ptr = nullptr;
-        size = 0;
-        capacity = 0;
-
-        return old_buffer;
-    }
-
     bool construct_empty()
     {
-        auto new_ptr = get_alloc().allocate(1);
+        auto new_ptr = m_allocator().allocate(1);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -226,7 +159,7 @@ private:
 #endif // !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         const size_type alloc_count = count + 1;
-        auto new_ptr = get_alloc().allocate(alloc_count);
+        auto new_ptr = m_allocator().allocate(alloc_count);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -277,20 +210,20 @@ public:
         construct_empty();
     }
 
-    explicit basic_string(const Allocator& alloc)
+    explicit basic_string(const allocator_type& alloc)
         : m_storage(alloc)
     {
         construct_empty();
     }
 
     basic_string(const basic_string& other)
-        : m_storage(other.get_alloc())
+        : m_storage(other.m_allocator())
     {
         construct_n<construct_method::from_string>(other.size(), other.data());
     }
 
     // copy with an explicitly supplied allocator
-    basic_string(const basic_string& other, const Allocator& alloc)
+    basic_string(const basic_string& other, const allocator_type& alloc)
         : m_storage(alloc)
     {
         construct_n<construct_method::from_string>(other.size(), other.data());
@@ -299,14 +232,14 @@ public:
     // move takes over the source's allocator along with its buffer_type, since
     // the buffer_type must always be freed by the allocator that produced it
     basic_string(basic_string&& other) noexcept
-        : m_storage(std::move(other.get_alloc()))
+        : m_storage(std::move(other.m_allocator()))
     {
-        m_storage.value = other.release_buffer();
+        m_data() = other.m_data().release();
     }
 
     //=========================================================================
 
-    basic_string(const basic_string& other, size_type off, const Allocator& alloc = Allocator())
+    basic_string(const basic_string& other, size_type off, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         if (_priv::check_offset(other.size(), off))
@@ -319,7 +252,7 @@ public:
         }
     }
 
-    basic_string(const basic_string& other, size_type off, size_type count, const Allocator& alloc = Allocator())
+    basic_string(const basic_string& other, size_type off, size_type count, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         if (_priv::check_offset(other.size(), off))
@@ -335,7 +268,7 @@ public:
 
     //=========================================================================
 
-    basic_string(size_type count, const T value, const Allocator& alloc = Allocator())
+    basic_string(size_type count, const T value, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         construct_n<construct_method::from_char_count>(count, value);
@@ -343,14 +276,14 @@ public:
 
     //=========================================================================
 
-    basic_string(const T* const ptr, const Allocator& alloc = Allocator())
+    basic_string(const T* const ptr, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         const size_type count = static_cast<size_type>(traits_type::length(ptr));
         construct_n<construct_method::from_pointer>(count, ptr);
     }
 
-    basic_string(const T* const ptr, size_type count, const Allocator& alloc = Allocator())
+    basic_string(const T* const ptr, size_type count, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         construct_n<construct_method::from_pointer>(count, ptr);
@@ -359,7 +292,7 @@ public:
     //=========================================================================
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    basic_string(IT first, IT last, const Allocator& alloc = Allocator())
+    basic_string(IT first, IT last, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
@@ -376,7 +309,7 @@ public:
 
     //=========================================================================
 
-    basic_string(std::initializer_list<T> init, const Allocator& alloc = Allocator())
+    basic_string(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         const size_type count = static_cast<size_type>(init.size());
@@ -386,7 +319,7 @@ public:
     //=========================================================================
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_string(const S& t, const Allocator& alloc = Allocator())
+    basic_string(const S& t, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         const size_type count = static_cast<size_type>(t.size());
@@ -394,7 +327,7 @@ public:
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_string(const S& t, size_type off, size_type count = npos, const Allocator& alloc = Allocator())
+    basic_string(const S& t, size_type off, size_type count = npos, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         if (_priv::check_offset(t.size(), off))
@@ -432,7 +365,7 @@ public:
 
     allocator_type get_allocator() const noexcept
     {
-        return get_alloc();
+        return m_allocator();
     }
 
     //=========================================================================
@@ -485,7 +418,7 @@ private:
 
         if (count > capacity)
         {
-            pointer new_ptr = get_alloc().allocate(count + 1);
+            pointer new_ptr = m_allocator().allocate(count + 1);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -561,8 +494,8 @@ public:
         if (this != std::addressof(other))
         {
             destroy_range();
-            get_alloc() = std::move(other.get_alloc());
-            m_storage.value = other.release_buffer();
+            m_allocator() = std::move(other.m_allocator());
+            m_data() = other.m_data().release();
         }
         return *this;
     }
@@ -881,10 +814,10 @@ private:
 #endif // !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         const size_type new_size = size + count;
-        const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
+        const size_type new_capacity = _dynamic_array_base_priv::grow_capacity<growth_rate>(new_size, capacity, max_size());
         VX_ASSERT(new_capacity > capacity);
 
-        pointer new_ptr = get_alloc().allocate(new_capacity + 1);
+        pointer new_ptr = m_allocator().allocate(new_capacity + 1);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -1144,10 +1077,10 @@ private:
 #endif // !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         const size_type new_size = size + count;
-        const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
+        const size_type new_capacity = _dynamic_array_base_priv::grow_capacity<growth_rate>(new_size, capacity, max_size());
         VX_ASSERT(new_capacity > capacity);
 
-        pointer new_ptr = get_alloc().allocate(new_capacity + 1);
+        pointer new_ptr = m_allocator().allocate(new_capacity + 1);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -1433,8 +1366,7 @@ public:
 
     void clear()
     {
-        destroy_size(m_storage.value.ptr, m_storage.value.size);
-        m_storage.value.size = 0;
+        m_data().clear();
         traits_type::assign(*m_storage.value.ptr, T());
     }
 
@@ -1464,7 +1396,7 @@ public:
 
         if (try_reallocate && std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
         {
-            new_ptr = get_alloc().reallocate(ptr, alloc_capacity);
+            new_ptr = m_allocator().reallocate(ptr, alloc_capacity);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -1477,7 +1409,7 @@ public:
         }
         else
         {
-            new_ptr = get_alloc().allocate(alloc_capacity);
+            new_ptr = m_allocator().allocate(alloc_capacity);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -1502,8 +1434,7 @@ public:
 
     T* release() noexcept
     {
-        const buffer_type old_buffer = release_buffer();
-        return old_buffer.ptr;
+        return m_data().release().ptr;
     }
 
     bool acquire(T* ptr)
@@ -1600,7 +1531,7 @@ public:
 #endif // !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         const size_type alloc_capacity = new_capacity + 1;
-        pointer new_ptr = get_alloc().allocate(alloc_capacity);
+        pointer new_ptr = m_allocator().allocate(alloc_capacity);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -1760,10 +1691,10 @@ public:
     {
         if (!_priv::check_offset(size(), off))
         {
-            return basic_string(get_alloc());
+            return basic_string(m_allocator());
         }
         count = static_cast<size_type>(_priv::clamp_suffix_size(size(), off, count));
-        return basic_string(m_storage.value.ptr + off, count, get_alloc());
+        return basic_string(m_storage.value.ptr + off, count, m_allocator());
     }
 
     basic_string_view<T> view(size_type off = 0, size_type count = npos) const noexcept
@@ -1837,10 +1768,10 @@ private:
         auto& capacity = m_storage.value.capacity;
 
         const size_type new_size = size - out_count + in_count;
-        const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
+        const size_type new_capacity = _dynamic_array_base_priv::grow_capacity<growth_rate>(new_size, capacity, max_size());
         VX_ASSERT(new_capacity > capacity);
 
-        pointer new_ptr = get_alloc().allocate(new_capacity + 1);
+        pointer new_ptr = m_allocator().allocate(new_capacity + 1);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 

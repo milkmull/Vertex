@@ -10,6 +10,7 @@
 #include "vertex/std/_tools/pointer_iterator.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
+#include "vertex/std/_container/dynamic_array_base.hpp"
 #include "vertex/std/vector_traits.hpp"
 
 //#define VX_VECTOR_DISABLE_MAX_SIZE_CHECK 1
@@ -19,30 +20,33 @@ namespace vx {
 template <typename T, typename Allocator = mem::default_allocator<T>>
 class vector
 {
+    //=========================================================================
+    // member types
+    //=========================================================================
+
 private:
 
     template <typename V>
     struct is_compatible_vector : is_vector_of<V, T>
     {};
 
-public:
+    using data_type = _dynamic_array_base_priv::dynamic_array_data<T>;
 
-    //=========================================================================
-    // member types
-    //=========================================================================
+public:
 
     template <intmax_t N, intmax_t D = 1>
     using growth_rate_type = std::ratio<N, D>;
     using default_growth_rate = growth_rate_type<3, 2>;
 
-    using value_type = T;
     using allocator_type = Allocator;
-    using pointer = T*;
-    using const_pointer = const T*;
-    using reference = T&;
-    using const_reference = const T&;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
+
+    using value_type = typename data_type::value_type;
+    using pointer = typename data_type::pointer;
+    using const_pointer = typename data_type::const_pointer;
+    using reference = typename data_type::reference;
+    using const_reference = typename data_type::const_reference;
+    using size_type = typename data_type::size_type;
+    using difference_type = typename data_type::difference_type;
 
     using iterator = _priv::pointer_iterator<vector, T>;
     using const_iterator = _priv::pointer_iterator<vector, const T>;
@@ -61,46 +65,31 @@ private:
         iterator_range // construct from iterator range
     };
 
-    struct buffer_type
+    // holds the allocator alongside the data_type; empty-base-optimized when
+    // allocator_type is stateless, so sizeof(vector) is unaffected in that case
+    mem::_mem_priv::allocator_storage<allocator_type, data_type> m_storage;
+
+    allocator_type& m_allocator() noexcept
     {
-        pointer ptr = nullptr;
-        size_type size = 0;
-        size_type capacity = 0;
-    };
+        return m_storage.allocator();
+    }
+    const allocator_type& m_allocator() const noexcept
+    {
+        return m_storage.allocator();
+    }
 
-    // holds the allocator alongside the buffer_type; empty-base-optimized when
-    // Allocator is stateless, so sizeof(vector) is unaffected in that case
-    mem::_mem_priv::allocator_storage<Allocator, buffer_type> m_storage;
-
-    Allocator& get_alloc() noexcept
-    { return m_storage.allocator(); }
-    const Allocator& get_alloc() const noexcept
-    { return m_storage.allocator(); }
-
-    buffer_type& m_buffer_ref() noexcept
-    { return m_storage.value; }
-    const buffer_type& m_buffer_ref() const noexcept
-    { return m_storage.value; }
+    data_type& m_data() noexcept
+    {
+        return m_storage.value;
+    }
+    const data_type& m_data() const noexcept
+    {
+        return m_storage.value;
+    }
 
     //=========================================================================
     // construction helpers
     //=========================================================================
-
-    buffer_type release_buffer() noexcept
-    {
-        auto& b = m_storage.value;
-        auto& ptr = b.ptr;
-        auto& size = b.size;
-        auto& capacity = b.capacity;
-
-        buffer_type old_buffer = std::move(b);
-
-        ptr = nullptr;
-        size = 0;
-        capacity = 0;
-
-        return old_buffer;
-    }
 
     template <construct_method M, typename... Args>
     inline void construct_n(size_type count, Args&&... args)
@@ -120,7 +109,7 @@ private:
 
 #endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
-        auto new_ptr = get_alloc().allocate(count);
+        auto new_ptr = m_allocator().allocate(count);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -155,9 +144,10 @@ private:
             mem::copy_uninitialized_range(new_ptr, std::forward<Args>(args)...);
         }
 
-        m_storage.value.ptr = new_ptr;
-        m_storage.value.size = count;
-        m_storage.value.capacity = count;
+        auto& data = m_data();
+        data.ptr = new_ptr;
+        data.size = count;
+        data.capacity = count;
     }
 
 public:
@@ -169,55 +159,57 @@ public:
     vector() noexcept
     {}
 
-    explicit vector(const Allocator& alloc) noexcept
+    explicit vector(const allocator_type& alloc) noexcept
         : m_storage(alloc)
     {}
 
-    explicit vector(size_type count, const Allocator& alloc = Allocator())
+    explicit vector(size_type count, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         construct_n<construct_method::default_range>(count);
     }
 
-    vector(const size_type count, const T& value, const Allocator& alloc = Allocator())
+    vector(const size_type count, const T& value, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         construct_n<construct_method::fill_range>(count, value);
     }
 
-    vector(std::initializer_list<T> init, const Allocator& alloc = Allocator())
+    vector(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         construct_n<construct_method::copy_range>(init.size(), init.begin());
     }
 
     vector(const vector& other)
-        : m_storage(other.get_alloc())
+        : m_storage(other.m_allocator())
     {
+        auto& data = other.m_data();
         construct_n<construct_method::copy_range>(
-            other.m_storage.value.size,
-            other.m_storage.value.ptr);
+            data.size,
+            data.ptr);
     }
 
     // copy with an explicitly supplied allocator
-    vector(const vector& other, const Allocator& alloc)
+    vector(const vector& other, const allocator_type& alloc)
         : m_storage(alloc)
     {
+        auto& data = other.m_data();
         construct_n<construct_method::copy_range>(
-            other.m_storage.value.size,
-            other.m_storage.value.ptr);
+            data.size,
+            data.ptr);
     }
 
-    // move takes over the source's allocator along with its buffer_type, since
-    // the buffer_type must always be freed by the allocator that produced it
+    // move takes over the source's allocator along with its data_type, since
+    // the data_type must always be freed by the allocator that produced it
     vector(vector&& other) noexcept
-        : m_storage(std::move(other.get_alloc()))
+        : m_storage(std::move(other.m_allocator()))
     {
-        m_storage.value = other.release_buffer();
+        m_data() = other.m_data().release();
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    vector(IT first, IT last, const Allocator& alloc = Allocator()) noexcept
+    vector(IT first, IT last, const allocator_type& alloc = allocator_type()) noexcept
         : m_storage(alloc)
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
@@ -233,7 +225,7 @@ public:
     }
 
     template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
-    vector(const V& v, const Allocator& alloc = Allocator())
+    vector(const V& v, const allocator_type& alloc = allocator_type())
         : m_storage(alloc)
     {
         construct_n<construct_method::copy_range>(v.size(), v.data());
@@ -247,19 +239,7 @@ private:
 
     void destroy_range()
     {
-        auto& ptr = m_storage.value.ptr;
-        auto& size = m_storage.value.size;
-        auto& capacity = m_storage.value.capacity;
-
-        if (ptr)
-        {
-            mem::destroy_range(ptr, size);
-            get_alloc().deallocate(ptr, capacity);
-        }
-
-        ptr = nullptr;
-        size = 0;
-        capacity = 0;
+        m_data().destroy(m_allocator());
     }
 
 public:
@@ -279,7 +259,7 @@ public:
 
     allocator_type get_allocator() const noexcept
     {
-        return get_alloc();
+        return m_allocator();
     }
 
     //=========================================================================
@@ -301,9 +281,9 @@ private:
     template <construct_method M, typename... Args>
     bool assign_from(const size_type count, Args&&... args)
     {
-        auto& ptr = m_storage.value.ptr;
-        auto& size = m_storage.value.size;
-        auto& capacity = m_storage.value.capacity;
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
+        auto& capacity = m_data().capacity;
 
         mem::destroy_range(ptr, size);
 
@@ -319,7 +299,7 @@ private:
 
 #endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
-            pointer new_ptr = get_alloc().allocate(count);
+            pointer new_ptr = m_allocator().allocate(count);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -330,7 +310,7 @@ private:
 
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
-            get_alloc().deallocate(ptr, capacity);
+            m_allocator().deallocate(ptr, capacity);
 
             ptr = new_ptr;
             capacity = count;
@@ -373,7 +353,7 @@ public:
 
         // NOTE: allocator is intentionally NOT propagated on copy assignment;
         // this vector keeps using its own allocator for the new elements
-        assign_from<construct_method::copy_range>(other.m_storage.value.size, other.m_storage.value.ptr);
+        assign_from<construct_method::copy_range>(other.m_data().size, other.m_data().ptr);
         return *this;
     }
 
@@ -382,8 +362,8 @@ public:
         if (this != std::addressof(other))
         {
             destroy_range();
-            get_alloc() = std::move(other.get_alloc());
-            m_storage.value = other.release_buffer();
+            m_allocator() = std::move(other.m_allocator());
+            m_data() = other.m_data().release();
         }
 
         return *this;
@@ -413,7 +393,7 @@ public:
             return true;
         }
 
-        return assign_from<construct_method::copy_range>(other.m_storage.value.size, other.m_storage.value.ptr);
+        return assign_from<construct_method::copy_range>(other.m_data().size, other.m_data().ptr);
     }
 
     bool assign(vector&& other) noexcept
@@ -421,8 +401,8 @@ public:
         if (this != std::addressof(other))
         {
             destroy_range();
-            get_alloc() = std::move(other.get_alloc());
-            m_storage.value = other.release_buffer();
+            m_allocator() = std::move(other.m_allocator());
+            m_data() = other.m_data().release();
         }
 
         return true;
@@ -471,48 +451,48 @@ public:
 
     T& front() noexcept
     {
-        VX_ASSERT(m_storage.value.ptr && m_storage.value.size);
-        return *m_storage.value.ptr;
+        VX_ASSERT(m_data().ptr && m_data().size);
+        return *m_data().ptr;
     }
 
     const T& front() const noexcept
     {
-        VX_ASSERT(m_storage.value.ptr && m_storage.value.size);
-        return *m_storage.value.ptr;
+        VX_ASSERT(m_data().ptr && m_data().size);
+        return *m_data().ptr;
     }
 
     T& back() noexcept
     {
-        VX_ASSERT(m_storage.value.ptr && m_storage.value.size);
-        return m_storage.value.ptr[m_storage.value.size - 1];
+        VX_ASSERT(m_data().ptr && m_data().size);
+        return m_data().ptr[m_data().size - 1];
     }
 
     const T& back() const noexcept
     {
-        VX_ASSERT(m_storage.value.ptr && m_storage.value.size);
-        return m_storage.value.ptr[m_storage.value.size - 1];
+        VX_ASSERT(m_data().ptr && m_data().size);
+        return m_data().ptr[m_data().size - 1];
     }
 
     T* data() noexcept
     {
-        return m_storage.value.ptr;
+        return m_data().ptr;
     }
 
     const T* data() const noexcept
     {
-        return m_storage.value.ptr;
+        return m_data().ptr;
     }
 
     T& operator[](size_type i) noexcept
     {
-        VX_ASSERT(i < m_storage.value.size);
-        return m_storage.value.ptr[i];
+        VX_ASSERT(i < m_data().size);
+        return m_data().ptr[i];
     }
 
     const T& operator[](size_type i) const noexcept
     {
-        VX_ASSERT(i < m_storage.value.size);
-        return m_storage.value.ptr[i];
+        VX_ASSERT(i < m_data().size);
+        return m_data().ptr[i];
     }
 
     //=========================================================================
@@ -521,12 +501,12 @@ public:
 
     iterator begin() noexcept
     {
-        return iterator(m_storage.value.ptr);
+        return iterator(m_data().ptr);
     }
 
     const_iterator begin() const noexcept
     {
-        return const_iterator(m_storage.value.ptr);
+        return const_iterator(m_data().ptr);
     }
 
     const_iterator cbegin() const noexcept
@@ -536,12 +516,12 @@ public:
 
     iterator end() noexcept
     {
-        return iterator(m_storage.value.ptr + m_storage.value.size);
+        return iterator(m_data().ptr + m_data().size);
     }
 
     const_iterator end() const noexcept
     {
-        return const_iterator(m_storage.value.ptr + m_storage.value.size);
+        return const_iterator(m_data().ptr + m_data().size);
     }
 
     const_iterator cend() const noexcept
@@ -585,8 +565,7 @@ public:
 
     void clear()
     {
-        mem::destroy_range(m_storage.value.ptr, m_storage.value.size);
-        m_storage.value.size = 0;
+        m_data().clear();
     }
 
     void clear_and_deallocate()
@@ -596,8 +575,8 @@ public:
 
     bool shrink_to_fit()
     {
-        auto& size = m_storage.value.size;
-        auto& capacity = m_storage.value.capacity;
+        auto& size = m_data().size;
+        auto& capacity = m_data().capacity;
 
         if (size == capacity)
         {
@@ -609,8 +588,7 @@ public:
 
     T* release() noexcept
     {
-        const buffer_type old_buffer = release_buffer();
-        return old_buffer.ptr;
+        return m_data().release().ptr;
     }
 
     bool acquire(T* ptr, size_type count) noexcept
@@ -626,15 +604,12 @@ public:
 #endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         destroy_range();
-
-        m_storage.value.ptr = ptr;
-        m_storage.value.size = count;
-        m_storage.value.capacity = count;
+        m_data() = data_type(ptr, count, count);
         return true;
     }
 
-    // swap keeps allocator and buffer_type glued together, same reasoning as move:
-    // each buffer_type must stay paired with the allocator that produced it
+    // swap keeps allocator and data_type glued together because each
+    // data_type must stay paired with the allocator that produced it
     void swap(vector& other) noexcept
     {
         mem::swap(m_storage, other.m_storage);
@@ -646,17 +621,17 @@ public:
 
     bool empty() const noexcept
     {
-        return m_storage.value.size == 0;
+        return m_data().size == 0;
     }
 
     bool full() const noexcept
     {
-        return m_storage.value.size == max_size();
+        return m_data().size == max_size();
     }
 
     size_type size() const noexcept
     {
-        return m_storage.value.size;
+        return m_data().size;
     }
 
     size_type size_bytes() const noexcept
@@ -675,60 +650,10 @@ public:
 
     size_type capacity() const noexcept
     {
-        return m_storage.value.capacity;
+        return m_data().capacity;
     }
 
 private:
-
-    template <typename growth_rate>
-    size_type grow_capacity(size_type required_capacity, size_type current_capacity) const noexcept
-    {
-        constexpr size_type max_capacity = max_size();
-
-        VX_IF_CONSTEXPR (growth_rate::num == 1 && growth_rate::den == 1)
-        {
-            if (required_capacity > max_capacity)
-            {
-                return max_capacity;
-            }
-
-            return required_capacity;
-        }
-        else
-        {
-            current_capacity = current_capacity ? current_capacity : 1;
-
-            size_type new_capacity;
-
-            VX_IF_CONSTEXPR (growth_rate::num == 3 && growth_rate::den == 2)
-            {
-                // Guard against multiplication overflow: old_capacity * num
-                if (current_capacity > max_capacity - current_capacity / 2)
-                {
-                    return max_capacity;
-                }
-
-                new_capacity = current_capacity + current_capacity / 2;
-            }
-            else
-            {
-                // Guard against multiplication overflow: old_capacity * num
-                if (current_capacity > max_capacity / growth_rate::num)
-                {
-                    return max_capacity;
-                }
-
-                new_capacity = current_capacity * growth_rate::num / growth_rate::den;
-            }
-
-            if (new_capacity < required_capacity)
-            {
-                new_capacity = required_capacity;
-            }
-
-            return new_capacity;
-        }
-    }
 
     //=========================================================================
     // reallocate
@@ -736,7 +661,7 @@ private:
 
     bool reallocate_shrink(size_type new_capacity)
     {
-        const size_type bytes = m_storage.value.size * sizeof(T);
+        const size_type bytes = m_data().size * sizeof(T);
         constexpr size_type reallocate_threshold = 96000;
 
         if (bytes < reallocate_threshold)
@@ -752,15 +677,15 @@ private:
     template <bool shrinking = false, bool try_reallocate = false>
     bool reallocate(size_type new_capacity)
     {
-        auto& ptr = m_storage.value.ptr;
-        auto& size = m_storage.value.size;
-        auto& capacity = m_storage.value.capacity;
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
+        auto& capacity = m_data().capacity;
 
         pointer new_ptr;
 
         VX_IF_CONSTEXPR (try_reallocate && std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
         {
-            new_ptr = get_alloc().reallocate(ptr, new_capacity);
+            new_ptr = m_allocator().reallocate(ptr, new_capacity);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -773,7 +698,7 @@ private:
         }
         else
         {
-            new_ptr = get_alloc().allocate(new_capacity);
+            new_ptr = m_allocator().allocate(new_capacity);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -795,7 +720,7 @@ private:
             }
 
             mem::destroy_range(ptr, size);
-            get_alloc().deallocate(ptr, capacity);
+            m_allocator().deallocate(ptr, capacity);
         }
 
         ptr = new_ptr;
@@ -816,7 +741,7 @@ public:
 
     bool reserve(size_type new_capacity)
     {
-        if (new_capacity > m_storage.value.capacity)
+        if (new_capacity > m_data().capacity)
         {
 #if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
@@ -843,9 +768,9 @@ private:
     template <typename... Args>
     bool resize_reallocate(const size_type new_size, Args&&... args)
     {
-        auto& ptr = m_storage.value.ptr;
-        auto& size = m_storage.value.size;
-        auto& capacity = m_storage.value.capacity;
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
+        auto& capacity = m_data().capacity;
 
 #if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
@@ -857,7 +782,7 @@ private:
 
 #endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
-        pointer new_ptr = get_alloc().allocate(new_size);
+        pointer new_ptr = m_allocator().allocate(new_size);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -884,7 +809,7 @@ private:
         mem::move_uninitialized_range(new_ptr, ptr, size);
 
         mem::destroy_range(ptr, size);
-        get_alloc().deallocate(ptr, capacity);
+        m_allocator().deallocate(ptr, capacity);
 
         ptr = new_ptr;
         size = new_size;
@@ -896,9 +821,9 @@ private:
     template <typename... Args>
     bool resize_impl(const size_type new_size, Args&&... args)
     {
-        auto& ptr = m_storage.value.ptr;
-        auto& size = m_storage.value.size;
-        auto& capacity = m_storage.value.capacity;
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
+        auto& capacity = m_data().capacity;
 
         // trim
         if (new_size < size)
@@ -958,8 +883,8 @@ private:
     template <construct_method M, typename... Args>
     pointer insert_capacity(pointer pos, size_type count, Args&&... args)
     {
-        auto& ptr = m_storage.value.ptr;
-        auto& size = m_storage.value.size;
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
 
         pointer back = ptr + size;
         const size_type affected = static_cast<size_type>(back - pos);
@@ -1036,9 +961,9 @@ private:
     template <typename growth_rate, construct_method M, typename... Args>
     pointer insert_reallocate(pointer pos, size_type count, Args&&... args) noexcept
     {
-        auto& ptr = m_storage.value.ptr;
-        auto& size = m_storage.value.size;
-        auto& capacity = m_storage.value.capacity;
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
+        auto& capacity = m_data().capacity;
 
 #if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
@@ -1051,10 +976,10 @@ private:
 #endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         const size_type new_size = size + count;
-        const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
+        const size_type new_capacity = _dynamic_array_base_priv::grow_capacity<growth_rate>(new_size, capacity, max_size());
         VX_ASSERT(new_capacity > capacity);
 
-        pointer new_ptr = get_alloc().allocate(new_capacity);
+        pointer new_ptr = m_allocator().allocate(new_capacity);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -1098,7 +1023,7 @@ private:
 
         // destroy original range
         mem::destroy_range(ptr, size);
-        get_alloc().deallocate(ptr, capacity);
+        m_allocator().deallocate(ptr, capacity);
 
         ptr = new_ptr;
         size = new_size;
@@ -1110,7 +1035,7 @@ private:
     template <typename growth_rate, construct_method M, typename... Args>
     pointer insert_n(pointer pos, size_type count, Args&&... args)
     {
-        const size_type available = m_storage.value.capacity - m_storage.value.size;
+        const size_type available = m_data().capacity - m_data().size;
 
         if (count <= available)
         {
@@ -1140,7 +1065,7 @@ public:
     vector& insert(size_type off, size_type count, const T& value)
     {
         VX_ASSERT(off <= size());
-        auto ptr = m_storage.value.ptr + off;
+        auto ptr = m_data().ptr + off;
         insert_n<growth_rate, construct_method::fill_range>(ptr, count, value);
         return *this;
     }
@@ -1149,7 +1074,7 @@ public:
     vector& insert(size_type off, std::initializer_list<T> init)
     {
         VX_ASSERT(off <= size());
-        auto ptr = m_storage.value.ptr + off;
+        auto ptr = m_data().ptr + off;
         insert_n<growth_rate, construct_method::copy_range>(ptr, init.size(), init.begin());
         return *this;
     }
@@ -1158,7 +1083,7 @@ public:
     vector& insert(size_type off, IT first, IT last)
     {
         VX_ASSERT(off <= size());
-        auto ptr = m_storage.value.ptr + off;
+        auto ptr = m_data().ptr + off;
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
@@ -1232,9 +1157,9 @@ public:
         VX_STATIC_ASSERT_MSG(growth_rate::num >= 0 && growth_rate::den > 0, "Growth rate must be positive");
         VX_STATIC_ASSERT_MSG(growth_rate::num >= growth_rate::den, "Growth rate must be greater or equal to 1");
 
-        auto& ptr = m_storage.value.ptr;
-        auto& size = m_storage.value.size;
-        auto& capacity = m_storage.value.capacity;
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
+        auto& capacity = m_data().capacity;
 
         if (size == capacity)
         {
@@ -1250,7 +1175,7 @@ public:
 
 #endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
-            const size_type new_capacity = grow_capacity<growth_rate>(count, capacity);
+            const size_type new_capacity = _dynamic_array_base_priv::grow_capacity<growth_rate>(count, capacity, max_size());
             VX_UNLIKELY_COLD_PATH(!reallocate(new_capacity),
                 {
                     return nullptr;
@@ -1268,7 +1193,7 @@ public:
     vector& emplace(size_type off, Args&&... args)
     {
         VX_ASSERT(off < size());
-        auto ptr = m_storage.value.ptr + off;
+        auto ptr = m_data().ptr + off;
         insert_n<growth_rate, construct_method::single>(ptr, 1, std::forward<Args>(args)...);
         return *this;
     }
@@ -1305,8 +1230,8 @@ private:
 
     pointer erase_n(pointer pos, size_type count)
     {
-        auto& ptr = m_storage.value.ptr;
-        auto& size = m_storage.value.size;
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
 
         const size_type off = static_cast<size_type>(pos - ptr);
         const size_type tail_count = size - off - count;
@@ -1324,7 +1249,7 @@ public:
     vector& erase(size_type off)
     {
         VX_ASSERT(off < size());
-        auto ptr = m_storage.value.ptr + off;
+        auto ptr = m_data().ptr + off;
         erase_n(ptr, 1);
         return *this;
     }
@@ -1348,8 +1273,8 @@ public:
 
     void pop_back()
     {
-        auto& ptr = m_storage.value.ptr;
-        auto& size = m_storage.value.size;
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
 
         if (size)
         {

@@ -852,7 +852,7 @@ constexpr scan_result scan_impl(
     basic_format_token<C> tok;
     scan_error err = scan_error::none;
 
-    while (true)
+    for (;;)
     {
         if (!parser.next(tok))
         {

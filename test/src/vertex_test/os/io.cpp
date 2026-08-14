@@ -73,7 +73,7 @@ VX_TEST_CASE(os_read_raw_invalid_size)
         prompt,
         std::strlen(prompt));
 
-    while (true)
+    for (;;)
     {
         char buffer[5] = {};
 

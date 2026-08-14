@@ -1748,7 +1748,7 @@ constexpr basic_string<C> replace_copy(
         size_t end = 0;
         const size_t step = (old_val_size == 0) ? 1 : old_val_size;
 
-        while (true)
+        for (;;)
         {
             end = find(s, size, old_val, old_val_size, start);
             res.append(s + start, end == npos ? size - start : end - start);

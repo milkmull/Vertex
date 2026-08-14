@@ -30,15 +30,44 @@ namespace mem {
 template <typename T>
 constexpr VX_NO_DISCARD typename std::remove_reference<T>::type&& move(T&& a) noexcept
 {
-    return std::move(a);
+    return static_cast<typename std::remove_reference<T>::type&&>(a);
 }
 
 template <typename T>
-constexpr void swap(T& a, T& b) noexcept
+constexpr VX_NO_DISCARD T&& forward(
+    typename std::remove_reference<T>::type& a) noexcept
+{
+    return static_cast<T&&>(a);
+}
+
+template <typename T>
+constexpr VX_NO_DISCARD T&& forward(
+    typename std::remove_reference<T>::type&& a) noexcept
+{
+    static_assert(!std::is_lvalue_reference<T>::value,
+        "cannot forward an rvalue as an lvalue");
+    return static_cast<T&&>(a);
+}
+
+template <typename T>
+constexpr void swap(T& a, T& b) noexcept(
+    noexcept(T(move(a))) &&
+    noexcept(a = move(b)) &&
+    noexcept(b = move(a)))
 {
     T tmp = move(a);
     a = move(b);
     b = move(tmp);
+}
+
+template <typename T, typename U = T>
+constexpr VX_NO_DISCARD T exchange(T& obj, U&& new_value) noexcept(
+    noexcept(T(move(obj))) &&
+    noexcept(obj = forward<U>(new_value)))
+{
+    T old_value = move(obj);
+    obj = forward<U>(new_value);
+    return old_value;
 }
 
 //=========================================================================
@@ -1323,7 +1352,7 @@ void destroy_array_safe(T*& ptr, const size_t count)
 enum class alignment_policy
 {
     at_least,
-    exact
+    exact,
 };
 
 template <typename T, size_t Alignment = alignof(T), alignment_policy Policy = alignment_policy::at_least>
@@ -1337,8 +1366,33 @@ public:
     using value_type = T;
     using pointer_type = value_type*;
 
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+
     static constexpr size_t alignment = Alignment;
     static constexpr alignment_policy policy = Policy;
+
+    template <typename U>
+    struct rebind
+    {
+        // If Alignment matches T's natural alignment (the common/default case),
+        // recompute it for U so Alignment >= alignof(U) still holds.
+        // If the caller picked an explicit, non-default alignment, preserve it
+        // as-is — if that's now invalid for U, the static_assert in the new
+        // default_allocator<U, ...> instantiation will say so clearly.
+        static constexpr size_t rebound_alignment =
+            (Alignment == alignof(T)) ? alignof(U) : Alignment;
+
+        using other = default_allocator<U, rebound_alignment, Policy>;
+    };
+
+    default_allocator() noexcept = default;
+
+    template <typename U, size_t UAlignment, alignment_policy UPolicy>
+    default_allocator(const default_allocator<U, UAlignment, UPolicy>&) noexcept
+    {
+        VX_STATIC_ASSERT_MSG(UPolicy == Policy, "cannot convert between default_allocator instances with different alignment policies");
+    }
 
     VX_ALLOCATOR static pointer_type allocate(const size_t count) noexcept
     {
@@ -1394,6 +1448,20 @@ using aligned_allocator = default_allocator<T, ideal_align, alignment_policy::ex
 template <size_t Alignment = alignof(unsigned char), alignment_policy Policy = alignment_policy::at_least>
 using byte_allocator = default_allocator<unsigned char, Alignment, Policy>;
 
+//=========================================================================
+// allocator rebinding
+//=========================================================================
+
+template <typename Allocator, typename U>
+struct rebind_allocator
+{
+    using type = typename Allocator::template rebind<U>::other;
+};
+
+//=========================================================================
+// allocator storage
+//=========================================================================
+
 namespace _mem_priv {
 
 template <typename Allocator, typename T, bool = std::is_empty<Allocator>::value && !std::is_final<Allocator>::value>
@@ -1402,34 +1470,52 @@ struct allocator_storage : private Allocator
     T value;
 
     allocator_storage() = default;
-    allocator_storage(const Allocator& a) : Allocator(a)
+
+    allocator_storage(const Allocator& a)
+        : Allocator(a)
     {}
-    allocator_storage(Allocator&& a) noexcept : Allocator(std::move(a))
+
+    allocator_storage(Allocator&& a) noexcept
+        : Allocator(std::move(a))
     {}
 
     Allocator& allocator() noexcept
-    { return *this; }
+    {
+        return *this;
+    }
+
     const Allocator& allocator() const noexcept
-    { return *this; }
+    {
+        return *this;
+    }
 };
 
 // fallback for stateful / non-empty allocators
 template <typename Allocator, typename T>
 struct allocator_storage<Allocator, T, false>
 {
-    Allocator Allocator;
+    Allocator alloc;
     T value;
 
     allocator_storage() = default;
-    allocator_storage(const Allocator& a) : Allocator(a)
+
+    allocator_storage(const Allocator& a)
+        : alloc(a)
     {}
-    allocator_storage(Allocator&& a) noexcept : Allocator(std::move(a))
+
+    allocator_storage(Allocator&& a) noexcept
+        : alloc(std::move(a))
     {}
 
     Allocator& allocator() noexcept
-    { return Allocator; }
+    {
+        return alloc;
+    }
+
     const Allocator& allocator() const noexcept
-    { return Allocator; }
+    {
+        return alloc;
+    }
 };
 
 } // namespace _mem_priv

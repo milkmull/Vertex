@@ -983,7 +983,7 @@ public:
         const auto lhs_last = m_path.end();
         const auto rhs_last = rhs.end();
 
-        while (true)
+        for (;;)
         {
             const bool lhs_empty = lhs_it == lhs_last;
             const bool rhs_empty = rhs_it == rhs_last;
