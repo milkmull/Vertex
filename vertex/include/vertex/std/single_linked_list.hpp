@@ -577,6 +577,11 @@ private:
         return m_storage.second;
     }
 
+    void take_head(single_linked_list& other) noexcept
+    {
+        m_data().head = mem::exchange(other.m_data().head, nullptr);
+    }
+
 public:
 
     //=========================================================================
@@ -614,6 +619,7 @@ public:
     single_linked_list(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
         : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
+        insert_after(before_begin(), init.begin(), init.end());
     }
 
     //=========================================================================
@@ -621,25 +627,29 @@ public:
     single_linked_list(const single_linked_list& other)
         : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, other.m_allocator())
     {
-        //insert_op op(m_allocator());
-        //op.append_range(count, value);
-        //op.attach_after(m_data().before_head());
+        insert_op op(m_allocator());
+        op.append_range(other.begin(), other.end());
+        op.attach_after(m_data().before_head());
     }
 
-    // copy with an explicitly supplied allocator
     single_linked_list(const single_linked_list& other, const allocator_type& alloc)
         : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
+        insert_op op(m_allocator());
+        op.append_range(other.begin(), other.end());
+        op.attach_after(m_data().before_head());
     }
 
     single_linked_list(single_linked_list&& other) noexcept
         : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, std::move(other.m_allocator()))
     {
+        take_head(other);
     }
 
     single_linked_list(single_linked_list&& other, const allocator_type& alloc) noexcept
         : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
+        take_head(other);
     }
 
     //=========================================================================
@@ -648,6 +658,9 @@ public:
     single_linked_list(IT first, IT last, const allocator_type& alloc = allocator_type()) noexcept
         : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
+        insert_op op(m_allocator());
+        op.append_range(first, last);
+        op.attach_after(m_data().before_head());
     }
 
     //=========================================================================
@@ -856,32 +869,139 @@ public:
     //=========================================================================
 
     template <typename... Args>
-    iterator emplace_after(Args&&... args)
+    iterator emplace_after(const_iterator pos, Args&&... args)
     {
-        return iterator(insert_after_impl(
-            m_data().before_head(),
-            std::forward<Args>(args)...));
+        auto ptr = insert_after_impl(
+            pos.m_ptr,
+            std::forward<Args>(args)...);
+
+        return iterator(ptr);
     }
 
     //=========================================================================
     // erase after
     //=========================================================================
 
+    iterator erase_after(const_iterator pos)
+    {
+        node_ptr keep_node = pos->m_ptr;
+        node_ptr erase_node = keep_node->next;
+        VX_ASSERT(erase_node != nullptr);
+
+        keep_node->next = erase_node->next;
+        node::template free(m_allocator(), erase_node);
+
+        return iterator(keep_node->next);
+    }
+
+    iterator erase_range(const_iterator first, const_iterator last)
+    {
+        node_ptr keep_node = first->m_ptr;
+
+        for (;;)
+        {
+            const node_ptr erase_node = keep_node->next;
+            if (erase_node == last.m_ptr)
+            {
+                break;
+            }
+
+            keep_node->next = erase_node->next;
+            node::template free(m_allocator(), keep_node);
+        }
+
+        return iterator(last->m_ptr);
+    }
+
     //=========================================================================
     // push front
     //=========================================================================
+
+    bool push_front(const T& value)
+    {
+        return insert_after_impl(m_data().before_head(), value) != nullptr;
+    }
+
+    bool push_front(T&& value)
+    {
+        return insert_after_impl(m_data().before_head(), std::move(value)) != nullptr;
+    }
 
     //=========================================================================
     // emplace front
     //=========================================================================
 
+    template <typename... Args>
+    pointer emplace_front(Args&&... args)
+    {
+        return insert_after_impl(
+            m_data().before_head(),
+            std::forward<Args>(args)...);
+    }
+
     //=========================================================================
     // pop front
     //=========================================================================
 
+    void pop_front()
+    {
+        return erase_after(m_data().before_head());
+    }
+
     //=========================================================================
     // resize
     //=========================================================================
+
+private:
+
+    template <typename... Args>
+    bool resize_impl(_CRT_GUARDOVERFLOW size_type _Newsize, const _Args&... _Vals)
+    {
+        auto& _Al = _Getal();
+        auto _Ptr = _Mypair._Myval2._Before_head();
+        for (;;)
+        {
+            auto _Next = _Ptr->_Next;
+            if (!_Next)
+            {
+                // list too short, insert remaining _Newsize objects initialized from _Vals...
+                _Flist_insert_after_op2<_Alnode> _Insert_op(_Al);
+                _Insert_op._Append_n(_Newsize, _Vals...);
+                _Insert_op._Attach_after(_Ptr);
+                return;
+            }
+
+            if (_Newsize == 0)
+            {
+                // list is too long, erase the _Next and after
+                _Ptr->_Next = nullptr;
+                do
+                {
+                    const auto _Nextafter = _Next->_Next;
+#if _ITERATOR_DEBUG_LEVEL == 2
+                    _Mypair._Myval2._Orphan_ptr(_Next);
+#endif // _ITERATOR_DEBUG_LEVEL == 2
+                    _Node::_Freenode(_Al, _Next);
+                    _Next = _Nextafter;
+                } while (_Next);
+
+                return;
+            }
+
+            _Ptr = _Next;
+            --_Newsize;
+        }
+    }
+
+public:
+
+    bool resize(const size_type count)
+    {
+    }
+
+    bool resize(const size_type count, const T& value)
+    {
+    }
 
     //=========================================================================
     // swap
