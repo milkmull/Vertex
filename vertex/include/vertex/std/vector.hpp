@@ -7,10 +7,11 @@
 #include <vector>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/std/_tools/dynamic_array_base.hpp"
+#include "vertex/std/_tools/compressed_pair.hpp"
 #include "vertex/std/_tools/pointer_iterator.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
-#include "vertex/std/_container/dynamic_array_base.hpp"
 #include "vertex/std/vector_traits.hpp"
 
 //#define VX_VECTOR_DISABLE_MAX_SIZE_CHECK 1
@@ -29,6 +30,10 @@ private:
     template <typename V>
     struct is_compatible_vector : is_vector_of<V, T>
     {};
+
+    VX_STATIC_ASSERT_MSG(
+        (std::is_same<T, typename Allocator::value_type>::value),
+        "Allocator value type must match T");
 
     using data_type = _dynamic_array_base_priv::dynamic_array_data<T>;
 
@@ -67,24 +72,24 @@ private:
 
     // holds the allocator alongside the data_type; empty-base-optimized when
     // allocator_type is stateless, so sizeof(vector) is unaffected in that case
-    mem::_mem_priv::allocator_storage<allocator_type, data_type> m_storage;
+    _compressed_pair_priv::compressed_pair<allocator_type, data_type> m_storage;
 
     allocator_type& m_allocator() noexcept
     {
-        return m_storage.allocator();
+        return m_storage.first();
     }
     const allocator_type& m_allocator() const noexcept
     {
-        return m_storage.allocator();
+        return m_storage.first();
     }
 
     data_type& m_data() noexcept
     {
-        return m_storage.value;
+        return m_storage.second;
     }
     const data_type& m_data() const noexcept
     {
-        return m_storage.value;
+        return m_storage.second;
     }
 
     //=========================================================================
@@ -144,10 +149,9 @@ private:
             mem::copy_uninitialized_range(new_ptr, std::forward<Args>(args)...);
         }
 
-        auto& data = m_data();
-        data.ptr = new_ptr;
-        data.size = count;
-        data.capacity = count;
+        m_data().ptr = new_ptr;
+        m_data().size = count;
+        m_data().capacity = count;
     }
 
 public:
@@ -156,61 +160,66 @@ public:
     // constructors
     //=========================================================================
 
-    vector() noexcept
+    vector() noexcept(noexcept(allocator_type()))
+        : m_storage(_compressed_pair_priv::zero_then_variadic_args_tag{})
     {}
 
     explicit vector(const allocator_type& alloc) noexcept
-        : m_storage(alloc)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {}
 
     explicit vector(size_type count, const allocator_type& alloc = allocator_type())
-        : m_storage(alloc)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
         construct_n<construct_method::default_range>(count);
     }
 
     vector(const size_type count, const T& value, const allocator_type& alloc = allocator_type())
-        : m_storage(alloc)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
         construct_n<construct_method::fill_range>(count, value);
     }
 
     vector(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
-        : m_storage(alloc)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
         construct_n<construct_method::copy_range>(init.size(), init.begin());
     }
 
     vector(const vector& other)
-        : m_storage(other.m_allocator())
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, other.m_allocator())
     {
-        auto& data = other.m_data();
         construct_n<construct_method::copy_range>(
-            data.size,
-            data.ptr);
+            other.m_data().size,
+            other.m_data().ptr);
     }
 
     // copy with an explicitly supplied allocator
     vector(const vector& other, const allocator_type& alloc)
-        : m_storage(alloc)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
-        auto& data = other.m_data();
         construct_n<construct_method::copy_range>(
-            data.size,
-            data.ptr);
+            other.m_data().size,
+            other.m_data().ptr);
     }
 
     // move takes over the source's allocator along with its data_type, since
     // the data_type must always be freed by the allocator that produced it
     vector(vector&& other) noexcept
-        : m_storage(std::move(other.m_allocator()))
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, std::move(other.m_allocator()))
     {
-        m_data() = other.m_data().release();
+        m_data().acquire(other.m_data());
+    }
+
+    vector(vector&& other, const allocator_type& alloc) noexcept
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+    {
+        m_data().acquire(other.m_data());
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     vector(IT first, IT last, const allocator_type& alloc = allocator_type()) noexcept
-        : m_storage(alloc)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
@@ -226,7 +235,7 @@ public:
 
     template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
     vector(const V& v, const allocator_type& alloc = allocator_type())
-        : m_storage(alloc)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
         construct_n<construct_method::copy_range>(v.size(), v.data());
     }
@@ -239,7 +248,19 @@ private:
 
     void destroy_range()
     {
-        m_data().destroy(m_allocator());
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
+        auto& capacity = m_data().capacity;
+
+        if (ptr)
+        {
+            mem::destroy_range(ptr, size);
+            m_allocator().deallocate(ptr, capacity);
+        }
+
+        ptr = nullptr;
+        size = 0;
+        capacity = 0;
     }
 
 public:
@@ -346,7 +367,7 @@ public:
 
     vector& operator=(const vector& other)
     {
-        if (this == std::addressof(other))
+        if (this == &other)
         {
             return *this;
         }
@@ -359,11 +380,11 @@ public:
 
     vector& operator=(vector&& other) noexcept
     {
-        if (this != std::addressof(other))
+        if (this != &other)
         {
             destroy_range();
             m_allocator() = std::move(other.m_allocator());
-            m_data() = other.m_data().release();
+            m_data().acquire(other.m_data());
         }
 
         return *this;
@@ -388,7 +409,7 @@ public:
 
     bool assign(const vector& other)
     {
-        if (this == std::addressof(other))
+        if (this == &other)
         {
             return true;
         }
@@ -398,11 +419,11 @@ public:
 
     bool assign(vector&& other) noexcept
     {
-        if (this != std::addressof(other))
+        if (this != &other)
         {
             destroy_range();
             m_allocator() = std::move(other.m_allocator());
-            m_data() = other.m_data().release();
+            m_data().acquire(other.m_data());
         }
 
         return true;
@@ -565,7 +586,11 @@ public:
 
     void clear()
     {
-        m_data().clear();
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
+
+        mem::destroy_range(ptr, size);
+        size = 0;
     }
 
     void clear_and_deallocate()
@@ -604,7 +629,10 @@ public:
 #endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         destroy_range();
-        m_data() = data_type(ptr, count, count);
+
+        m_data().ptr = ptr;
+        m_data().size = count;
+        m_data().capacity = count;
         return true;
     }
 

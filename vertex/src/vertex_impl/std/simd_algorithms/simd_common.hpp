@@ -7,7 +7,7 @@
     #error _M_CEE_PURE should not be defined when compiling simd_algorithms.cpp.
 #endif
 
-#include "vertex/std/_priv/simd_algorithms.hpp"
+#include "vertex/std/_simd/simd_algorithms.hpp"
 
 #if defined(_VX_USE_SIMD_ALGORITHMS)
 

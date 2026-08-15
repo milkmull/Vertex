@@ -8,6 +8,7 @@
 #include <unordered_set>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/std/_tools/compressed_pair.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
 
@@ -15,9 +16,16 @@
 
 namespace vx {
 
-using X = std::unordered_set<int>;
+using X = std::forward_list<int>;
+
+template <typename T, typename Allocator>
+class single_linked_list;
 
 namespace _single_linked_list_priv {
+
+//=========================================================================
+// node
+//=========================================================================
 
 template <typename T>
 struct node_type
@@ -40,6 +48,10 @@ struct node_type
         allocator.deallocate(node, 1);
     }
 };
+
+//=========================================================================
+// list value
+//=========================================================================
 
 template <typename T>
 struct value
@@ -249,6 +261,10 @@ public:
     }
 };
 
+//=========================================================================
+// insert operation
+//=========================================================================
+
 template <typename Allocator>
 class insert_after_op
 {
@@ -371,19 +387,14 @@ public:
     }
 };
 
-} // namespace _single_linked_list_priv
+//=========================================================================
+// types helper
+//=========================================================================
 
-template <typename T, typename Allocator = mem::default_allocator<T>>
-class single_linked_list
+template <typename T>
+struct list_types
 {
-public:
-
-    //=========================================================================
-    // member types
-    //=========================================================================
-
     using value_type = T;
-    using allocator_type = Allocator;
     using pointer = T*;
     using const_pointer = const T*;
     using reference = T&;
@@ -391,36 +402,179 @@ public:
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
+    using node = node_type<T>;
+    using node_ptr = node*;
+};
+
+//=========================================================================
+// iterators
+//=========================================================================
+
+template <typename T>
+class const_iterator
+{
+    template <typename, typename>
+    friend class single_linked_list;
+
+    using types = list_types<T>;
+    using node_ptr = typename types::node_ptr;
+    node_ptr m_ptr;
+
+public:
+
+    using iterator_category = std::forward_iterator_tag;
+
+    using value_type = typename types::value_type;
+    using difference_type = typename types::difference_type;
+    using pointer = const value_type*;
+    using reference = const value_type&;
+
+public:
+
+    const_iterator() noexcept
+        : m_ptr()
+    {}
+
+    const_iterator(node_ptr node) noexcept
+        : m_ptr(node)
+    {}
+
+    reference operator*() const noexcept
+    {
+        return m_ptr->value;
+    }
+
+    pointer operator->() const noexcept
+    {
+        return &operator*();
+    }
+
+    const_iterator& operator++() noexcept
+    {
+        m_ptr = m_ptr->next;
+        return *this;
+    }
+
+    const_iterator operator++(int) noexcept
+    {
+        const_iterator tmp = *this;
+        m_ptr = m_ptr->next;
+        return tmp;
+    }
+
+    bool operator==(const const_iterator& other) const noexcept
+    {
+        return m_ptr == other.m_ptr;
+    }
+
+    bool operator!=(const const_iterator& other) const noexcept
+    {
+        return !(*this == other);
+    }
+};
+
+//=========================================================================
+
+template <typename T>
+class iterator : public const_iterator<T>
+{
+    template <typename, typename>
+    friend class single_linked_list;
+
+    using base = const_iterator<T>;
+    using types = list_types<T>;
+
+public:
+
+    using iterator_category = std::forward_iterator_tag;
+
+    using value_type = typename types::value_type;
+    using difference_type = typename types::difference_type;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+    using base::base;
+
+    reference operator*() const noexcept
+    {
+        return const_cast<reference>(base::operator*());
+    }
+
+    pointer operator->() const noexcept
+    {
+        return &operator*();
+    }
+
+    iterator& operator++() noexcept
+    {
+        base::operator++();
+        return *this;
+    }
+
+    iterator operator++(int) noexcept
+    {
+        iterator tmp = *this;
+        base::operator++();
+        return tmp;
+    }
+};
+
+} // namespace _single_linked_list_priv
+
+template <typename T, typename Allocator = mem::default_allocator<T>>
+class single_linked_list
+{
+    using types = _single_linked_list_priv::list_types<T>;
+
+public:
+
+    //=========================================================================
+    // member types
+    //=========================================================================
+
+    using allocator_type = Allocator;
+    using value_type = typename types::value_type;
+    using pointer = typename types::pointer;
+    using const_pointer = typename types::const_pointer;
+    using reference = typename types::reference;
+    using const_reference = typename types::const_reference;
+    using size_type = typename types::size_type;
+    using difference_type = typename types::difference_type;
+
+    using iterator = _single_linked_list_priv::iterator<T>;
+    using const_iterator = _single_linked_list_priv::const_iterator<T>;
+
 private:
 
-    using node = _single_linked_list_priv::node_type<T>;
-    using node_ptr = node*;
+    using node = typename types::node;
+    using node_ptr = typename types::node_ptr;
 
     using list_value = _single_linked_list_priv::value<T>;
+
     // rebind the value allocator into a node allocator
     using node_allocator = typename mem::rebind_allocator<allocator_type, node>::type;
-    using intert_op = _single_linked_list_priv::insert_after_op<node_allocator>;
+    using insert_op = _single_linked_list_priv::insert_after_op<node_allocator>;
 
     // compressed storage: node_allocator + head pointer (or whatever "value"
     // you want compressed alongside it) in one base-optimized object
-    mem::_mem_priv::allocator_storage<node_allocator, list_value> m_storage;
+    _compressed_pair_priv::compressed_pair<node_allocator, list_value> m_storage;
 
-    node_allocator& allocator() noexcept
+    node_allocator& m_allocator() noexcept
     {
-        return m_storage.allocator();
+        return m_storage.first();
     }
-    const node_allocator& allocator() const noexcept
+    const node_allocator& m_allocator() const noexcept
     {
-        return m_storage.allocator();
+        return m_storage.first();
     }
 
-    list_value& get_value() noexcept
+    list_value& m_data() noexcept
     {
-        return m_storage.value;
+        return m_storage.second;
     }
-    const list_value& get_value() const noexcept
+    const list_value& m_data() const noexcept
     {
-        return m_storage.value;
+        return m_storage.second;
     }
 
 public:
@@ -429,26 +583,78 @@ public:
     // constructors
     //=========================================================================
 
-    single_linked_list() noexcept = default;
-
-    explicit single_linked_list(const allocator_type& alloc)
-        : m_storage(alloc)
+    single_linked_list() noexcept
+        : m_storage(_compressed_pair_priv::zero_then_variadic_args_tag{})
     {}
 
+    explicit single_linked_list(const allocator_type& alloc)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+    {}
+
+    //=========================================================================
+
     explicit single_linked_list(size_type count, const allocator_type& alloc = allocator_type())
-        : m_storage(alloc)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
-        intert_op op(allocator());
+        insert_op op(m_allocator());
         op.append_n(count);
-        op.attach_after(get_value().before_head());
+        op.attach_after(m_data().before_head());
     }
 
     single_linked_list(size_type count, const T& value, const allocator_type& alloc = allocator_type())
-        : m_storage(alloc)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
     {
-        intert_op op(allocator());
+        insert_op op(m_allocator());
         op.append_n(count, value);
-        op.attach_after(get_value().before_head());
+        op.attach_after(m_data().before_head());
+    }
+
+    //=========================================================================
+
+    single_linked_list(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+    {
+    }
+
+    //=========================================================================
+
+    single_linked_list(const single_linked_list& other)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, other.m_allocator())
+    {
+        //insert_op op(m_allocator());
+        //op.append_range(count, value);
+        //op.attach_after(m_data().before_head());
+    }
+
+    // copy with an explicitly supplied allocator
+    single_linked_list(const single_linked_list& other, const allocator_type& alloc)
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+    {
+    }
+
+    single_linked_list(single_linked_list&& other) noexcept
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, std::move(other.m_allocator()))
+    {
+    }
+
+    single_linked_list(single_linked_list&& other, const allocator_type& alloc) noexcept
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+    {
+    }
+
+    //=========================================================================
+
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    single_linked_list(IT first, IT last, const allocator_type& alloc = allocator_type()) noexcept
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+    {
+    }
+
+    //=========================================================================
+
+    bool is_valid() const noexcept
+    {
+        return true;
     }
 
     //=========================================================================
@@ -461,14 +667,115 @@ public:
     }
 
     //=========================================================================
-    // memory
+    // allocator
+    //=========================================================================
+
+    allocator_type get_allocator() const noexcept
+    {
+        return static_cast<allocator_type>(m_allocator());
+    }
+
+    //=========================================================================
+    // assignment operators
+    //=========================================================================
+
+    //=========================================================================
+    // assign
+    //=========================================================================
+
+    //=========================================================================
+    // element access
+    //=========================================================================
+
+    reference front() noexcept
+    {
+        return m_data().head->value;
+    }
+
+    const reference front() const noexcept
+    {
+        return m_data().head->value;
+    }
+
+    //=========================================================================
+    // iterators
+    //=========================================================================
+
+    iterator before_begin() noexcept
+    {
+        return iterator(m_data().before_head());
+    }
+
+    const_iterator before_begin() const noexcept
+    {
+        return const_iterator(m_data().before_head());
+    }
+
+    const_iterator cbefore_begin() const noexcept
+    {
+        return before_begin();
+    }
+
+    //=========================================================================
+
+    iterator begin() noexcept
+    {
+        return iterator(m_data().head);
+    }
+
+    const_iterator begin() const noexcept
+    {
+        return const_iterator(m_data().head);
+    }
+
+    //=========================================================================
+
+    iterator end() noexcept
+    {
+        return iterator(nullptr);
+    }
+
+    const_iterator end() const noexcept
+    {
+        return const_iterator(nullptr);
+    }
+
+    //=========================================================================
+
+    const_iterator cbegin() const noexcept
+    {
+        return begin();
+    }
+
+    const_iterator cend() const noexcept
+    {
+        return end();
+    }
+
+    //=========================================================================
+    // capacity
+    //=========================================================================
+
+    const bool empty() const noexcept
+    {
+        return m_data().head == nullptr;
+    }
+
+    static constexpr size_type max_size() noexcept
+    {
+        // need to finalize this, maybe allocator traits?
+        return std::numeric_limits<size_type>::max();
+    }
+
+    //=========================================================================
+    // clear
     //=========================================================================
 
     void clear()
     {
-        auto& alloc = allocator();
+        auto& alloc = m_allocator();
 
-        node_ptr node = mem::exchange(get_value().head, nullptr);
+        node_ptr node = mem::exchange(m_data().head, nullptr);
         node_ptr next;
 
         for (; node; node = next)
@@ -478,6 +785,131 @@ public:
             node::template free(alloc, node);
         }
     }
+
+    //=========================================================================
+    // insert after
+    //=========================================================================
+
+private:
+
+    template <typename... Args>
+    node_ptr insert_after_impl(node_ptr ptr, Args&&... args)
+    {
+        node_ptr new_ptr = m_allocator().allocate(1);
+        if (!new_ptr)
+        {
+            return nullptr;
+        }
+
+        mem::construct_in_place(new_ptr, std::forward<Args>(args)...);
+        ptr->next = new_ptr;
+        return new_ptr;
+    }
+
+public:
+
+    iterator insert_after(const_iterator pos, const T& value)
+    {
+        const auto ptr = insert_after_impl(pos.m_ptr, value);
+        return iterator(ptr);
+    }
+
+    iterator insert_after(const_iterator pos, T&& value)
+    {
+        return emplace_after(pos, std::move(value));
+    }
+
+    iterator insert_after(const_iterator pos, const size_t count, const T& value)
+    {
+        if (count != 0)
+        {
+            insert_op op(m_allocator());
+            op.append_n(count, value);
+            pos.m_ptr = op.attach_after(pos.m_ptr);
+        }
+
+        return iterator(pos.m_ptr);
+    }
+
+    iterator insert_after(const_iterator pos, std::initializer_list<T> init)
+    {
+        return insert_after(pos, init.begin(), init.end());
+    }
+
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    iterator insert_after(const_iterator pos, IT first, IT last)
+    {
+        VX_ASSERT(first <= last);
+
+        if (first == last)
+        {
+            return iterator(pos.m_ptr);
+        }
+
+        insert_op op(m_allocator());
+        op.append_range(std::move(first), last);
+        return iterator(op.attach_after(pos.m_ptr));
+    }
+
+    //=========================================================================
+    // emplace after
+    //=========================================================================
+
+    template <typename... Args>
+    iterator emplace_after(Args&&... args)
+    {
+        return iterator(insert_after_impl(
+            m_data().before_head(),
+            std::forward<Args>(args)...));
+    }
+
+    //=========================================================================
+    // erase after
+    //=========================================================================
+
+    //=========================================================================
+    // push front
+    //=========================================================================
+
+    //=========================================================================
+    // emplace front
+    //=========================================================================
+
+    //=========================================================================
+    // pop front
+    //=========================================================================
+
+    //=========================================================================
+    // resize
+    //=========================================================================
+
+    //=========================================================================
+    // swap
+    //=========================================================================
+
+    //=========================================================================
+    // merge
+    //=========================================================================
+
+    //=========================================================================
+    // splice_after
+    //=========================================================================
+
+    //=========================================================================
+    // remove
+    //=========================================================================
+
+    //=========================================================================
+    // reverse
+    //=========================================================================
+
+    //=========================================================================
+    // unique
+    //=========================================================================
+
+    //=========================================================================
+    // sort
+    //=========================================================================
 };
 
 //=========================================================================

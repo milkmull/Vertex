@@ -16,21 +16,12 @@ struct dynamic_array_data
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    pointer ptr = nullptr;
-    size_type size = 0;
-    size_type capacity = 0;
+    pointer ptr;
+    size_type size;
+    size_type capacity;
 
     dynamic_array_data() noexcept
         : ptr(), size(), capacity()
-    {}
-
-    dynamic_array_data(
-        const pointer new_ptr,
-        const size_type new_size,
-        const size_type new_capacity) noexcept
-        : ptr(new_ptr)
-        , size(new_size)
-        , capacity(new_capacity)
     {}
 
     dynamic_array_data release() noexcept
@@ -44,24 +35,9 @@ struct dynamic_array_data
         return old;
     }
 
-    void clear() noexcept
+    void acquire(dynamic_array_data& other) noexcept
     {
-        mem::destroy_range(ptr, size);
-        size = 0;
-    }
-
-    template <typename Allocator>
-    void destroy(Allocator& alloc) noexcept
-    {
-        if (ptr)
-        {
-            mem::destroy_range(ptr, size);
-            alloc.deallocate(ptr, capacity);
-        }
-
-        ptr = nullptr;
-        size = 0;
-        capacity = 0;
+        *this = other.release();
     }
 };
 

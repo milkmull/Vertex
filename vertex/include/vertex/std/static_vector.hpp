@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "vertex/config/language_config.hpp"
-#include "vertex/std/_priv/pointer_iterator.hpp"
+#include "vertex/std/_tools/pointer_iterator.hpp"
 #include "vertex/std/vector_traits.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
@@ -260,7 +260,7 @@ public:
 
     static_vector& operator=(const static_vector& other)
     {
-        if (this != std::addressof(other))
+        if (this != &other)
         {
             assign_from<construct_method::copy_range>(other.m_buffer.size, other.m_buffer.ptr);
         }
@@ -287,7 +287,7 @@ public:
 
     bool assign(const static_vector& other)
     {
-        if (this == std::addressof(other))
+        if (this == other)
         {
             return true;
         }

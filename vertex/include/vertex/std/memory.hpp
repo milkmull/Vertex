@@ -1388,10 +1388,33 @@ public:
 
     default_allocator() noexcept = default;
 
+    // stateless, so these are trivial — declared explicitly (rather than left
+    // implicit) so the Cpp17Allocator "shall not exit via exception"
+    // requirement stays enforced even if a data member is ever added later.
+    default_allocator(const default_allocator&) noexcept = default;
+    default_allocator(default_allocator&&) noexcept = default;
+    default_allocator& operator=(const default_allocator&) noexcept = default;
+    default_allocator& operator=(default_allocator&&) noexcept = default;
+
     template <typename U, size_t UAlignment, alignment_policy UPolicy>
     default_allocator(const default_allocator<U, UAlignment, UPolicy>&) noexcept
     {
         VX_STATIC_ASSERT_MSG(UPolicy == Policy, "cannot convert between default_allocator instances with different alignment policies");
+    }
+
+    friend bool operator==(const default_allocator&, const default_allocator&) noexcept
+    {
+        return true;
+    }
+
+    friend bool operator!=(const default_allocator&, const default_allocator&) noexcept
+    {
+        return false;
+    }
+
+    static constexpr size_type max_size() noexcept
+    {
+        return std::numeric_limits<size_type>::max() / sizeof(value_type);
     }
 
     VX_ALLOCATOR static pointer_type allocate(const size_t count) noexcept
@@ -1457,68 +1480,6 @@ struct rebind_allocator
 {
     using type = typename Allocator::template rebind<U>::other;
 };
-
-//=========================================================================
-// allocator storage
-//=========================================================================
-
-namespace _mem_priv {
-
-template <typename Allocator, typename T, bool = std::is_empty<Allocator>::value && !std::is_final<Allocator>::value>
-struct allocator_storage : private Allocator
-{
-    T value;
-
-    allocator_storage() = default;
-
-    allocator_storage(const Allocator& a)
-        : Allocator(a)
-    {}
-
-    allocator_storage(Allocator&& a) noexcept
-        : Allocator(std::move(a))
-    {}
-
-    Allocator& allocator() noexcept
-    {
-        return *this;
-    }
-
-    const Allocator& allocator() const noexcept
-    {
-        return *this;
-    }
-};
-
-// fallback for stateful / non-empty allocators
-template <typename Allocator, typename T>
-struct allocator_storage<Allocator, T, false>
-{
-    Allocator alloc;
-    T value;
-
-    allocator_storage() = default;
-
-    allocator_storage(const Allocator& a)
-        : alloc(a)
-    {}
-
-    allocator_storage(Allocator&& a) noexcept
-        : alloc(std::move(a))
-    {}
-
-    Allocator& allocator() noexcept
-    {
-        return alloc;
-    }
-
-    const Allocator& allocator() const noexcept
-    {
-        return alloc;
-    }
-};
-
-} // namespace _mem_priv
 
 } // namespace mem
 } // namespace vx

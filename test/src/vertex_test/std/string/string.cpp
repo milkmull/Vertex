@@ -81,28 +81,40 @@ template <typename T>
 static void test_container()
 {
     using string = vx::str::basic_string<T>;
+    using alloc = vx::mem::default_allocator<T>;
     T carr[] = { T('a'), T('b'), T('c'), T() };
 
     string v0;
+    alloc al = v0.get_allocator();
+    string v0a(al);
     VX_CHECK(v0.empty());
     VX_CHECK(v0.size() == 0);
+    VX_CHECK(v0a.size() == 0);
+    VX_CHECK(v0a.get_allocator() == al);
 
     string v1(5, T());
     string v1a(6, T('x'));
+    string v1b(7, T('y'), al);
     VX_CHECK(v1.size() == 5);
     VX_CHECK(v1.end()[-1] == T());
     VX_CHECK(v1a.size() == 6);
     VX_CHECK(v1a.end()[-1] == T('x'));
+    VX_CHECK(v1b.size() == 7);
+    VX_CHECK(v1b.end()[-1] == T('y'));
 
     string v2(v1a);
     VX_CHECK(v2.size() == 6);
     VX_CHECK(*v2.begin() == T('x'));
 
+    string v2a(v2, al);
+    VX_CHECK(v2a.size() == 6);
+    VX_CHECK(*v2a.begin() == T('x'));
+
     string v3(v1a.begin(), v1a.end());
     VX_CHECK(v3.size() == 6);
     VX_CHECK(*v3.begin() == T('x'));
 
-    const string v4(v1a.begin(), v1a.end());
+    const string v4(v1a.begin(), v1a.end(), al);
     VX_CHECK(v4.size() == 6);
     VX_CHECK(*v4.begin() == T('x'));
     v0 = v4;

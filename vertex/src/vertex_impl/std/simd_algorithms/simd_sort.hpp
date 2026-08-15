@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/std/_priv/min_max.hpp"
+#include "vertex/std/_simd/min_max.hpp"
 #include "vertex_impl/std/simd_algorithms/simd_common.hpp"
 
 #if defined(_VX_USE_SIMD_ALGORITHMS)

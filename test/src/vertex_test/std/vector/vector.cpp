@@ -10,26 +10,38 @@
 static void test_container()
 {
     using vec = vx::vector<char>;
+    using alloc = vx::mem::default_allocator<char>;
 
     vec v0;
+    alloc al = v0.get_allocator();
+    vec v0a(al);
     VX_CHECK(v0.empty());
     VX_CHECK(v0.size() == 0);
+    VX_CHECK(v0a.size() == 0);
+    VX_CHECK(v0a.get_allocator() == al);
 
     vec v1(5);
     vec v1a(6, 'x');
+    vec v1b(7, 'y', al);
     VX_CHECK(v1.size() == 5);
     VX_CHECK(v1a.size() == 6);
     VX_CHECK(v1a.back() == 'x');
+    VX_CHECK(v1b.size() == 7);
+    VX_CHECK(v1b.back() == 'y');
 
     vec v2(v1a);
     VX_CHECK(v2.size() == 6);
     VX_CHECK(v2.front() == 'x');
 
+    vec v2a(v2, al);
+    VX_CHECK(v2a.size() == 6);
+    VX_CHECK(v2a.front() == 'x');
+
     vec v3(v1a.begin(), v1a.end());
     VX_CHECK(v3.size() == 6);
     VX_CHECK(v3.front() == 'x');
 
-    const vec v4(v1a.begin(), v1a.end());
+    const vec v4(v1a.begin(), v1a.end(), al);
     v0 = v4;
     VX_CHECK(v0.size() == 6);
     VX_CHECK(v0.front() == 'x');
@@ -110,6 +122,10 @@ static void test_container()
         v8 = std::move(v7);
         VX_CHECK(v7.size() == 0);
         VX_CHECK(v8.size() == 20);
+
+        vec v8a(std::move(v8), alloc());
+        VX_CHECK(v8.size() == 0);
+        VX_CHECK(v8a.size() == 20);
 
         VX_DISABLE_WARNING_POP();
 
