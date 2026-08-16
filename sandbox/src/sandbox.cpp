@@ -6,6 +6,8 @@
 
 using namespace vx;
 
+using X = std::vector<int>;
+
 int main()
 {
     single_linked_list<int> list(5, 5);

@@ -692,9 +692,105 @@ public:
     // assignment operators
     //=========================================================================
 
+private:
+
+    template <typename IT1, typename IT2>
+    bool assign_range(IT1 first, IT2 last)
+    {
+        auto head_node = m_data.before_head();
+
+        for (; first != last; ++first)
+        {
+            const auto next_node = head_node->next;
+            if (!next_node)
+            {
+                insert_op op(m_allocator());
+                op.append_range(std::move(first), last);
+                op.attach_after(head_node);
+                return;
+            }
+
+            next_node->value = *first;
+            head_node = next_node;
+        }
+
+        for (auto del_node = mem::exchange(head_node->next, nullptr); del_node;)
+        {
+            const auto next_node = del_node->next;
+            node::template free(m_allocator(), del_node);
+            del_node = next_node;
+        }
+    }
+
+public:
+
+    single_linked_list& operator=(const single_linked_list& other)
+    {
+        if (this == &other)
+        {
+            return *this;
+        }
+
+        assign_range(other.begin(), other.end());
+        return *this;
+    }
+
+    single_linked_list& operator=(single_linked_list&& other) noexcept
+    {
+        if (this == &other)
+        {
+            return *this;
+        }
+
+        clear();
+        m_allocator() = std::move(other.m_allocator());
+        take_head(other);
+        return *this;
+    }
+
+    single_linked_list& operator=(std::initializer_list<T> init) noexcept
+    {
+        assign_range(init.begin(), init.end());
+        return *this;
+    }
+
     //=========================================================================
     // assign
     //=========================================================================
+
+    bool assign(const single_linked_list& other)
+    {
+        if (this == &other)
+        {
+            return true;
+        }
+
+        return assign_range(other.begin(), other.end());
+    }
+
+    bool assign(single_linked_list&& other) noexcept
+    {
+        operator=(std::move(other));
+        return true;
+    }
+
+    bool assign(std::initializer_list<T> init)
+    {
+        return assign_range(init.begin(), init.end());
+    }
+
+    bool assign(size_type count, const T& value)
+    {
+        clear();
+        return insert_after(before_begin(), count, value) != end();
+    }
+
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    bool assign(IT first, IT last)
+    {
+        VX_ASSERT(first <= last);
+        return assign_range(first, last);
+    }
 
     //=========================================================================
     // element access
@@ -954,54 +1050,54 @@ public:
 
 private:
 
-    template <typename... Args>
-    bool resize_impl(_CRT_GUARDOVERFLOW size_type _Newsize, const _Args&... _Vals)
-    {
-        auto& _Al = _Getal();
-        auto _Ptr = _Mypair._Myval2._Before_head();
-        for (;;)
-        {
-            auto _Next = _Ptr->_Next;
-            if (!_Next)
-            {
-                // list too short, insert remaining _Newsize objects initialized from _Vals...
-                _Flist_insert_after_op2<_Alnode> _Insert_op(_Al);
-                _Insert_op._Append_n(_Newsize, _Vals...);
-                _Insert_op._Attach_after(_Ptr);
-                return;
-            }
-
-            if (_Newsize == 0)
-            {
-                // list is too long, erase the _Next and after
-                _Ptr->_Next = nullptr;
-                do
-                {
-                    const auto _Nextafter = _Next->_Next;
-#if _ITERATOR_DEBUG_LEVEL == 2
-                    _Mypair._Myval2._Orphan_ptr(_Next);
-#endif // _ITERATOR_DEBUG_LEVEL == 2
-                    _Node::_Freenode(_Al, _Next);
-                    _Next = _Nextafter;
-                } while (_Next);
-
-                return;
-            }
-
-            _Ptr = _Next;
-            --_Newsize;
-        }
-    }
-
-public:
-
-    bool resize(const size_type count)
-    {
-    }
-
-    bool resize(const size_type count, const T& value)
-    {
-    }
+//    template <typename... Args>
+//    bool resize_impl(_CRT_GUARDOVERFLOW size_type _Newsize, const _Args&... _Vals)
+//    {
+//        auto& _Al = _Getal();
+//        auto _Ptr = _Mypair._Myval2._Before_head();
+//        for (;;)
+//        {
+//            auto _Next = _Ptr->_Next;
+//            if (!_Next)
+//            {
+//                // list too short, insert remaining _Newsize objects initialized from _Vals...
+//                _Flist_insert_after_op2<_Alnode> _Insert_op(_Al);
+//                _Insert_op._Append_n(_Newsize, _Vals...);
+//                _Insert_op._Attach_after(_Ptr);
+//                return;
+//            }
+//
+//            if (_Newsize == 0)
+//            {
+//                // list is too long, erase the _Next and after
+//                _Ptr->_Next = nullptr;
+//                do
+//                {
+//                    const auto _Nextafter = _Next->_Next;
+//#if _ITERATOR_DEBUG_LEVEL == 2
+//                    _Mypair._Myval2._Orphan_ptr(_Next);
+//#endif // _ITERATOR_DEBUG_LEVEL == 2
+//                    _Node::_Freenode(_Al, _Next);
+//                    _Next = _Nextafter;
+//                } while (_Next);
+//
+//                return;
+//            }
+//
+//            _Ptr = _Next;
+//            --_Newsize;
+//        }
+//    }
+//
+//public:
+//
+//    bool resize(const size_type count)
+//    {
+//    }
+//
+//    bool resize(const size_type count, const T& value)
+//    {
+//    }
 
     //=========================================================================
     // swap

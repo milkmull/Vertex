@@ -419,13 +419,7 @@ public:
 
     bool assign(vector&& other) noexcept
     {
-        if (this != &other)
-        {
-            destroy_range();
-            m_allocator() = std::move(other.m_allocator());
-            m_data().acquire(other.m_data());
-        }
-
+        operator=(std::move(other));
         return true;
     }
 
