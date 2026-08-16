@@ -86,5 +86,52 @@ invoke(Callable&& fn, Args&&... args) noexcept(type_traits::is_nothrow_invocable
 
 #endif // __cpp_lib_invoke
 
+//==============================================================================
+// function pass helper
+//==============================================================================
+
+namespace _priv {
+
+// pass function object by value as a reference
+template <typename Func>
+struct ref_func
+{
+
+    template <typename... Args>
+    constexpr decltype(auto) operator()(Args&&... args)
+    {
+        VX_IF_CONSTEXPR (std::is_member_pointer<Func>::value)
+        {
+            return invoke(func, std::forward<Args>(args)...);
+        }
+        else
+        {
+            return func(std::forward<Args>(args)...);
+        }
+    }
+
+    Func& func;
+};
+
+} // namespace _priv
+
+template <typename Func>
+VX_NO_DISCARD constexpr auto pass_func(Func& func) noexcept
+{
+    constexpr bool pass_by_value = ((sizeof(Func) <= sizeof(void*)) &&
+        std::is_trivially_copy_constructible<Func>::value &&
+        std::is_trivially_destructible<Func>::value);
+
+    VX_IF_CONSTEXPR (pass_by_value)
+    {
+        return func;
+    }
+    else
+    {
+        // pass functor by "reference"
+        return _priv::ref_func<Func>{ func };
+    }
+}
+
 } // namespace fn
 } // namespace vx

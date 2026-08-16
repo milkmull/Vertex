@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <forward_list>
 #include <initializer_list>
 #include <list>
 #include <unordered_map>
@@ -9,14 +8,13 @@
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/_tools/compressed_pair.hpp"
+#include "vertex/std/_tools/invoke.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
 
 //#define VX_SINGLE_LINKED_LIST_DISABLE_MAX_SIZE_CHECK 1
 
 namespace vx {
-
-using X = std::forward_list<int>;
 
 template <typename T, typename Allocator>
 class single_linked_list;
@@ -44,7 +42,7 @@ struct node_type
     static void free(Allocator& allocator, node_ptr node) noexcept
     {
         mem::destroy_in_place(node->next);
-        mem::destroy_in_place(std::addressof(node->next));
+        mem::destroy_in_place(std::addressof(node->value));
         allocator.deallocate(node, 1);
     }
 };
@@ -80,184 +78,132 @@ struct value
 
 public:
 
-    // Merge two already-sorted ranges:
-    //
-    //   (b_first1, b_mid]    and    (b_mid, b_last)
-    //
-    // into one sorted range, in-place.
-    //
-    // The function returns the node immediately before the new logical end
-    // of the merged range (which is normally b_mid).
     template <typename Pred>
     static node_ptr inplace_merge(
-        node_ptr b_first1,     // the node immediately BEFORE the first range
-        const node_ptr b_mid,  // the last node of the first range
-        const node_ptr b_last, // the last node of the second range
+        node_ptr before_first_node,      // the node immediately BEFORE the first range
+        const node_ptr before_mid_node,  // the last node of the first range
+        const node_ptr before_last_node, // the last node of the second range
         Pred pred)
     {
-        // 'first2' points to the first element of the SECOND sorted range.
-        //
-        // Initially the list looks roughly like:
-        //
-        //   b_first1 -> [first range ...] -> b_mid
-        //                                      |
-        //                                      v
-        //                                  first2 -> [second range ...] -> b_last
-        auto first2 = b_mid->next;
+        auto mid_node = before_mid_node->next;
 
-        // Repeatedly find a run of elements from the second range that belongs
-        // somewhere inside the first range, then splice that run into place.
         for (;;)
         {
-            node_ptr first1;
-
-            // ---------------------------------------------------------------
-            // Find the first element in the first range that is "too large"
-            // to remain before first2.
-            // ---------------------------------------------------------------
-            //
-            // Because the first range is already sorted, everything before
-            // 'first1' is already in the correct position.
-            for (;;)
-            {
-                if (b_first1 == b_mid)
-                {
-                    // We've reached the end of the first range.
-                    //
-                    // There is nothing left to compare against, so the
-                    // remaining elements from the second range are already
-                    // in the correct position.
-                    break;
-                }
-
-                // first1 is the actual node after b_first1.
-                //
-                // b_first1 acts as the "node before first1", which is useful
-                // because we'll eventually insert something between them.
-                first1 = b_first1->next;
-
-                // If first2 should come before first1, then first2 is out of
-                // order relative to the first range and needs to be moved.
-                if (pred(first2->value, first1->value))
-                {
-                    // We found the insertion point.
-                    //
-                    // Everything before first1 is already correctly placed.
-                    break;
-                }
-
-                // first1 is <= first2 according to the comparator, so first1
-                // is already in the correct position.
-                //
-                // Move forward through the first range.
-                b_first1 = first1;
-            }
-
-            // ---------------------------------------------------------------
-            // Find a consecutive "run" at the beginning of the second range
-            // that belongs BEFORE first1.
-            // ---------------------------------------------------------------
-            //
-            // Suppose we have:
-            //
-            //   first range:   1  4  7  10
-            //   second range:  2  3  8  9
-            //
-            // If first1 points to 4, then [2, 3] belongs before 4.
-            //
-            // We want to move the whole run [2, 3] at once rather than moving
-            // each node individually.
-            auto b_run_end = first2;
-            node_ptr run_end;
+            node_ptr first_node;
 
             for (;;)
             {
-                // run_end is the node immediately AFTER b_run_end.
-                run_end = b_run_end->next;
-
-                if (b_run_end == b_last)
+                if (before_first_node == before_mid_node)
                 {
-                    // We've reached the end of the second range.
-                    //
-                    // The entire remaining second range belongs before
-                    // first1.
+                    return before_last_node;
+                }
+
+                first_node = before_first_node->next;
+                if (pred(mid_node->value, first_node->value))
+                {
                     break;
                 }
 
-                // If run_end should NOT come before first1, we've found the
-                // end of the run.
-                if (!pred(run_end->value, first1->value))
-                {
-                    // In other words:
-                    //
-                    //   [first2 ... b_run_end] = nodes that belong before first1
-                    //   [run_end ...]          = nodes that belong after first1
-                    //
-                    // We will splice the first group into the first range.
-                    break;
-                }
-
-                // run_end also belongs before first1, so extend the run.
-                b_run_end = run_end;
+                before_first_node = first_node;
             }
 
-            // ---------------------------------------------------------------
-            // Splice the run [first2 ... b_run_end] out of the second range
-            // and insert it immediately before first1.
-            // ---------------------------------------------------------------
-            //
-            // Before:
-            //
-            //   b_first1 -> first1 -> ... -> b_mid
-            //                              |
-            //                              v
-            //                           first2 -> ... -> b_run_end -> run_end
-            //
-            // After:
-            //
-            //   b_first1 -> first2 -> ... -> b_run_end -> first1 -> ... -> b_mid
-            //                              |
-            //                              v
-            //                            run_end
-            //
-            // The three pointer updates below perform that splice.
+            auto before_run_end_node = mid_node;
+            node_ptr run_end_node;
 
-            // Remove the run from the second range.
-            //
-            // b_mid used to point to first2. Now it skips over the run.
-            b_mid->next = run_end;
-
-            // Make the node before first1 point to the beginning of the run.
-            b_first1->next = first2;
-
-            // Make the end of the run point to first1.
-            //
-            // This inserts the run immediately before first1.
-            b_run_end->next = first1;
-
-            // If the run reached the end of the second range, we're done.
-            //
-            // b_mid->next now points past the entire moved run, so b_mid
-            // remains the boundary immediately before the remaining range.
-            if (b_run_end == b_last)
+            for (;;)
             {
-                return b_mid;
+                run_end_node = before_run_end_node->next;
+
+                if (before_run_end_node == before_last_node)
+                {
+                    break;
+                }
+
+                if (!pred(run_end_node->value, first_node->value))
+                {
+                    break;
+                }
+
+                before_run_end_node = run_end_node;
             }
 
-            // ---------------------------------------------------------------
-            // Continue merging.
-            // ---------------------------------------------------------------
-            //
-            // 'first1' was just moved after the run, so it is now in its
-            // final position. We don't need to compare it again.
-            //
-            // Therefore, the next search in the first range starts with
-            // first1 as the node BEFORE the next candidate.
-            b_first1 = first1;
+            before_mid_node->next = run_end_node;
+            before_first_node->next = mid_node;
+            before_run_end_node->next = first_node;
 
-            // The next unmerged element from the second range is run_end.
-            first2 = run_end;
+            if (before_run_end_node == before_last_node)
+            {
+                return before_mid_node;
+            }
+
+            before_first_node = first_node;
+            mid_node = run_end_node;
         }
+    }
+
+    template <class Pred>
+    static node_ptr sort2(const node_ptr before_first_node, Pred pred)
+    {
+        // Sort (before_first_node, before_first_node + 2], unless nullptr is encountered.
+        // Returns a pointer one before the end of the sorted region.
+        const auto first_node = before_first_node->next;
+        if (!first_node)
+        {
+            return before_first_node;
+        }
+
+        auto second_node = first_node->next;
+        if (!second_node || !pred(second_node->value, first_node->value))
+        {
+            return first_node;
+        }
+
+        // swap second_node and first_node
+        first_node->next = second_node->next;  // snip out *second_node
+        before_first_node->next = second_node; // insert *second_node before *first_node
+        second_node->next = first_node;
+        return second_node;
+    }
+
+    template <class Pred>
+    static node_ptr sort(const node_ptr before_first_node, size_type bound, Pred pred)
+    {
+        // Sort (before_first_node, before_first_node + bound), unless nullptr is encountered.
+        // Returns a pointer one before the end of the sorted region.
+        if (bound <= 2)
+        {
+            return sort2(before_first_node, pred);
+        }
+
+        const auto half_bound = bound / 2;
+        const auto before_mid_node = sort(before_first_node, half_bound, pred);
+        if (!before_mid_node->next)
+        {
+            return before_mid_node;
+        }
+
+        const auto before_last_node = sort(before_mid_node, half_bound, pred);
+        return inplace_merge(before_first_node, before_mid_node, before_last_node, pred);
+    }
+
+    template <class Pred>
+    static void sort(node_ptr before_first_node, Pred pred)
+    {
+        auto before_mid_node = sort2(before_first_node, pred);
+        size_type bound = 2;
+
+        do
+        {
+            if (!before_mid_node->next)
+            {
+                return;
+            }
+
+            const auto before_last_node = sort(before_mid_node, bound, pred);
+            before_mid_node = inplace_merge(before_first_node, before_mid_node, before_last_node, pred);
+            bound <<= 1; // divide by 2
+
+        } while (bound != 0);
     }
 };
 
@@ -275,9 +221,10 @@ private:
     using pointer = value_type*;
 
     allocator_type& m_allocator;
-    pointer m_tail; // Points to the most recently constructed node. If pointer{}, the value of _Head is indeterminate.
-                    // _Tail->_Next is not constructed.
-    pointer m_head; // Points at the first constructed node.
+    pointer m_tail;   // Points to the most recently constructed node. If pointer{}, the value of head is indeterminate.
+                      // m_tail->next is not constructed.
+    pointer m_head;   // Points at the first constructed node.
+    bool m_ok = true; // Success of the operation
 
 public:
 
@@ -293,17 +240,18 @@ public:
     // freed by the destructor unless commit() moved it out first, or the
     // caller explicitly wants to keep the partial chain (see note below).
     template <typename... Args>
-    bool append_n(size_t count, const Args&... args)
+    void append_n(size_t count, const Args&... args)
     {
         for (; count > 0; --count)
         {
             pointer n = m_allocator.allocate(1);
             if (!n)
             {
-                return false; // partial chain stays in m_head/m_tail
+                m_ok = false;
+                return;
             }
 
-            mem::construct_in_place(n->value, args...);
+            mem::construct_in_place(std::addressof(n->value), args...);
             n->next = nullptr;
 
             if (!m_tail)
@@ -316,19 +264,18 @@ public:
                 m_tail = n;
             }
         }
-
-        return true;
     }
 
-    template <typename It, typename Sentinel>
-    bool append_range(It first, Sentinel last)
+    template <typename IT1, typename IT2>
+    void append_range(IT1 first, IT2 last)
     {
         for (; first != last; ++first)
         {
             pointer n = m_allocator.allocate(1);
             if (!n)
             {
-                return false;
+                m_ok = false;
+                return;
             }
 
             mem::construct_in_place(std::addressof(n->value), *first);
@@ -344,14 +291,23 @@ public:
                 m_tail = n;
             }
         }
+    }
 
-        return true;
+    bool success() const noexcept
+    {
+        return m_ok;
     }
 
     // Splice the built chain in after `after`, and reset *this to empty.
     // Only call this once append_n/append_range returned true.
     pointer attach_after(pointer after) noexcept
     {
+        if (!m_ok)
+        {
+            // Failed operation
+            return nullptr;
+        }
+
         if (!m_tail)
         {
             return after;
@@ -697,7 +653,7 @@ private:
     template <typename IT1, typename IT2>
     bool assign_range(IT1 first, IT2 last)
     {
-        auto head_node = m_data.before_head();
+        auto head_node = m_data().before_head();
 
         for (; first != last; ++first)
         {
@@ -707,7 +663,7 @@ private:
                 insert_op op(m_allocator());
                 op.append_range(std::move(first), last);
                 op.attach_after(head_node);
-                return;
+                return op.success();
             }
 
             next_node->value = *first;
@@ -717,9 +673,11 @@ private:
         for (auto del_node = mem::exchange(head_node->next, nullptr); del_node;)
         {
             const auto next_node = del_node->next;
-            node::template free(m_allocator(), del_node);
+            node::free(m_allocator(), del_node);
             del_node = next_node;
         }
+
+        return true;
     }
 
 public:
@@ -788,7 +746,6 @@ public:
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     bool assign(IT first, IT last)
     {
-        VX_ASSERT(first <= last);
         return assign_range(first, last);
     }
 
@@ -801,7 +758,7 @@ public:
         return m_data().head->value;
     }
 
-    const reference front() const noexcept
+    const_reference front() const noexcept
     {
         return m_data().head->value;
     }
@@ -891,7 +848,7 @@ public:
         {
             // delete an element
             next = node->next;
-            node::template free(alloc, node);
+            node::free(alloc, node);
         }
     }
 
@@ -910,7 +867,8 @@ private:
             return nullptr;
         }
 
-        mem::construct_in_place(new_ptr, std::forward<Args>(args)...);
+        mem::construct_in_place(std::addressof(new_ptr->value), std::forward<Args>(args)...);
+        new_ptr->next = ptr->next;
         ptr->next = new_ptr;
         return new_ptr;
     }
@@ -948,8 +906,6 @@ public:
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     iterator insert_after(const_iterator pos, IT first, IT last)
     {
-        VX_ASSERT(first <= last);
-
         if (first == last)
         {
             return iterator(pos.m_ptr);
@@ -980,19 +936,19 @@ public:
 
     iterator erase_after(const_iterator pos)
     {
-        node_ptr keep_node = pos->m_ptr;
+        node_ptr keep_node = pos.m_ptr;
         node_ptr erase_node = keep_node->next;
         VX_ASSERT(erase_node != nullptr);
 
         keep_node->next = erase_node->next;
-        node::template free(m_allocator(), erase_node);
+        node::free(m_allocator(), erase_node);
 
         return iterator(keep_node->next);
     }
 
-    iterator erase_range(const_iterator first, const_iterator last)
+    iterator erase_after(const_iterator first, const_iterator last)
     {
-        node_ptr keep_node = first->m_ptr;
+        node_ptr keep_node = first.m_ptr;
 
         for (;;)
         {
@@ -1003,10 +959,10 @@ public:
             }
 
             keep_node->next = erase_node->next;
-            node::template free(m_allocator(), keep_node);
+            node::free(m_allocator(), erase_node);
         }
 
-        return iterator(last->m_ptr);
+        return iterator(last.m_ptr);
     }
 
     //=========================================================================
@@ -1030,9 +986,8 @@ public:
     template <typename... Args>
     pointer emplace_front(Args&&... args)
     {
-        return insert_after_impl(
-            m_data().before_head(),
-            std::forward<Args>(args)...);
+        node_ptr ptr = insert_after_impl(m_data().before_head(), std::forward<Args>(args)...);
+        return ptr ? std::addressof(ptr->value) : nullptr;
     }
 
     //=========================================================================
@@ -1041,7 +996,7 @@ public:
 
     void pop_front()
     {
-        return erase_after(m_data().before_head());
+        erase_after(m_data().before_head());
     }
 
     //=========================================================================
@@ -1050,86 +1005,506 @@ public:
 
 private:
 
-//    template <typename... Args>
-//    bool resize_impl(_CRT_GUARDOVERFLOW size_type _Newsize, const _Args&... _Vals)
-//    {
-//        auto& _Al = _Getal();
-//        auto _Ptr = _Mypair._Myval2._Before_head();
-//        for (;;)
-//        {
-//            auto _Next = _Ptr->_Next;
-//            if (!_Next)
-//            {
-//                // list too short, insert remaining _Newsize objects initialized from _Vals...
-//                _Flist_insert_after_op2<_Alnode> _Insert_op(_Al);
-//                _Insert_op._Append_n(_Newsize, _Vals...);
-//                _Insert_op._Attach_after(_Ptr);
-//                return;
-//            }
-//
-//            if (_Newsize == 0)
-//            {
-//                // list is too long, erase the _Next and after
-//                _Ptr->_Next = nullptr;
-//                do
-//                {
-//                    const auto _Nextafter = _Next->_Next;
-//#if _ITERATOR_DEBUG_LEVEL == 2
-//                    _Mypair._Myval2._Orphan_ptr(_Next);
-//#endif // _ITERATOR_DEBUG_LEVEL == 2
-//                    _Node::_Freenode(_Al, _Next);
-//                    _Next = _Nextafter;
-//                } while (_Next);
-//
-//                return;
-//            }
-//
-//            _Ptr = _Next;
-//            --_Newsize;
-//        }
-//    }
-//
-//public:
-//
-//    bool resize(const size_type count)
-//    {
-//    }
-//
-//    bool resize(const size_type count, const T& value)
-//    {
-//    }
+    template <typename... Args>
+    bool resize_impl(size_type new_size, const Args&... args)
+    {
+        auto head_node = m_data().before_head();
+        auto& alloc = m_allocator();
+
+        for (;;)
+        {
+            auto next_node = head_node->next;
+            if (!next_node)
+            {
+                // list too short, insert remaining new_size objects initialized from args...
+                insert_op op(alloc);
+                op.append_n(new_size, args...);
+                op.attach_after(head_node);
+                return op.success();
+            }
+
+            if (new_size == 0)
+            {
+                // list is too long, erase the next and after
+                head_node->next = nullptr;
+
+                do
+                {
+                    const auto nextnext_node = next_node->next;
+                    node::free(alloc, next_node);
+                    next_node = nextnext_node;
+
+                } while (next_node);
+
+                break;
+            }
+
+            head_node = next_node;
+            --new_size;
+        }
+
+        return true;
+    }
+
+public:
+
+    bool resize(const size_type count)
+    {
+        return resize_impl(count);
+    }
+
+    bool resize(const size_type count, const T& value)
+    {
+        return resize_impl(count, value);
+    }
 
     //=========================================================================
     // swap
     //=========================================================================
 
+    void swap(single_linked_list& other) noexcept
+    {
+        mem::swap(m_storage, other.m_storage);
+    }
+
     //=========================================================================
     // merge
     //=========================================================================
+
+private:
+
+    // merge in elements from other, both ordered by pred
+    template <typename Pred>
+    void merge_impl(single_linked_list& other, Pred pred)
+    {
+        if (this == &other)
+        {
+            return;
+        }
+
+        auto& data = m_data();
+        auto& other_data = other.m_data();
+
+        if (!data.head)
+        {
+            // *this is empty; take all elements of other with no comparisons
+            data.head = other_data.head;
+            other_data.head = nullptr;
+            return;
+        }
+
+        if (!other_data.head)
+        {
+            return;
+        }
+
+        auto before_first_node = data.before_head();
+        auto other_first_node = other_data.head;
+
+        for (;;)
+        {
+            // process 1 splice
+            node_ptr first_node;
+
+            for (;;)
+            {
+                // advance before_first_node over elements already in position
+                first_node = before_first_node->next;
+                if (!first_node)
+                {
+                    // all elements in other are greater than elements in *this, splice them all
+                    before_first_node->next = other_first_node;
+                    other_data.head = nullptr;
+                    return;
+                }
+
+                if (pred(other_first_node->value, first_node->value))
+                {
+                    // other_first_node->value is out of order
+                    break;
+                }
+
+                // first_node->value is already in position; advance
+                before_first_node = first_node;
+            }
+
+            // find the end of the "run" of elements less than first_node->value in other
+            auto other_run_end = other_first_node;
+            node_ptr run_end_node;
+
+            for (;;)
+            {
+                run_end_node = other_run_end->next;
+                if (!run_end_node)
+                {
+                    break;
+                }
+
+                if (!pred(run_end_node->value, first_node->value))
+                {
+                    // run_end_node is the first element in other that shouldn't precede first_node->value.
+                    // After the splice first_node->value will be in position and must not be compared again.
+                    break;
+                }
+
+                other_run_end = run_end_node;
+            }
+
+            other_data.head = run_end_node;             // snip out the run from its old position
+            before_first_node->next = other_first_node; // insert into new position
+            other_run_end->next = first_node;
+            if (!run_end_node)
+            {
+                return;
+            }
+
+            before_first_node = first_node;
+            other_first_node = run_end_node;
+        }
+    }
+
+public:
+
+    // merge in elements from other, both ordered by operator<
+    void merge(single_linked_list& other)
+    {
+        merge_impl(other, std::less<>{});
+    }
+
+    // merge in elements from other, both ordered by operator<
+    void merge(single_linked_list&& other)
+    {
+        merge_impl(other, std::less<>{});
+    }
+
+    // merge in elements from other, both ordered by pred
+    template <typename Pred>
+    void merge(single_linked_list& other, Pred pred)
+    {
+        merge_impl(other, fn::pass_func(pred));
+    }
+
+    // merge in elements from other, both ordered by pred
+    template <typename Pred>
+    void merge(single_linked_list&& other, Pred pred)
+    {
+        merge_impl(other, fn::pass_func(pred));
+    }
 
     //=========================================================================
     // splice_after
     //=========================================================================
 
+private:
+
+    // splice other (prev, prev + 2) after pos
+    void splice_after_impl(node_ptr pos, single_linked_list& other, node_ptr prev) noexcept
+    {
+        if (pos != prev)
+        {
+            const auto first_node = prev->next;
+
+            if (pos != first_node)
+            {
+                prev->next = first_node->next;
+                first_node->next = pos->next;
+                pos->next = first_node;
+            }
+        }
+    }
+
+    // splice other (first, last) just after pos
+    template <class _Sentinel>
+    void splice_after_impl(const_iterator pos, single_linked_list& other, const_iterator first, _Sentinel last) noexcept
+    {
+        if (first == last)
+        {
+            return;
+        }
+
+        // find prev(last)
+        const_iterator after = first;
+        ++after;
+        if (after == last)
+        {
+            return;
+        }
+
+        const_iterator last_last = first;
+        do
+        {
+            last_last = after;
+            ++after;
+
+        } while (after != last);
+
+        const auto extracted_head = first.m_ptr->next;
+        first.m_ptr->next = after.m_ptr;
+        last_last.m_ptr->next = pos.m_ptr->next;
+        pos.m_ptr->next = extracted_head;
+    }
+
+public:
+
+    // splice all of other after pos
+    void splice_after(const_iterator pos, single_linked_list& other) noexcept
+    {
+        if (this != &other && !other.empty())
+        {
+            // worth splicing, do it
+            splice_after_impl(pos, other, other.before_begin(), other.end());
+        }
+    }
+
+    // splice all of other after pos
+    void splice_after(const_iterator pos, single_linked_list&& other) noexcept
+    {
+        splice_after(pos, other);
+    }
+
+    // splice other (first, first + 2) after pos
+    void splice_after(const_iterator pos, single_linked_list& other, const_iterator first) noexcept
+    {
+        splice_after_impl(pos.m_ptr, other, first.m_ptr);
+    }
+
+    // splice other (first, first + 2) after pos
+    void splice_after(const_iterator pos, single_linked_list&& other, const_iterator first) noexcept
+    {
+        splice_after(pos, other, first);
+    }
+
+    // splice other (first, last) after pos
+    void splice_after(const_iterator pos, single_linked_list& other, const_iterator first, const_iterator last) noexcept
+    {
+        splice_after_impl(pos, other, first, last);
+    }
+
+    // splice other [first, last) after pos
+    void splice_after(const_iterator pos, single_linked_list&& other, const_iterator first, const_iterator last) noexcept
+    {
+        splice_after(pos, other, first, last);
+    }
+
+    //=========================================================================
+    // remove_if
+    //=========================================================================
+
+private:
+
+    struct remove_op
+    {
+        // tracks nodes pending removal in a remove operation, so that program-defined predicates may reference those
+        // elements until the removal is complete.
+
+        explicit remove_op(single_linked_list& list) noexcept
+            : m_list(list), m_head(), m_tail(&m_head)
+        {}
+
+        remove_op(const remove_op&) = delete;
+        remove_op& operator=(const remove_op&) = delete;
+
+        node_ptr transfer_back(const node_ptr prev_node) noexcept
+        {
+            // extract prev_node->next from the container, and add it to the singly-linked m_list of nodes to destroy
+            // returns the successor of the removed node
+
+            // snip the node out
+            const auto removed_node = prev_node->next;
+            const auto next_node = removed_node->next;
+            removed_node->next = nullptr;
+            prev_node->next = next_node;
+
+            *m_tail = removed_node;
+            m_tail = &removed_node->next;
+
+            return next_node;
+        }
+
+        ~remove_op()
+        {
+            auto target_node = m_head;
+            while (target_node)
+            {
+                auto next_node = target_node->next;
+                mem::destroy_in_place(target_node->next);
+                mem::destroy_in_place(std::addressof(target_node->value));
+                m_list.m_allocator().deallocate(target_node, 1);
+                target_node = next_node;
+            }
+        }
+
+        single_linked_list& m_list;
+        node_ptr m_head;
+        node_ptr* m_tail;
+    };
+
+public:
+
+    // erase each element satisfying Pred
+    template <typename Pred>
+    size_type remove_if(Pred pred)
+    {
+        remove_op op(*this);
+
+        auto before_first = before_begin();
+        size_type count = 0;
+
+        for (auto first = begin(); first.m_ptr;)
+        {
+            if (pred(*first))
+            {
+                first.m_ptr = op.transfer_back(before_first.m_ptr);
+                ++count;
+            }
+            else
+            {
+                before_first = first;
+                ++first;
+            }
+        }
+
+        return count;
+    }
+
     //=========================================================================
     // remove
     //=========================================================================
 
-    //=========================================================================
-    // reverse
-    //=========================================================================
+    // erase each element matching _Val
+    size_type remove(const T& value)
+    {
+        return remove_if([&](const T& other) -> bool
+            { return other == value; });
+    }
 
     //=========================================================================
     // unique
     //=========================================================================
 
+    // erase each element matching previous
+    size_type unique()
+    {
+        return unique(std::equal_to<>{});
+    }
+
+    // erase each element satisfying pred with previous
+    template <typename Pred>
+    size_type unique(Pred pred)
+    {
+        remove_op op(*this);
+        auto first = begin();
+        size_type count = 0;
+
+        if (first.m_ptr)
+        {
+            auto after = first;
+            ++after;
+
+            while (after.m_ptr)
+            {
+                if (pred(*first, *after))
+                {
+                    after.m_ptr = op.transfer_back(first.m_ptr);
+                    ++count;
+                }
+                else
+                {
+                    first = after;
+                    ++after;
+                }
+            }
+        }
+
+        return count;
+    }
+
     //=========================================================================
     // sort
     //=========================================================================
+
+    // order sequence
+    void sort()
+    {
+        list_value::sort(m_data().before_head(), std::less<>{});
+    }
+
+    // order sequence
+    template <class Pred>
+    void sort(Pred pred)
+    {
+        list_value::sort(m_data().before_head(), fn::pass_func(pred));
+    }
+
+    //=========================================================================
+    // reverse
+    //=========================================================================
+
+    // reverse sequence
+    void reverse() noexcept
+    {
+        auto current_node = m_data().head;
+        if (!current_node)
+        {
+            // empty
+            return;
+        }
+
+        node_ptr prev_node{};
+        for (;;)
+        {
+            const auto next_node = current_node->next;
+            current_node->next = prev_node;
+            if (!next_node)
+            {
+                m_data().head = current_node;
+                return;
+            }
+
+            prev_node = current_node;
+            current_node = next_node;
+        }
+    }
 };
 
 //=========================================================================
 // comparison
 //=========================================================================
+
+template <typename T, typename Allocator>
+bool operator==(const single_linked_list<T, Allocator>& lhs, const single_linked_list<T, Allocator>& rhs)
+{
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template <typename T, typename Allocator>
+bool operator!=(const single_linked_list<T, Allocator>& lhs, const single_linked_list<T, Allocator>& rhs)
+{
+    return !(lhs == rhs);
+}
+
+template <typename T, typename Allocator>
+bool operator<(const single_linked_list<T, Allocator>& lhs, const single_linked_list<T, Allocator>& rhs)
+{
+    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template <typename T, typename Allocator>
+bool operator>(const single_linked_list<T, Allocator>& lhs, const single_linked_list<T, Allocator>& rhs)
+{
+    return (rhs < lhs);
+}
+
+template <typename T, typename Allocator>
+bool operator<=(const single_linked_list<T, Allocator>& lhs, const single_linked_list<T, Allocator>& rhs)
+{
+    return !(rhs < lhs);
+}
+
+template <typename T, typename Allocator>
+bool operator>=(const single_linked_list<T, Allocator>& lhs, const single_linked_list<T, Allocator>& rhs)
+{
+    return !(lhs < rhs);
+}
 
 } // namespace vx
