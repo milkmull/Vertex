@@ -1527,7 +1527,12 @@ public:
 
     constexpr size_type max_size() const noexcept
     {
-        return mem::max_array_size<T>() - 1;
+        const size_type alloc_max = static_cast<size_type>(
+            std::allocator_traits<allocator_type>::max_size(m_allocator()));
+
+        return (std::min)(static_cast<size_type>(std::numeric_limits<difference_type>::max()),
+            static_cast<size_type>(alloc_max - 1) // -1 for null terminator
+        );
     }
 
     size_type capacity() const noexcept

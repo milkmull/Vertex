@@ -2,17 +2,12 @@
 
 #include <cstdint>
 #include <initializer_list>
-#include <list>
-#include <unordered_map>
-#include <unordered_set>
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/_tools/compressed_pair.hpp"
 #include "vertex/std/_tools/invoke.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
-
-//#define VX_SINGLE_LINKED_LIST_DISABLE_MAX_SIZE_CHECK 1
 
 namespace vx {
 
@@ -141,11 +136,10 @@ public:
         }
     }
 
+    // Sort (before_first_node, before_first_node + 2]
     template <class Pred>
     static node_ptr sort2(const node_ptr before_first_node, Pred pred)
     {
-        // Sort (before_first_node, before_first_node + 2], unless nullptr is encountered.
-        // Returns a pointer one before the end of the sorted region.
         const auto first_node = before_first_node->next;
         if (!first_node)
         {
@@ -165,11 +159,10 @@ public:
         return second_node;
     }
 
+    // Sort(before_first_node, before_first_node + bound)
     template <class Pred>
     static node_ptr sort(const node_ptr before_first_node, size_type bound, Pred pred)
     {
-        // Sort (before_first_node, before_first_node + bound), unless nullptr is encountered.
-        // Returns a pointer one before the end of the sorted region.
         if (bound <= 2)
         {
             return sort2(before_first_node, pred);
@@ -235,10 +228,6 @@ public:
     insert_after_op(const insert_after_op&) = delete;
     insert_after_op& operator=(const insert_after_op&) = delete;
 
-    // Build a chain of `count` copies of `val`. Returns false on allocation
-    // failure; whatever was built so far is retained in *this and will be
-    // freed by the destructor unless commit() moved it out first, or the
-    // caller explicitly wants to keep the partial chain (see note below).
     template <typename... Args>
     void append_n(size_t count, const Args&... args)
     {
@@ -298,8 +287,6 @@ public:
         return m_ok;
     }
 
-    // Splice the built chain in after `after`, and reset *this to empty.
-    // Only call this once append_n/append_range returned true.
     pointer attach_after(pointer after) noexcept
     {
         if (!m_ok)
@@ -321,10 +308,7 @@ public:
         return result;
     }
 
-    // Frees whatever chain is currently held, without attaching it.
-    // Called automatically by the destructor; exposed so callers that want
-    // to bail out early (e.g. on failure) can do it explicitly and check
-    // for it clearly at the call site if they prefer not to rely on scope exit.
+    // Frees whatever chain is currently held
     void discard() noexcept
     {
         pointer n = m_head;
@@ -827,10 +811,9 @@ public:
         return m_data().head == nullptr;
     }
 
-    static constexpr size_type max_size() noexcept
+    constexpr size_type max_size() const noexcept
     {
-        // need to finalize this, maybe allocator traits?
-        return std::numeric_limits<size_type>::max();
+        return static_cast<size_type>(std::allocator_traits<node_allocator>::max_size(m_allocator()));
     }
 
     //=========================================================================
@@ -1294,8 +1277,9 @@ private:
 
     struct remove_op
     {
-        // tracks nodes pending removal in a remove operation, so that program-defined predicates may reference those
-        // elements until the removal is complete.
+        // tracks nodes pending removal in a remove operation, so that
+        // program-defined predicates may reference those elements until
+        // the removal is complete.
 
         explicit remove_op(single_linked_list& list) noexcept
             : m_list(list), m_head(), m_tail(&m_head)
@@ -1306,8 +1290,9 @@ private:
 
         node_ptr transfer_back(const node_ptr prev_node) noexcept
         {
-            // extract prev_node->next from the container, and add it to the singly-linked m_list of nodes to destroy
-            // returns the successor of the removed node
+            // extract prev_node->next from the container, and add it to
+            // the singly-linked m_list of nodes to destroy returns the
+            // successor of the removed node
 
             // snip the node out
             const auto removed_node = prev_node->next;

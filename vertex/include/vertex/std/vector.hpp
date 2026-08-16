@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "vertex/config/language_config.hpp"
-#include "vertex/std/_tools/dynamic_array_base.hpp"
 #include "vertex/std/_tools/compressed_pair.hpp"
+#include "vertex/std/_tools/dynamic_array_base.hpp"
 #include "vertex/std/_tools/pointer_iterator.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
@@ -661,9 +661,9 @@ public:
         return size() * sizeof(T);
     }
 
-    static constexpr size_type max_size() noexcept
+    constexpr size_type max_size() const noexcept
     {
-        return mem::max_array_size<T>();
+        return static_cast<size_type>(std::allocator_traits<allocator_type>::max_size(m_allocator()));
     }
 
     //=========================================================================
