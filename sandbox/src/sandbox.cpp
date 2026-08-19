@@ -1,12 +1,14 @@
 ﻿#include <cassert>
 #include <cstring>
+#include <forward_list>
 
 #include "vertex/std/io.hpp"
-#include "vertex/std/single_linked_list.hpp"
+#include "vertex/std/singly_linked_list.hpp"
 
 using namespace vx;
 
-using X = std::vector<int>;
+using X = std::list<int>;
+using X = std::forward_list<int>;
 
 int main()
 {

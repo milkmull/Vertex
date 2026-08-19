@@ -8,7 +8,7 @@
 #include "vertex/config/type_traits.hpp"
 #include "vertex/std/error.hpp"
 
-//#define VX_ALLOCATE_FAIL_FAST
+#define VX_ALLOCATE_FAIL_FAST
 
 namespace vx {
 namespace mem {
@@ -18,7 +18,7 @@ namespace mem {
 //=========================================================================
 
 #if defined(VX_ALLOCATE_FAIL_FAST)
-    #define VX_ALLOCATOR_FAILED(ret) VX_CRASH_WITH_MESSAGE("allocation failed");
+    #define VX_ALLOCATOR_FAILED(ret) ::vx::err::fast_fail();
 #else
     #define VX_ALLOCATOR_FAILED(ret) return ::vx::err::return_error(err::out_of_memory, ret)
 #endif
@@ -110,10 +110,13 @@ inline constexpr void* copy(void* dst, const void* src, const size_t bytes) noex
     }
     else
     {
+        const auto d = const_cast<char*>(reinterpret_cast<const volatile char*>(dst));
+        const auto s = const_cast<const char*>(reinterpret_cast<const volatile char*>(src));
+
 #if VX_HAS_BUILTIN(__builtin_memcpy)
-        return __builtin_memcpy(dst, src, bytes);
+        return __builtin_memcpy(d, s, bytes);
 #else
-        return ::memcpy(dst, src, bytes);
+        return ::memcpy(d, s, bytes);
 #endif
     }
 }
@@ -122,13 +125,13 @@ inline constexpr void* move(void* dst, const void* src, const size_t bytes) noex
 {
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        if (bytes == 0)
-        {
-            return dst;
-        }
-
         char* d = static_cast<char*>(dst);
         const char* s = static_cast<const char*>(src);
+
+        if (bytes == 0)
+        {
+            return d;
+        }
 
         // Handle overlapping memory regions safely during compile-time evaluation
         if (d > s && d < s + bytes)
@@ -150,45 +153,51 @@ inline constexpr void* move(void* dst, const void* src, const size_t bytes) noex
     }
     else
     {
+        const auto d = const_cast<char*>(reinterpret_cast<const volatile char*>(dst));
+        const auto s = const_cast<const char*>(reinterpret_cast<const volatile char*>(src));
+
 #if VX_HAS_BUILTIN(__builtin_memmove)
-        return __builtin_memmove(dst, src, bytes);
+        return __builtin_memmove(d, s, bytes);
 #else
-        return ::memmove(dst, src, bytes);
+        return ::memmove(d, s, bytes);
 #endif
     }
 }
 
 inline constexpr void* set(void* dst, const int value, const size_t bytes) noexcept
 {
+    const auto v = static_cast<char>(value);
+
     if (VX_IS_CONSTANT_EVALUATED())
     {
         char* d = static_cast<char*>(dst);
-        const char byte_val = static_cast<char>(value);
 
         for (size_t i = 0; i < bytes; ++i)
         {
-            d[i] = byte_val;
+            d[i] = v;
         }
 
         return dst;
     }
     else
     {
+        const auto d = const_cast<char*>(reinterpret_cast<const volatile char*>(dst));
+
 #if VX_HAS_BUILTIN(__builtin_memset)
-        return __builtin_memset(dst, static_cast<int>(value), bytes);
+        return __builtin_memset(d, static_cast<int>(v), bytes);
 #else
-        return ::memset(dst, static_cast<int>(value), bytes);
+        return ::memset(d, static_cast<int>(v), bytes);
 #endif
     }
 }
 
 inline constexpr int compare(const void* a, const void* b, const size_t bytes) noexcept
 {
+    const auto ca = static_cast<const char*>(a);
+    const auto cb = static_cast<const char*>(b);
+
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        const char* ca = static_cast<const char*>(a);
-        const char* cb = static_cast<const char*>(b);
-
         for (size_t i = 0; i < bytes; ++i)
         {
             if (ca[i] != cb[i])
@@ -199,26 +208,24 @@ inline constexpr int compare(const void* a, const void* b, const size_t bytes) n
 
         return 0;
     }
-    else
-    {
+
 #if VX_HAS_BUILTIN(__builtin_memcmp)
-        return __builtin_memcmp(a, b, bytes);
+    return __builtin_memcmp(ca, cb, bytes);
 #else
-        return ::memcmp(a, b, bytes);
+    return ::memcmp(ca, cb, bytes);
 #endif
-    }
 }
 
 inline constexpr const void* find(const void* src, const int value, const size_t bytes) noexcept
 {
+    const auto s = static_cast<const char*>(src);
+    const auto v = static_cast<char>(value);
+
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        const char* s = static_cast<const char*>(src);
-        const char byte_val = static_cast<char>(value);
-
         for (size_t i = 0; i < bytes; ++i)
         {
-            if (s[i] == byte_val)
+            if (s[i] == v)
             {
                 return s + i;
             }
@@ -226,14 +233,12 @@ inline constexpr const void* find(const void* src, const int value, const size_t
 
         return nullptr;
     }
-    else
-    {
+
 #if VX_HAS_BUILTIN(__builtin_memchr)
-        return __builtin_memchr(src, value, bytes);
+    return __builtin_memchr(s, v, bytes);
 #else
-        return ::memchr(src, value, bytes);
+    return ::memchr(s, v, bytes);
 #endif
-    }
 }
 
 //=========================================================================
@@ -545,6 +550,13 @@ inline void deallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexce
 template <typename T, typename... Args>
 void construct_in_place(T& obj, Args&&... args)
 {
+    constexpr bool may_err = err::constructor_may_set_error<T, Args...>::value;
+
+    VX_IF_CONSTEXPR (may_err)
+    {
+        err::clear();
+    }
+
     VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
     {
         ::new (static_cast<void*>(std::addressof(obj))) T;
@@ -553,11 +565,26 @@ void construct_in_place(T& obj, Args&&... args)
     {
         ::new (static_cast<void*>(std::addressof(obj))) T(std::forward<Args>(args)...);
     }
+
+    VX_IF_CONSTEXPR (may_err)
+    {
+        if VX_UNLIKELY (err::is_set())
+        {
+            err::abort();
+        }
+    }
 }
 
 template <typename T, typename... Args>
 void construct_in_place(T* ptr, Args&&... args)
 {
+    constexpr bool may_err = err::constructor_may_set_error<T, Args...>::value;
+
+    VX_IF_CONSTEXPR (may_err)
+    {
+        err::clear();
+    }
+
     VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
     {
         ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T;
@@ -565,6 +592,14 @@ void construct_in_place(T* ptr, Args&&... args)
     else
     {
         ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T(std::forward<Args>(args)...);
+    }
+
+    VX_IF_CONSTEXPR (may_err)
+    {
+        if VX_UNLIKELY (err::is_set())
+        {
+            err::abort();
+        }
     }
 }
 
@@ -627,7 +662,22 @@ void destroy_in_place(T* ptr)
 {
     VX_IF_CONSTEXPR (!std::is_trivially_destructible<T>::value)
     {
+        constexpr bool may_err = err::destructor_may_set_error<T>::value;
+
+        VX_IF_CONSTEXPR (may_err)
+        {
+            err::clear();
+        }
+
         ptr->~T();
+
+        VX_IF_CONSTEXPR (may_err)
+        {
+            if VX_UNLIKELY (err::is_set())
+            {
+                err::abort();
+            }
+        }
     }
 }
 
@@ -766,11 +816,13 @@ constexpr T* fill_range(T* ptr, size_t count, const U& value)
         return ptr;
     }
 
+    const size_t bytes = count * sizeof(T);
+
     VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<T*, U>::value))
     {
         // can optimize with memset
-        set(ptr, static_cast<int>(value), count * sizeof(T));
-        return ptr + count;
+        auto end = set(ptr, static_cast<int>(value), bytes);
+        return static_cast<T*>(end);
     }
     else
     {
@@ -778,8 +830,8 @@ constexpr T* fill_range(T* ptr, size_t count, const U& value)
         {
             if (_priv::is_all_bits_zero(value))
             {
-                set(ptr, 0, count * sizeof(T));
-                return ptr + count;
+                auto end = set(ptr, 0, bytes);
+                return static_cast<T*>(end);
             }
         }
 
@@ -796,11 +848,13 @@ constexpr T* fill_range(T* ptr, size_t count, const U& value)
 template <typename T, typename U>
 T* fill_uninitialized_range(T* ptr, size_t count, const U& value)
 {
+    const size_t bytes = count * sizeof(T);
+
     VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<T*, U>::value))
     {
         // can optimize with memset
-        set(ptr, value, count * sizeof(T));
-        return ptr + count;
+        auto end = set(ptr, static_cast<int>(value), bytes);
+        return static_cast<T*>(end);
     }
     else
     {
@@ -808,8 +862,8 @@ T* fill_uninitialized_range(T* ptr, size_t count, const U& value)
         {
             if (_priv::is_all_bits_zero(value))
             {
-                set(ptr, 0, count * sizeof(T));
-                return ptr + count;
+                auto end = set(ptr, 0, bytes);
+                return static_cast<T*>(end);
             }
         }
 
@@ -828,11 +882,13 @@ IT fill_range(IT first, IT last, const U& value)
 {
     using T = typename type_traits::value_type<IT>::type;
 
+    const size_t count = static_cast<size_t>(std::distance(first, last));
+    const size_t bytes = count * sizeof(T);
+
     VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<IT, U>::value))
     {
         // can optimize with memset
-        const size_t count = static_cast<size_t>(std::distance(first, last));
-        set(first, value, count * sizeof(T));
+        set(first, value, bytes);
         return last;
     }
     else
@@ -841,8 +897,7 @@ IT fill_range(IT first, IT last, const U& value)
         {
             if (_priv::is_all_bits_zero(value))
             {
-                const size_t count = static_cast<size_t>(std::distance(first, last));
-                set(first, 0, count * sizeof(T));
+                set(first, 0, bytes);
                 return last;
             }
         }
@@ -863,8 +918,9 @@ constexpr T* copy_range(T* dst, const T* src, size_t count)
 {
     if (!VX_IS_CONSTANT_EVALUATED() && type_traits::memmove_is_safe<T*>::value)
     {
-        move(dst, src, count * sizeof(T));
-        return dst + count;
+        const size_t bytes = count * sizeof(T);
+        auto end = copy(dst, src, bytes);
+        return static_cast<T*>(end);
     }
     else
     {
@@ -884,8 +940,9 @@ T* copy_uninitialized_range(T* dst, const T* src, size_t count)
 {
     VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
-        move(dst, src, count * sizeof(T));
-        return dst + count;
+        const size_t bytes = count * sizeof(T);
+        auto end = copy(dst, src, bytes);
+        return static_cast<T*>(end);
     }
     else
     {
@@ -909,7 +966,8 @@ IT1 copy_range(IT1 dst, IT2 first, IT2 last)
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
         const size_t count = static_cast<size_t>(std::distance(first, last));
-        move(dst, first, count * sizeof(T));
+        const size_t bytes = count * sizeof(T);
+        copy(dst, first, bytes);
         return dst + count;
     }
     else
@@ -934,8 +992,9 @@ IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
-        const size_t count = static_cast<size_t>(last - first);
-        move(dst, first, count * sizeof(T));
+        const size_t count = static_cast<size_t>(std::distance(first, last));
+        const size_t bytes = count * sizeof(T);
+        copy(dst, first, bytes);
         return dst + count;
     }
     else
@@ -959,8 +1018,9 @@ constexpr T* move_range(T* dst, T* src, size_t count) noexcept
 {
     if (!VX_IS_CONSTANT_EVALUATED() && type_traits::memmove_is_safe<T*>::value)
     {
-        move(dst, src, count * sizeof(T));
-        return dst + count;
+        const size_t bytes = count * sizeof(T);
+        auto end = move(dst, src, bytes);
+        return static_cast<T*>(end);
     }
     else
     {
@@ -980,8 +1040,9 @@ T* move_uninitialized_range(T* dst, T* src, size_t count) noexcept
 {
     VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
-        move(dst, src, count * sizeof(T));
-        return dst + count;
+        const size_t bytes = count * sizeof(T);
+        auto end = move(dst, src, bytes);
+        return static_cast<T*>(end);
     }
     else
     {
@@ -1004,7 +1065,8 @@ IT1 move_range(IT1 dst, IT2 first, IT2 last)
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
         const size_t count = static_cast<size_t>(std::distance(first, last));
-        move(dst, first, count * sizeof(T));
+        const size_t bytes = count * sizeof(T);
+        move(dst, first, bytes);
         return dst + count;
     }
     else
@@ -1027,7 +1089,8 @@ IT1 move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
         const size_t count = static_cast<size_t>(last - first);
-        move(dst, first, count * sizeof(T));
+        const size_t bytes = count * sizeof(T);
+        move(dst, first, bytes);
         return dst + count;
     }
     else
@@ -1035,6 +1098,106 @@ IT1 move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
         for (; first != last; ++first)
         {
             construct_in_place(*dst, move(*first));
+            ++dst;
+        }
+
+        return dst;
+    }
+}
+
+//=========================================================================
+
+template <typename T>
+constexpr T* copy_move_range(T* dst, const T* src, size_t count)
+{
+    if (!VX_IS_CONSTANT_EVALUATED() && type_traits::memmove_is_safe<T*>::value)
+    {
+        const size_t bytes = count * sizeof(T);
+        auto end = move(dst, src, bytes);
+        return static_cast<T*>(end);
+    }
+    else
+    {
+        for (; 0 < count; --count)
+        {
+            *dst = *src;
+            ++src;
+            ++dst;
+        }
+
+        return dst;
+    }
+}
+
+template <typename T>
+T* copy_move_uninitialized_range(T* dst, const T* src, size_t count)
+{
+    VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
+    {
+        const size_t bytes = count * sizeof(T);
+        auto end = move(dst, src, bytes);
+        return static_cast<T*>(end);
+    }
+    else
+    {
+        for (; 0 < count; --count)
+        {
+            construct_in_place(*dst, *src);
+            ++src;
+            ++dst;
+        }
+
+        return dst;
+    }
+}
+
+template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
+IT1 copy_move_range(IT1 dst, IT2 first, IT2 last)
+{
+    using T = typename type_traits::value_type<IT1>::type;
+    //using U = typename type_traits::value_type<IT2>::type;
+
+    VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
+    {
+        const size_t count = static_cast<size_t>(std::distance(first, last));
+        const size_t bytes = count * sizeof(T);
+        move(dst, first, bytes);
+        return dst + count;
+    }
+    else
+    {
+        //VX_STATIC_ASSERT_MSG((std::is_assignable<T, U>::value), "T must be assignable to U");
+
+        for (; first != last; ++first)
+        {
+            *dst = *first;
+            ++dst;
+        }
+
+        return dst;
+    }
+}
+
+template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
+IT1 copy_move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
+{
+    using T = typename type_traits::value_type<IT1>::type;
+    //using U = typename type_traits::value_type<IT2>::type;
+
+    VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
+    {
+        const size_t count = static_cast<size_t>(std::distance(first, last));
+        const size_t bytes = count * sizeof(T);
+        move(dst, first, bytes);
+        return dst + count;
+    }
+    else
+    {
+        //VX_STATIC_ASSERT_MSG((std::is_assignable<T, U>::value), "T must be assignable to U");
+
+        for (; first != last; ++first)
+        {
+            construct_in_place(*dst, *first);
             ++dst;
         }
 
@@ -1056,8 +1219,9 @@ T* shift_forward_range(T* first, T* last, const size_t count) noexcept
 
     VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
-        move(first + count, first, num_elements * sizeof(T));
-        return first + count;
+        const size_t bytes = num_elements * sizeof(T);
+        auto end = move(first + count, first, bytes);
+        return static_cast<T*>(end);
     }
     else
     {
@@ -1086,7 +1250,8 @@ T* shift_backward_range(T* first, T* last, const size_t count) noexcept
 
     VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
-        move(first - count, first, num_elements * sizeof(T));
+        const size_t bytes = num_elements * sizeof(T);
+        move(first - count, first, bytes);
         return first - count;
     }
     else

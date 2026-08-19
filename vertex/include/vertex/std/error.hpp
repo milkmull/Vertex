@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 #include <utility>
 
 #include "vertex/config/language_config.hpp"
@@ -113,7 +114,7 @@ constexpr const char* code_to_string(code err)
 struct info
 {
     code err = code::none;
-    const char* message;
+    const char* message = nullptr;
 
     constexpr explicit operator bool() const
     {
@@ -190,6 +191,32 @@ VX_API error_hook_t get_hook() noexcept;
 VX_API bool print_error_hook(code err, const char* msg, os::thread_id thread);
 
 //=============================================================================
+// calls
+//=============================================================================
+
+/**
+ * @brief Terminates the process immediately.
+ *
+ * Used when execution cannot safely continue after an unrecoverable error.
+ */
+VX_NO_RETURN inline void abort() noexcept
+{
+    std::abort();
+}
+
+/**
+ * @brief Immediately terminates execution using a compiler/platform trap.
+ *
+ * Used for internal failures and violated invariants where continuing
+ * execution is not valid. When supported, this produces a hard trap that
+ * can be caught by a debugger or crash handler.
+ */
+VX_NO_RETURN inline void fast_fail() noexcept
+{
+    VX_GENERATE_TRAP();
+}
+
+//=============================================================================
 // error macros
 //=============================================================================
 
@@ -207,29 +234,12 @@ VX_API bool print_error_hook(code err, const char* msg, os::thread_id thread);
 
 #define VX_UNSUPPORTED(op) ::vx::err::set(err::unsupported_operation, op " is not a supported operation")
 
-#define VX_RETURN_IF_ERROR(check, ret) \
-    do \
-    { \
-        ::vx::err::clear(); \
-        (check); \
-        if (::vx::err::is_set()) \
-            return ret; \
-    } while (VX_NULL_WHILE_LOOP_CONDITION)
-
-#define VX_RETURN_IF_ERROR_VOID(check) VX_RETURN_IF_ERROR(void())
-
-#define VX_REPORT_ERROR(msg) ::vx::err::print(msg)
-
-#define VX_CRASH_WITH_MESSAGE(msg) \
-    VX_GENERATE_TRAP(); \
-    VX_UNREACHABLE()
-
 #define VX_VERIFY(cond, msg) \
     do \
     { \
         if (!(cond)) \
         { \
-            VX_CRASH_WITH_MESSAGE(msg); \
+            ::vx::err::fast_fail(); \
         } \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
@@ -239,35 +249,66 @@ VX_API bool print_error_hook(code err, const char* msg, os::thread_id thread);
 #define VX_CATCH            if (::vx::err::is_set())
 #define VX_CATCH_CODE(code) if (::vx::err::get_code() == code)
 
-namespace _priv {
+//=============================================================================
 
-template <typename F>
-class defer
-{
-public:
+/**
+ * @brief Indicates whether construction of a type may set the thread-local error.
+ *
+ * Constructors in Vertex are assumed not to modify the error state unless they
+ * explicitly opt in by specializing this trait.
+ *
+ * This convention is important because Vertex is built with exceptions disabled.
+ * Code that constructs an object normally does not need to check the error state
+ * afterward. If a constructor can fail through the error-state mechanism, the
+ * constructor must be registered with VX_CONSTRUCTOR_MAY_ERR.
+ *
+ * The trait may be specialized for a particular constructor signature:
+ *
+ *     VX_CONSTRUCTOR_MAY_ERR(my_type, int, float);
+ *
+ * which declares that construction of my_type from (int, float) may set an error.
+ *
+ * Operations that cannot recover from a constructor error (for example,
+ * container growth/allocation) may treat such an error as fatal and abort.
+ */
+template <typename T, typename... Args>
+struct constructor_may_set_error : std::false_type
+{};
 
-    explicit defer(F&& f)
-        : m_f(std::forward<F>(f))
+#define VX_CONSTRUCTOR_MAY_SET_ERROR(T, ...) \
+    template <> \
+    struct ::vx::err::constructor_may_set_error<T, ##__VA_ARGS__> : std::true_type \
     {}
 
-    ~defer()
-    {
-        m_f();
-    }
+/**
+ * @brief Indicates whether destruction of a type may set the thread-local error.
+ *
+ * Destructors in Vertex are assumed not to modify the error state unless they
+ * explicitly opt in by specializing this trait.
+ *
+ * This convention is important because Vertex is built with exceptions disabled.
+ * Code that destroys an object normally does not need to check the error state
+ * afterward. If a destructor can report failure through the error-state mechanism,
+ * the destructor must be registered with VX_DESTRUCTOR_MAY_SET_ERROR.
+ *
+ * The trait is specialized for the object type:
+ *
+ *     VX_DESTRUCTOR_MAY_SET_ERROR(my_type);
+ *
+ * which declares that destruction of my_type may set an error.
+ *
+ * Operations that destroy objects and cannot recover from a destructor error
+ * (for example, container destruction or cleanup during unwinding) may treat
+ * such an error as fatal.
+ */
+template <typename T>
+struct destructor_may_set_error : std::false_type
+{};
 
-    defer(const defer&) = delete;
-    defer& operator=(const defer&) = delete;
-    defer(defer&&) = delete;
-    defer& operator=(defer&&) = delete;
-
-private:
-
-    F m_f;
-};
-
-} // namespace _priv
-
-#define VX_DEFER auto VX_CONCAT(_vx_defer_, __COUNTER__) = ::vx::err::_priv::defer([&]() noexcept
+#define VX_DESTRUCTOR_MAY_SET_ERROR(T) \
+    template <> \
+    struct ::vx::err::destructor_may_set_error<T> : std::true_type \
+    {}
 
 } // namespace err
 } // namespace vx

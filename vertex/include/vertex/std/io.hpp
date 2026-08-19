@@ -118,6 +118,40 @@ void print_one(os::stream s, const T* v)
     print_pointer(s, v);
 }
 
+// ============================================================
+
+template <
+    typename T,
+    VX_REQUIRES(
+        type_traits::is_container_like<T>::value &&
+        !str::is_string_like<T>::value &&
+        !type_traits::is_char_iter<T>::value)>
+void print_one(os::stream s, const T& v)
+{
+    const char open = '[';
+    const char close = ']';
+    const char separator = ',';
+
+    os::write_raw(s, &open, 1);
+
+    bool first = true;
+
+    for (const auto& element : v)
+    {
+        if (!first)
+        {
+            os::write_raw(s, &separator, 1);
+            const char space = ' ';
+            os::write_raw(s, &space, 1);
+        }
+
+        first = false;
+        print_one(s, element);
+    }
+
+    os::write_raw(s, &close, 1);
+}
+
 } // namespace _io_priv
 
 // ============================================================
@@ -167,19 +201,19 @@ void println_err(const Args&... args)
 
 // ============================================================
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && _io_priv::compatible_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& _io_priv::compatible_char<C>::value)>
 void print_raw(os::stream s, const C* data, size_t size)
 {
     os::write_raw(s, data, size);
 }
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && _io_priv::compatible_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& _io_priv::compatible_char<C>::value)>
 void print_raw(const C* data, size_t size)
 {
     print_raw(os::stream::out, data, size);
 }
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && _io_priv::compatible_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& _io_priv::compatible_char<C>::value)>
 void print_raw_err(const C* data, size_t size)
 {
     print_raw(os::stream::err, data, size);
@@ -187,7 +221,7 @@ void print_raw_err(const C* data, size_t size)
 
 // ============================================================
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && _io_priv::compatible_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& _io_priv::compatible_char<C>::value)>
 void println_raw(os::stream s, const C* data, size_t size)
 {
     os::write_raw(s, data, size);
@@ -196,13 +230,13 @@ void println_raw(os::stream s, const C* data, size_t size)
     os::write_raw(s, &c, 1);
 }
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && _io_priv::compatible_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& _io_priv::compatible_char<C>::value)>
 void println_raw(const C* data, size_t size)
 {
     println_raw(os::stream::out, data, size);
 }
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && _io_priv::compatible_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& _io_priv::compatible_char<C>::value)>
 void println_raw_err(const C* data, size_t size)
 {
     println_raw(os::stream::err, data, size);

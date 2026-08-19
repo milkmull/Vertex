@@ -101,12 +101,12 @@ private:
         else VX_IF_CONSTEXPR (M == construct_method::copy_range)
         {
             // copy elements from the source to my static_vector, memcpy is safe
-            mem::copy_uninitialized_range(ptr, std::forward<Args>(args)..., count);
+            mem::copy_move_uninitialized_range(ptr, std::forward<Args>(args)..., count);
         }
         else // VX_IF_CONSTEXPR(M == construct_method::iterator_range)
         {
             VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
-            mem::copy_uninitialized_range(ptr, std::forward<Args>(args)...);
+            mem::copy_move_uninitialized_range(ptr, std::forward<Args>(args)...);
         }
 
         size = count;
@@ -209,8 +209,8 @@ private:
     // assignment helpers
     //=========================================================================
 
-    template <construct_method M, typename... Args>
-    bool assign_from(const size_type count, Args&&... args)
+    template <construct_method M, typename Arg>
+    bool assign_from(const size_type count, Arg&& arg)
     {
         auto& ptr = m_buffer.ptr;
         auto& size = m_buffer.size;
@@ -223,29 +223,73 @@ private:
 
         if (count > size)
         {
-            mem::construct_range_maybe_trivial(ptr + size + 1, count - size);
+            const size_type tail_count = count - size;
+
+            VX_IF_CONSTEXPR (M == construct_method::fill_range)
+            {
+                auto mid = mem::fill_range(ptr, size, arg);
+                mem::fill_uninitialized_range(mid, tail_count, arg);
+            }
+            else VX_IF_CONSTEXPR (M == construct_method::move_range)
+            {
+                auto mid = mem::move_range(ptr, arg, size);
+                mem::move_uninitialized_range(mid, arg, tail_count);
+            }
+            else // VX_IF_CONSTEXPR (M == construct_method::copy_range)
+            {
+                auto mid = mem::copy_move_range(ptr, arg, size);
+                mem::copy_move_uninitialized_range(mid, arg, tail_count);
+            }
         }
-        if (count < size)
+        else
         {
-            mem::destroy_range(ptr + count + 1, size - count);
+            T* mid;
+
+            VX_IF_CONSTEXPR (M == construct_method::fill_range)
+            {
+                mid = mem::fill_range(ptr, count, arg);
+            }
+            else VX_IF_CONSTEXPR (M == construct_method::move_range)
+            {
+                mid = mem::move_range(ptr, arg, count);
+            }
+            else // copy_range
+            {
+                mid = mem::copy_move_range(ptr, arg, count);
+            }
+
+            mem::destroy_range(mid, size - count);
         }
 
-        VX_IF_CONSTEXPR (M == construct_method::fill_range)
+        size = count;
+        return true;
+    }
+
+    template <construct_method M, typename IT1, typename IT2>
+    bool assign_from(const size_type count, IT1 first, IT2 last)
+    {
+        VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
+
+        auto& ptr = m_buffer.ptr;
+        auto& size = m_buffer.size;
+
+        if (count > max_size())
         {
-            mem::fill_range(ptr, count, std::forward<Args>(args)...);
+            err::set(err::size_error);
+            return false;
         }
-        else VX_IF_CONSTEXPR (M == construct_method::move_range)
+
+        if (count > size)
         {
-            mem::move_range(ptr, std::forward<Args>(args)..., count);
+            const auto mid = std::next(first, static_cast<difference_type>(size));
+            mem::copy_move_range(ptr, first, mid);
+            mem::copy_move_uninitialized_range(ptr + size, mid, last);
         }
-        else VX_IF_CONSTEXPR (M == construct_method::copy_range)
+        else
         {
-            mem::copy_range(ptr, std::forward<Args>(args)..., count);
-        }
-        else // VX_IF_CONSTEXPR(M == construct_method::iterator_range)
-        {
-            VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
-            mem::copy_range(ptr, std::forward<Args>(args)...);
+            const auto mid = std::next(first, static_cast<difference_type>(count));
+            mem::copy_move_range(ptr, first, mid);
+            mem::destroy_range(ptr + count, size - count);
         }
 
         size = count;
@@ -287,7 +331,7 @@ public:
 
     bool assign(const static_vector& other)
     {
-        if (this == other)
+        if (this == &other)
         {
             return true;
         }

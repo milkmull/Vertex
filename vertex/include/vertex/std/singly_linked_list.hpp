@@ -34,12 +34,31 @@ struct node_type
     node_type& operator=(const node_type&) = delete;
 
     template <typename Allocator>
-    static void free(Allocator& allocator, node_ptr node) noexcept
+    static void free_node(Allocator& alloc, node_ptr node) noexcept
     {
         mem::destroy_in_place(node->next);
         mem::destroy_in_place(std::addressof(node->value));
-        allocator.deallocate(node, 1);
+        alloc.deallocate(node, 1);
     }
+};
+
+//=========================================================================
+// types helper
+//=========================================================================
+
+template <typename T>
+struct list_types
+{
+    using value_type = T;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using reference = T&;
+    using const_reference = const T&;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+
+    using node = node_type<T>;
+    using node_ptr = node*;
 };
 
 //=========================================================================
@@ -49,18 +68,21 @@ struct node_type
 template <typename T>
 struct value
 {
-    using node = node_type<T>;
-    using node_ptr = node*;
+    using types = list_types<T>;
 
-    using value_type = T;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-    using pointer = value_type*;
-    using const_pointer = const value_type*;
-    using reference = value_type&;
-    using const_reference = const value_type&;
+    using node = typename types::node;
+    using node_ptr = typename types::node_ptr;
 
-    value() noexcept : head()
+    using value_type = typename types::value_type;
+    using pointer = typename types::pointer;
+    using const_pointer = typename types::const_pointer;
+    using reference = typename types::reference;
+    using const_reference = typename types::const_reference;
+    using size_type = typename types::size_type;
+    using difference_type = typename types::difference_type;
+
+    value() noexcept
+        : head()
     {}
 
     // return pointer to the "before begin" pseudo node
@@ -214,15 +236,15 @@ private:
     using pointer = value_type*;
 
     allocator_type& m_allocator;
-    pointer m_tail;   // Points to the most recently constructed node. If pointer{}, the value of head is indeterminate.
-                      // m_tail->next is not constructed.
-    pointer m_head;   // Points at the first constructed node.
-    bool m_ok = true; // Success of the operation
+    pointer m_tail; // Points to the most recently constructed node. If pointer{}, the value of head is indeterminate.
+                    // m_tail->next is not constructed.
+    pointer m_head; // Points at the first constructed node.
+    bool m_ok;      // Success of the operation
 
 public:
 
     explicit insert_after_op(allocator_type& allocator)
-        : m_allocator(allocator), m_tail(), m_head()
+        : m_allocator(allocator), m_tail(), m_head(), m_ok(true)
     {}
 
     insert_after_op(const insert_after_op&) = delete;
@@ -231,33 +253,42 @@ public:
     template <typename... Args>
     void append_n(size_t count, const Args&... args)
     {
-        for (; count > 0; --count)
+        VX_ASSERT(m_ok);
+
+        if (m_tail == nullptr)
         {
-            pointer n = m_allocator.allocate(1);
-            if (!n)
+            pointer ptr = m_allocator.allocate(1);
+            if (!ptr)
             {
                 m_ok = false;
                 return;
             }
 
-            mem::construct_in_place(std::addressof(n->value), args...);
-            n->next = nullptr;
+            mem::construct_in_place(std::addressof(ptr->value), args...);
+            m_head = ptr;
+            m_tail = ptr;
+        }
 
-            if (!m_tail)
+        for (; count > 0; --count)
+        {
+            pointer ptr = m_allocator.allocate(1);
+            if (!ptr)
             {
-                m_head = m_tail = n;
+                m_ok = false;
+                return;
             }
-            else
-            {
-                m_tail->next = n;
-                m_tail = n;
-            }
+
+            mem::construct_in_place(std::addressof(ptr->value), args...);
+            mem::construct_in_place(m_tail->next, ptr);
+            m_tail = ptr;
         }
     }
 
     template <typename IT1, typename IT2>
     void append_range(IT1 first, IT2 last)
     {
+        VX_ASSERT(m_ok);
+
         for (; first != last; ++first)
         {
             pointer n = m_allocator.allocate(1);
@@ -325,25 +356,6 @@ public:
     {
         discard();
     }
-};
-
-//=========================================================================
-// types helper
-//=========================================================================
-
-template <typename T>
-struct list_types
-{
-    using value_type = T;
-    using pointer = T*;
-    using const_pointer = const T*;
-    using reference = T&;
-    using const_reference = const T&;
-    using size_type = size_t;
-    using difference_type = ptrdiff_t;
-
-    using node = node_type<T>;
-    using node_ptr = node*;
 };
 
 //=========================================================================
@@ -657,7 +669,7 @@ private:
         for (auto del_node = mem::exchange(head_node->next, nullptr); del_node;)
         {
             const auto next_node = del_node->next;
-            node::free(m_allocator(), del_node);
+            node::free_node(m_allocator(), del_node);
             del_node = next_node;
         }
 
@@ -831,7 +843,7 @@ public:
         {
             // delete an element
             next = node->next;
-            node::free(alloc, node);
+            node::free_node(alloc, node);
         }
     }
 
@@ -924,7 +936,7 @@ public:
         VX_ASSERT(erase_node != nullptr);
 
         keep_node->next = erase_node->next;
-        node::free(m_allocator(), erase_node);
+        node::free_node(m_allocator(), erase_node);
 
         return iterator(keep_node->next);
     }
@@ -942,7 +954,7 @@ public:
             }
 
             keep_node->next = erase_node->next;
-            node::free(m_allocator(), erase_node);
+            node::free_node(m_allocator(), erase_node);
         }
 
         return iterator(last.m_ptr);
@@ -1014,7 +1026,7 @@ private:
                 do
                 {
                     const auto nextnext_node = next_node->next;
-                    node::free(alloc, next_node);
+                    node::free_node(alloc, next_node);
                     next_node = nextnext_node;
 
                 } while (next_node);
@@ -1491,5 +1503,10 @@ bool operator>=(const single_linked_list<T, Allocator>& lhs, const single_linked
 {
     return !(lhs < rhs);
 }
+
+//=========================================================================
+
+template <typename T, typename Allocator = mem::default_allocator<T>>
+using slist = single_linked_list<T, Allocator>;
 
 } // namespace vx

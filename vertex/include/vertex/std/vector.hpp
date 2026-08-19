@@ -141,12 +141,12 @@ private:
         else VX_IF_CONSTEXPR (M == construct_method::copy_range)
         {
             // copy elements from the source to my vector, memcpy is safe
-            mem::copy_uninitialized_range(new_ptr, std::forward<Args>(args)..., count);
+            mem::copy_move_uninitialized_range(new_ptr, std::forward<Args>(args)..., count);
         }
-        else // VX_IF_CONSTEXPR(M == construct_method::iterator_range)
+        else VX_IF_CONSTEXPR (M == construct_method::iterator_range)
         {
             VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
-            mem::copy_uninitialized_range(new_ptr, std::forward<Args>(args)...);
+            mem::copy_move_uninitialized_range(new_ptr, std::forward<Args>(args)...);
         }
 
         m_data().ptr = new_ptr;
@@ -299,17 +299,106 @@ private:
     // assignment helpers
     //=========================================================================
 
-    template <construct_method M, typename... Args>
-    bool assign_from(const size_type count, Args&&... args)
+private:
+
+    //=========================================================================
+    // assignment helpers
+    //=========================================================================
+
+    template <construct_method M, typename Arg>
+    bool assign_from(const size_type count, Arg&& arg)
     {
         auto& ptr = m_data().ptr;
         auto& size = m_data().size;
         auto& capacity = m_data().capacity;
 
-        mem::destroy_range(ptr, size);
+        if (count > capacity)
+        {
+#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
+
+            VX_UNLIKELY_COLD_PATH(count > max_size(),
+                {
+                    err::set(err::size_error);
+                    return false;
+                });
+
+#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
+
+            mem::destroy_range(ptr, size);
+
+            pointer new_ptr = m_allocator().allocate(count);
+
+#if !defined(VX_ALLOCATE_FAIL_FAST)
+
+            VX_UNLIKELY_COLD_PATH(!new_ptr,
+                {
+                    return false;
+                });
+#endif // !defined(VX_ALLOCATE_FAIL_FAST)
+
+            m_allocator().deallocate(ptr, capacity);
+
+            ptr = new_ptr;
+            capacity = count;
+        }
+
+        if (count > size)
+        {
+            const size_type tail_count = count - size;
+
+            VX_IF_CONSTEXPR (M == construct_method::fill_range)
+            {
+                auto mid = mem::fill_range(ptr, size, arg);
+                mem::fill_uninitialized_range(mid, tail_count, arg);
+            }
+            else VX_IF_CONSTEXPR (M == construct_method::move_range)
+            {
+                auto mid = mem::move_range(ptr, arg, size);
+                mem::move_uninitialized_range(mid, arg, tail_count);
+            }
+            else // VX_IF_CONSTEXPR (M == construct_method::copy_range)
+            {
+                auto mid = mem::copy_move_range(ptr, arg, size);
+                mem::copy_move_uninitialized_range(mid, arg, tail_count);
+            }
+        }
+        else
+        {
+            T* mid;
+
+            VX_IF_CONSTEXPR (M == construct_method::fill_range)
+            {
+                mid = mem::fill_range(ptr, count, arg);
+            }
+            else VX_IF_CONSTEXPR (M == construct_method::move_range)
+            {
+                mid = mem::move_range(ptr, arg, count);
+            }
+            else // copy_range
+            {
+                mid = mem::copy_move_range(ptr, arg, count);
+            }
+
+            mem::destroy_range(mid, size - count);
+        }
+
+        size = count;
+        return true;
+    }
+
+    template <construct_method M, typename IT1, typename IT2>
+    bool assign_from(const size_type count, IT1 first, IT2 last)
+    {
+        VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
+
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
+        auto& capacity = m_data().capacity;
 
         if (count > capacity)
         {
+            mem::destroy_range(ptr, size);
+
 #if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
             VX_UNLIKELY_COLD_PATH(count > max_size(),
@@ -337,22 +426,17 @@ private:
             capacity = count;
         }
 
-        VX_IF_CONSTEXPR (M == construct_method::fill_range)
+        if (count > size)
         {
-            mem::fill_uninitialized_range(ptr, count, std::forward<Args>(args)...);
+            const auto mid = std::next(first, static_cast<difference_type>(size));
+            mem::copy_move_range(ptr, first, mid);
+            mem::copy_move_uninitialized_range(ptr + size, mid, last);
         }
-        else VX_IF_CONSTEXPR (M == construct_method::move_range)
+        else
         {
-            mem::move_uninitialized_range(ptr, std::forward<Args>(args)..., count);
-        }
-        else VX_IF_CONSTEXPR (M == construct_method::copy_range)
-        {
-            mem::copy_uninitialized_range(ptr, std::forward<Args>(args)..., count);
-        }
-        else // VX_IF_CONSTEXPR(M == construct_method::iterator_range)
-        {
-            VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
-            mem::copy_uninitialized_range(ptr, std::forward<Args>(args)...);
+            const auto mid = std::next(first, static_cast<difference_type>(count));
+            mem::copy_move_range(ptr, first, mid);
+            mem::destroy_range(ptr + count, size - count);
         }
 
         size = count;
@@ -367,11 +451,6 @@ public:
 
     vector& operator=(const vector& other)
     {
-        if (this == &other)
-        {
-            return *this;
-        }
-
         // NOTE: allocator is intentionally NOT propagated on copy assignment;
         // this vector keeps using its own allocator for the new elements
         assign_from<construct_method::copy_range>(other.m_data().size, other.m_data().ptr);

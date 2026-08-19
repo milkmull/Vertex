@@ -268,7 +268,7 @@
     #define VX_UNLIKELY_COLD_PATH(cond, action) \
         do \
         { \
-            if VX_UNLIKELY(cond) \
+            if VX_UNLIKELY (cond) \
             { \
                 action; \
             } \
@@ -295,10 +295,12 @@
 
 #if defined(_MSC_VER)
     #define VX_ASSUME(expr) __assume(expr)
+#elif VX_HAS_BUILTIN(__builtin_assume)
+    #define VX_ASSUME(expr) __builtin_assume(expr)
 #elif defined(__clang__) || defined(__GNUC__)
     #define VX_ASSUME(expr) ((expr) ? static_cast<void>(0) : __builtin_unreachable())
 #else
-    #define VX_ASSUME(expr)
+    #define VX_ASSUME(expr) VX_UNUSED(expr)
 #endif
 
 //=========================================================================
@@ -348,6 +350,16 @@
     #define VX_NO_ALIAS __attribute__((noalias))
 #else
     #define VX_NO_ALIAS
+#endif
+
+#if VX_CPP_STANDARD >= 11
+    #define VX_NO_RETURN [[noreturn]]
+#elif defined(_MSC_VER)
+    #define VX_NO_RETURN __declspec(noreturn)
+#elif VX_HAS_COMPILER_ATTRIBUTE(noreturn)
+    #define VX_NO_RETURN __attribute__((noreturn))
+#else
+    #define VX_NO_RETURN
 #endif
 
 //=========================================================================
@@ -492,10 +504,10 @@
 //=========================================================================
 
 #if VX_CPP_STANDARD >= 11
-    #define VX_STATIC_ASSERT(cond) static_assert(cond)
+    #define VX_STATIC_ASSERT(cond)          static_assert(cond)
     #define VX_STATIC_ASSERT_MSG(cond, msg) static_assert(cond, msg)
 #else
-    #define VX_STATIC_ASSERT(cond) typedef char static_assertion[(cond) ? 1 : -1]
+    #define VX_STATIC_ASSERT(cond)          typedef char static_assertion[(cond) ? 1 : -1]
     #define VX_STATIC_ASSERT_MSG(cond, msg) typedef char static_assertion_##msg[(cond) ? 1 : -1]
 #endif
 
@@ -505,11 +517,17 @@
 
 #if defined(_MSC_VER)
     #define VX_GENERATE_TRAP() ::__fastfail(7)
-#else
+#elif VX_HAS_BUILTIN(__builtin_trap)
     #define VX_GENERATE_TRAP() ::__builtin_trap()
+#else
+    #define VX_GENERATE_TRAP() ::std::abort() // needs <cstdlib>
 #endif
 
-#define VX_UNREACHABLE() VX_ASSUME(0)
+#if defined(_MSC_VER) || VX_HAS_BUILTIN(__builtin_unreachable)
+    #define VX_UNREACHABLE() VX_ASSUME(0)
+#else
+    #define VX_UNREACHABLE() VX_GENERATE_TRAP()
+#endif
 
 //=========================================================================
 // Allocator Annotation

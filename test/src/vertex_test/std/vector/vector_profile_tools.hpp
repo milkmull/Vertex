@@ -30,6 +30,32 @@ bool operator==(const trivial_type& lhs, const trivial_type& rhs) noexcept
     return lhs.a == rhs.a && lhs.b == rhs.b && lhs.c == rhs.c && lhs.d == rhs.d;
 }
 
+bool operator!=(const trivial_type& lhs, const trivial_type& rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
+bool operator<(const trivial_type& lhs, const trivial_type& rhs) noexcept
+{
+    return std::tie(lhs.a, lhs.b, lhs.c, lhs.d) <
+        std::tie(rhs.a, rhs.b, rhs.c, rhs.d);
+}
+
+bool operator<=(const trivial_type& lhs, const trivial_type& rhs) noexcept
+{
+    return !(rhs < lhs);
+}
+
+bool operator>(const trivial_type& lhs, const trivial_type& rhs) noexcept
+{
+    return rhs < lhs;
+}
+
+bool operator>=(const trivial_type& lhs, const trivial_type& rhs) noexcept
+{
+    return !(lhs < rhs);
+}
+
 //=========================================================================
 
 // Non-trivial type to check copy/move/destruct Ns
@@ -87,6 +113,11 @@ struct non_trivial_type
     friend bool operator==(const non_trivial_type& lhs, const non_trivial_type& rhs)
     {
         return lhs.x == rhs.x;
+    }
+
+    friend bool operator!=(const non_trivial_type& lhs, const non_trivial_type& rhs)
+    {
+        return lhs.x != rhs.x;
     }
 
     friend bool operator<(const non_trivial_type& lhs, const non_trivial_type& rhs)
@@ -543,7 +574,7 @@ void run(size_t N, size_t R)
         profile_copy_constructor<Vec>,
         profile_range_constructor<Vec>,
         profile_move_constructor<Vec>,
-        
+
         profile_destructor<Vec>,
 
         profile_copy_assignment_reallocate<Vec>,
@@ -551,30 +582,30 @@ void run(size_t N, size_t R)
         profile_copy_assignment_shrink<Vec>,
         profile_list_assignment<Vec>,
         profile_move_assignment<Vec>,
-        
+
         profile_reserve_grow<Vec>,
         profile_reserve_shrink<Vec>,
-        
+
         profile_clear<Vec>,
         profile_shrink_to_fit<Vec>,
-        
+
         profile_resize_grow<Vec>,
         profile_resize_shrink<Vec>,
-        
+
         profile_emplace<Vec>,
         profile_emplace_grow<Vec>,
-        
+
         profile_insert_n<Vec>,
         profile_insert_n_unused<Vec>,
         profile_insert_n_back<Vec>,
         profile_insert_range<Vec>,
-        
+
         profile_erase<Vec>,
         profile_erase_range<Vec>,
-        
+
         profile_push_back<Vec>,
         profile_reserve_push_back<Vec>,
-        
+
         profile_compare<Vec>
     };
 
@@ -588,6 +619,98 @@ void run(size_t N, size_t R)
         vx::random::sample(std::begin(tests), std::end(tests), selected_tests, count, rng);
 
         for (auto test : selected_tests)
+        {
+            test(N);
+        }
+    }
+}
+
+//=========================================================================
+
+template <typename Vec1, typename Vec2>
+void run_combined(size_t N, size_t R)
+{
+    using test_fn = void (*)(size_t);
+
+    test_fn tests_1[] = {
+        profile_size_constructor<Vec1>,
+        profile_fill_constructor<Vec1>,
+        profile_list_constructor<Vec1>,
+        profile_copy_constructor<Vec1>,
+        profile_range_constructor<Vec1>,
+        profile_move_constructor<Vec1>,
+        profile_destructor<Vec1>,
+        profile_copy_assignment_reallocate<Vec1>,
+        profile_copy_assignment_grow<Vec1>,
+        profile_copy_assignment_shrink<Vec1>,
+        profile_list_assignment<Vec1>,
+        profile_move_assignment<Vec1>,
+        profile_reserve_grow<Vec1>,
+        profile_reserve_shrink<Vec1>,
+        profile_clear<Vec1>,
+        profile_shrink_to_fit<Vec1>,
+        profile_resize_grow<Vec1>,
+        profile_resize_shrink<Vec1>,
+        profile_emplace<Vec1>,
+        profile_emplace_grow<Vec1>,
+        profile_insert_n<Vec1>,
+        profile_insert_n_unused<Vec1>,
+        profile_insert_n_back<Vec1>,
+        profile_insert_range<Vec1>,
+        profile_erase<Vec1>,
+        profile_erase_range<Vec1>,
+        profile_push_back<Vec1>,
+        profile_reserve_push_back<Vec1>,
+        profile_compare<Vec1>
+    };
+
+    test_fn tests_2[] = {
+        profile_size_constructor<Vec2>,
+        profile_fill_constructor<Vec2>,
+        profile_list_constructor<Vec2>,
+        profile_copy_constructor<Vec2>,
+        profile_range_constructor<Vec2>,
+        profile_move_constructor<Vec2>,
+        profile_destructor<Vec2>,
+        profile_copy_assignment_reallocate<Vec2>,
+        profile_copy_assignment_grow<Vec2>,
+        profile_copy_assignment_shrink<Vec2>,
+        profile_list_assignment<Vec2>,
+        profile_move_assignment<Vec2>,
+        profile_reserve_grow<Vec2>,
+        profile_reserve_shrink<Vec2>,
+        profile_clear<Vec2>,
+        profile_shrink_to_fit<Vec2>,
+        profile_resize_grow<Vec2>,
+        profile_resize_shrink<Vec2>,
+        profile_emplace<Vec2>,
+        profile_emplace_grow<Vec2>,
+        profile_insert_n<Vec2>,
+        profile_insert_n_unused<Vec2>,
+        profile_insert_n_back<Vec2>,
+        profile_insert_range<Vec2>,
+        profile_erase<Vec2>,
+        profile_erase_range<Vec2>,
+        profile_push_back<Vec2>,
+        profile_reserve_push_back<Vec2>,
+        profile_compare<Vec2>
+    };
+
+    constexpr size_t count = vx::mem::array_size(tests_1);
+    VX_STATIC_ASSERT_MSG(count == vx::mem::array_size(tests_2), "test list mismatch");
+
+    test_fn combined[2 * count];
+    std::copy(std::begin(tests_1), std::end(tests_1), combined);
+    std::copy(std::begin(tests_2), std::end(tests_2), combined + count);
+
+    vx::random::gen rng;
+
+    for (size_t r = 0; r < R; ++r)
+    {
+        test_fn selected[2 * count] = {};
+        vx::random::sample(std::begin(combined), std::end(combined), selected, 2 * count, rng);
+
+        for (auto test : selected)
         {
             test(N);
         }

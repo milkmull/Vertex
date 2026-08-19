@@ -107,6 +107,20 @@ struct is_iterator<T, void_t<typename std::iterator_traits<T>::iterator_category
 {};
 
 //==============================================================================
+// is non-pointer iterator
+//==============================================================================
+
+template <typename T, typename = void>
+struct is_non_pointer_iterator : std::false_type
+{};
+
+template <typename T>
+struct is_non_pointer_iterator<T, std::enable_if_t<
+    is_iterator<T>::value && !std::is_pointer<T>::value
+>> : std::true_type
+{};
+
+//==============================================================================
 // element type
 //==============================================================================
 
@@ -769,6 +783,14 @@ template <typename SrcIt, typename DstIt>
 struct iter_copy_cat<std::move_iterator<SrcIt>, DstIt, false> : iter_move_cat<SrcIt, DstIt>
 {};
 
+template <typename SrcIt, typename Sent, typename DstIt>
+struct sent_copy_cat : std::conditional<
+    std::is_same<Sent, SrcIt>::value,
+    iter_copy_cat<SrcIt, DstIt>,
+    false_trivial_cat
+>
+{};
+
 } // namespace _priv
 
 //==============================================================================
@@ -895,6 +917,33 @@ constexpr auto extract_first(T&& first, Args&&... args) noexcept
 {
     return std::forward<T>(first);
 }
+
+//==============================================================================
+// is container-like
+//==============================================================================
+
+namespace _priv {
+
+template <typename T, typename = void>
+struct is_container_like_impl : std::false_type
+{};
+
+template <typename T>
+struct is_container_like_impl<T, void_t<
+    decltype(std::begin(std::declval<T&>())),
+    decltype(std::end(std::declval<T&>())),
+    decltype(*std::begin(std::declval<T&>())),
+    decltype(++std::declval<decltype(std::begin(std::declval<T&>()))&>())
+>> : std::true_type
+{};
+
+} // namespace _priv
+
+template <typename T>
+struct is_container_like
+    : _priv::is_container_like_impl<
+          typename std::remove_cv<typename std::remove_reference<T>::type>::type>
+{};
 
 } // namespace type_traits
 } // namespace vx
