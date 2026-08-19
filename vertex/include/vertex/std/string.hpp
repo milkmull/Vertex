@@ -37,7 +37,7 @@ public:
 
     template <intmax_t N, intmax_t D = 1>
     using growth_rate_type = std::ratio<N, D>;
-    using default_growth_rate = growth_rate_type<2, 1>;
+    using default_growth_rate = growth_rate_type<3, 2>;
 
     using allocator_type = Allocator;
 
