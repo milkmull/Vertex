@@ -37,7 +37,7 @@ public:
 
     template <intmax_t N, intmax_t D = 1>
     using growth_rate_type = std::ratio<N, D>;
-    using default_growth_rate = growth_rate_type<3, 2>;
+    using default_growth_rate = growth_rate_type<2, 1>;
 
     using allocator_type = Allocator;
 
@@ -1412,34 +1412,9 @@ public:
         auto& size = m_data().size;
         auto& capacity = m_data().capacity;
 
-        if (size == capacity)
+        if (capacity > size)
         {
-            return true;
-        }
-
-        const size_type bytes = m_data().size * sizeof(T);
-        constexpr size_type reallocate_threshold = 96000;
-        const bool try_reallocate = (bytes < reallocate_threshold);
-
-        pointer new_ptr;
-        const size_type alloc_capacity = size + 1;
-
-        if (try_reallocate && std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
-        {
-            new_ptr = m_allocator().reallocate(ptr, alloc_capacity);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-            if (!new_ptr)
-            {
-                return false;
-            }
-
-#endif // !defined(VX_ALLOCATE_FAIL_FAST)
-        }
-        else
-        {
-            new_ptr = m_allocator().allocate(alloc_capacity);
+            pointer new_ptr = m_allocator().allocate(size);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -1451,13 +1426,13 @@ public:
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
             VX_ASSERT(size > 0);
-            mem::construct_range_maybe_trivial(new_ptr, alloc_capacity);
-            traits_type::copy(new_ptr, ptr, alloc_capacity);
+            mem::construct_range_maybe_trivial(new_ptr, size);
+            traits_type::copy(new_ptr, ptr, size);
             destroy_and_deallocate(ptr, size, capacity);
-        }
 
-        ptr = new_ptr;
-        capacity = size;
+            ptr = new_ptr;
+            capacity = size;
+        }
 
         return true;
     }
@@ -1634,7 +1609,7 @@ public:
             return true;
         }
 
-        return append_n<growth_rate, construct_method::from_char>(1, c);
+        return append_reallocate<growth_rate, construct_method::from_char>(1, c);
     }
 
     //=========================================================================

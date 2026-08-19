@@ -1051,7 +1051,7 @@ public:
         clear();
     }
 
-    static bool shrink_to_fit()
+    static bool shrink_to_fit() noexcept
     {
         return true;
     }
@@ -1144,21 +1144,7 @@ public:
 
     bool push_back(const T c)
     {
-        auto& ptr = m_buffer.ptr;
-        auto& size = m_buffer.size;
-
-        if (size == N)
-        {
-            err::set(err::size_error);
-            return false;
-        }
-
-        T* const dst = ptr + size;
-        mem::construct_in_place_maybe_trivial(dst);
-        traits_type::assign(dst[0], c);
-        traits_type::assign(dst[1], T());
-        ++size;
-        return true;
+        return append_n<construct_method::from_char>(1, c);
     }
 
     //=========================================================================

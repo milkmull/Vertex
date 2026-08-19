@@ -243,7 +243,7 @@ private:
         }
         else
         {
-            T* mid;
+            pointer mid;
 
             VX_IF_CONSTEXPR (M == construct_method::fill_range)
             {
@@ -344,7 +344,7 @@ public:
         return assign_from<construct_method::copy_range>(init.size(), init.begin());
     }
 
-    bool assign(const T* ptr, size_type count)
+    bool assign(const pointer ptr, size_type count)
     {
         return assign_from<construct_method::copy_range>(count, ptr);
     }
@@ -404,12 +404,12 @@ public:
         return m_buffer.ptr[m_buffer.size - 1];
     }
 
-    T* data() noexcept
+    pointer data() noexcept
     {
         return m_buffer.ptr;
     }
 
-    const T* data() const noexcept
+    const pointer data() const noexcept
     {
         return m_buffer.ptr;
     }
@@ -670,7 +670,7 @@ private:
 
             // move the values that will be moved into already initialized memory
 
-            VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
+            VX_IF_CONSTEXPR (type_traits::memmove_is_safe<pointer>::value)
             {
                 const size_type off = static_cast<size_type>(pos - ptr);
                 const size_type tail_count = size - off - count;

@@ -324,8 +324,6 @@ private:
 
 #endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
-            mem::destroy_range(ptr, size);
-
             pointer new_ptr = m_allocator().allocate(count);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
@@ -336,6 +334,7 @@ private:
                 });
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
+            mem::destroy_range(ptr, size);
             m_allocator().deallocate(ptr, capacity);
 
             ptr = new_ptr;
@@ -364,7 +363,7 @@ private:
         }
         else
         {
-            T* mid;
+            pointer mid;
 
             VX_IF_CONSTEXPR (M == construct_method::fill_range)
             {
@@ -397,8 +396,6 @@ private:
 
         if (count > capacity)
         {
-            mem::destroy_range(ptr, size);
-
 #if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
             VX_UNLIKELY_COLD_PATH(count > max_size(),
@@ -420,6 +417,7 @@ private:
 
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
+            mem::destroy_range(ptr, size);
             m_allocator().deallocate(ptr, capacity);
 
             ptr = new_ptr;
@@ -507,7 +505,7 @@ public:
         return assign_from<construct_method::copy_range>(init.size(), init.begin());
     }
 
-    bool assign(const T* ptr, size_type count)
+    bool assign(const pointer ptr, size_type count)
     {
         return assign_from<construct_method::copy_range>(count, ptr);
     }
@@ -567,12 +565,12 @@ public:
         return m_data().ptr[m_data().size - 1];
     }
 
-    T* data() noexcept
+    pointer data() noexcept
     {
         return m_data().ptr;
     }
 
-    const T* data() const noexcept
+    const pointer data() const noexcept
     {
         return m_data().ptr;
     }
@@ -684,12 +682,12 @@ public:
         return reallocate_shrink(size);
     }
 
-    T* release() noexcept
+    pointer release() noexcept
     {
         return m_data().release().ptr;
     }
 
-    bool acquire(T* ptr, size_type count) noexcept
+    bool acquire(pointer ptr, size_type count) noexcept
     {
 #if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
@@ -1010,7 +1008,7 @@ private:
 
             // move the values that will be moved into already initialized memory
 
-            VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
+            VX_IF_CONSTEXPR (type_traits::memmove_is_safe<pointer>::value)
             {
                 const size_type off = static_cast<size_type>(pos - ptr);
                 const size_type tail_count = size - off - count;
