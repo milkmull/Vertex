@@ -30,12 +30,6 @@ void print_one(os::stream s, const C* v)
     os::write_raw(s, v, size);
 }
 
-//template <typename C, size_t N, VX_REQUIRES(type_traits::is_char<C>::value&& compatible_char<C>::value)>
-//void print_one(os::stream s, const C (&v)[N])
-//{
-//    os::write_raw(s, v, N - 1);
-//}
-
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& compatible_char<C>::value)>
 void print_one(os::stream s, C v)
 {

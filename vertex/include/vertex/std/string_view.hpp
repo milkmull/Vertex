@@ -32,10 +32,10 @@ public:
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    using iterator = vx::_priv::pointer_iterator<basic_string_view, const value_type>;
-    using const_iterator = vx::_priv::pointer_iterator<basic_string_view, const value_type>;
-    using reverse_iterator = vx::_priv::reverse_pointer_iterator<iterator>;
-    using const_reverse_iterator = vx::_priv::reverse_pointer_iterator<const_iterator>;
+    using iterator = vx::_char_traits_priv::pointer_iterator<basic_string_view, const value_type>;
+    using const_iterator = vx::_char_traits_priv::pointer_iterator<basic_string_view, const value_type>;
+    using reverse_iterator = vx::_char_traits_priv::reverse_pointer_iterator<iterator>;
+    using const_reverse_iterator = vx::_char_traits_priv::reverse_pointer_iterator<const_iterator>;
 
     static constexpr auto npos{ static_cast<size_type>(-1) };
 
@@ -300,24 +300,24 @@ public:
 
     constexpr size_type copy(T* const ptr, size_type count, const size_type off = 0) const
     {
-        if (!_priv::check_offset(m_size, off))
+        if (!_char_traits_priv::check_offset(m_size, off))
         {
             return 0;
         }
 
-        count = _priv::clamp_suffix_size(m_size, off, count);
+        count = _char_traits_priv::clamp_suffix_size(m_size, off, count);
         traits_type::copy(ptr, m_data + off, count);
         return count;
     }
 
     constexpr basic_string_view substr(const size_type off = 0, size_type count = npos) const
     {
-        if (!_priv::check_offset(m_size, off))
+        if (!_char_traits_priv::check_offset(m_size, off))
         {
             return basic_string_view();
         }
 
-        count = _priv::clamp_suffix_size(m_size, off, count);
+        count = _char_traits_priv::clamp_suffix_size(m_size, off, count);
         return basic_string_view(m_data + off, count);
     }
 
@@ -332,7 +332,7 @@ public:
 
     constexpr int compare(const basic_string_view right) const noexcept
     {
-        return _priv::traits_compare<traits_type>(m_data, m_size, right.m_data, right.m_size);
+        return _char_traits_priv::traits_compare<traits_type>(m_data, m_size, right.m_data, right.m_size);
     }
 
     constexpr int compare(const size_type off, const size_type nx, const basic_string_view right) const
@@ -366,122 +366,122 @@ public:
 
     constexpr size_type find(const basic_string_view right, const size_type off = 0) const noexcept
     {
-        return _priv::traits_find<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
+        return _char_traits_priv::traits_find<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
     }
 
     constexpr size_type find(const T c, const size_type off = 0) const noexcept
     {
-        return _priv::traits_find_ch<traits_type>(m_data, m_size, off, c);
+        return _char_traits_priv::traits_find_ch<traits_type>(m_data, m_size, off, c);
     }
 
     constexpr size_type find(const T* const ptr, const size_type off, const size_type count) const noexcept
     {
-        return _priv::traits_find<traits_type>(m_data, m_size, off, ptr, count);
+        return _char_traits_priv::traits_find<traits_type>(m_data, m_size, off, ptr, count);
     }
 
     constexpr size_type find(const T* const ptr, const size_type off = 0) const noexcept
     {
-        return _priv::traits_find<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
+        return _char_traits_priv::traits_find<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
     }
 
     constexpr size_type rfind(const basic_string_view right, const size_type off = npos) const noexcept
     {
-        return _priv::traits_rfind<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
+        return _char_traits_priv::traits_rfind<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
     }
 
     constexpr size_type rfind(const T c, const size_type off = npos) const noexcept
     {
-        return _priv::traits_rfind_ch<traits_type>(m_data, m_size, off, c);
+        return _char_traits_priv::traits_rfind_ch<traits_type>(m_data, m_size, off, c);
     }
 
     constexpr size_type rfind(const T* const ptr, const size_type off, const size_type count) const noexcept
     {
-        return _priv::traits_rfind<traits_type>(m_data, m_size, off, ptr, count);
+        return _char_traits_priv::traits_rfind<traits_type>(m_data, m_size, off, ptr, count);
     }
 
     constexpr size_type rfind(const T* const ptr, const size_type off = npos) const noexcept
     {
-        return _priv::traits_rfind<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
+        return _char_traits_priv::traits_rfind<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
     }
 
     constexpr size_type find_first_of(const basic_string_view right, const size_type off = 0) const noexcept
     {
-        return _priv::traits_find_first_of<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
+        return _char_traits_priv::traits_find_first_of<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
     }
 
     constexpr size_type find_first_of(const T c, const size_type off = 0) const noexcept
     {
-        return _priv::traits_find_ch<traits_type>(m_data, m_size, off, c);
+        return _char_traits_priv::traits_find_ch<traits_type>(m_data, m_size, off, c);
     }
 
     constexpr size_type find_first_of(const T* const ptr, const size_type off, const size_type count) const noexcept
     {
-        return _priv::traits_find_first_of<traits_type>(m_data, m_size, off, ptr, count);
+        return _char_traits_priv::traits_find_first_of<traits_type>(m_data, m_size, off, ptr, count);
     }
 
     constexpr size_type find_first_of(const T* const ptr, const size_type off = 0) const noexcept
     {
-        return _priv::traits_find_first_of<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
+        return _char_traits_priv::traits_find_first_of<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
     }
 
     constexpr size_type find_last_of(const basic_string_view right, const size_type off = npos) const noexcept
     {
-        return _priv::traits_find_last_of<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
+        return _char_traits_priv::traits_find_last_of<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
     }
 
     constexpr size_type find_last_of(const T c, const size_type off = npos) const noexcept
     {
-        return _priv::traits_rfind_ch<traits_type>(m_data, m_size, off, c);
+        return _char_traits_priv::traits_rfind_ch<traits_type>(m_data, m_size, off, c);
     }
 
     constexpr size_type find_last_of(const T* const ptr, const size_type off, const size_type count) const noexcept
     {
-        return _priv::traits_find_last_of<traits_type>(m_data, m_size, off, ptr, count);
+        return _char_traits_priv::traits_find_last_of<traits_type>(m_data, m_size, off, ptr, count);
     }
 
     constexpr size_type find_last_of(const T* const ptr, const size_type off = npos) const noexcept
     {
-        return _priv::traits_find_last_of<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
+        return _char_traits_priv::traits_find_last_of<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
     }
 
     constexpr size_type find_first_not_of(const basic_string_view right, const size_type off = 0) const noexcept
     {
-        return _priv::traits_find_first_not_of<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
+        return _char_traits_priv::traits_find_first_not_of<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
     }
 
     constexpr size_type find_first_not_of(const T c, const size_type off = 0) const noexcept
     {
-        return _priv::traits_find_not_ch<traits_type>(m_data, m_size, off, c);
+        return _char_traits_priv::traits_find_not_ch<traits_type>(m_data, m_size, off, c);
     }
 
     constexpr size_type find_first_not_of(const T* const ptr, const size_type off, const size_type count) const noexcept
     {
-        return _priv::traits_find_first_not_of<traits_type>(m_data, m_size, off, ptr, count);
+        return _char_traits_priv::traits_find_first_not_of<traits_type>(m_data, m_size, off, ptr, count);
     }
 
     constexpr size_type find_first_not_of(const T* const ptr, const size_type off = 0) const noexcept
     {
-        return _priv::traits_find_first_not_of<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
+        return _char_traits_priv::traits_find_first_not_of<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
     }
 
     constexpr size_type find_last_not_of(const basic_string_view right, const size_type off = npos) const noexcept
     {
-        return _priv::traits_find_last_not_of<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
+        return _char_traits_priv::traits_find_last_not_of<traits_type>(m_data, m_size, off, right.m_data, right.m_size);
     }
 
     constexpr size_type find_last_not_of(const T c, const size_type off = npos) const noexcept
     {
-        return _priv::traits_rfind_not_ch<traits_type>(m_data, m_size, off, c);
+        return _char_traits_priv::traits_rfind_not_ch<traits_type>(m_data, m_size, off, c);
     }
 
     constexpr size_type find_last_not_of(const T* const ptr, const size_type off, const size_type count) const noexcept
     {
-        return _priv::traits_find_last_not_of<traits_type>(m_data, m_size, off, ptr, count);
+        return _char_traits_priv::traits_find_last_not_of<traits_type>(m_data, m_size, off, ptr, count);
     }
 
     constexpr size_type find_last_not_of(const T* const ptr, const size_type off = npos) const noexcept
     {
-        return _priv::traits_find_last_not_of<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
+        return _char_traits_priv::traits_find_last_not_of<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
     }
 
 private:
@@ -500,7 +500,7 @@ constexpr bool operator==(
     const basic_string_view<T> rhs) noexcept
 {
     using traits_type = typename basic_string_view<T>::traits_type;
-    return _priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
+    return _char_traits_priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
 }
 
 template <typename T>
@@ -509,7 +509,7 @@ constexpr bool operator==(
     const type_traits::identity_t<basic_string_view<T>> rhs) noexcept
 {
     using traits_type = typename basic_string_view<T>::traits_type;
-    return _priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
+    return _char_traits_priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
 }
 
 template <typename T>
@@ -518,7 +518,7 @@ constexpr bool operator==(
     const basic_string_view<T> rhs) noexcept
 {
     using traits_type = typename basic_string_view<T>::traits_type;
-    return _priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
+    return _char_traits_priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
 }
 
 //=========================================================================

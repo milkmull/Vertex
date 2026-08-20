@@ -1557,6 +1557,9 @@ constexpr bool check_offset(const size_t size, const size_t off) noexcept
 template <typename T>
 class basic_string_view;
 
+template <typename T>
+class basic_cstring_view;
+
 template <typename T, typename Allocator>
 class basic_string;
 
@@ -1571,6 +1574,10 @@ struct is_string_like : std::false_type
 
 template <typename T>
 struct is_string_like<basic_string_view<T>> : std::true_type
+{};
+
+template <typename T>
+struct is_string_like<basic_cstring_view<T>> : std::true_type
 {};
 
 template <typename T, typename Allocator>
@@ -1603,6 +1610,10 @@ template <typename T>
 struct is_string_view<basic_string_view<T>> : std::true_type
 {};
 
+template <typename T>
+struct is_string_view<basic_cstring_view<T>> : std::true_type
+{};
+
 #if VX_HAVE_STD_STRING_VIEW
 
 template <typename T, typename Traits>
@@ -1610,6 +1621,28 @@ struct is_string_view<std::basic_string_view<T, Traits>> : std::true_type
 {};
 
 #endif // VX_HAVE_STD_STRING_VIEW
+
+//=========================================================================
+
+template <typename T>
+struct is_null_terminated_string_like : std::false_type
+{};
+
+template <typename T>
+struct is_null_terminated_string_like<basic_cstring_view<T>> : std::true_type
+{};
+
+template <typename T, typename Allocator>
+struct is_null_terminated_string_like<basic_string<T, Allocator>> : std::true_type
+{};
+
+template <size_t N, typename T>
+struct is_null_terminated_string_like<basic_static_string<N, T>> : std::true_type
+{};
+
+template <typename T, typename Traits, typename Alloc>
+struct is_null_terminated_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
+{};
 
 //=========================================================================
 

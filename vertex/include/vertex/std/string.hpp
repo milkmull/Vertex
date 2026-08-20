@@ -6,6 +6,7 @@
 #include "vertex/std/_tools/compressed_pair.hpp"
 #include "vertex/std/_tools/dynamic_array_base.hpp"
 #include "vertex/std/char_traits.hpp"
+#include "vertex/std/cstring_view.hpp"
 #include "vertex/std/string_view.hpp"
 
 namespace vx {
@@ -400,6 +401,11 @@ public:
     operator basic_string_view<T>() const noexcept
     {
         return basic_string_view<T>(data(), size());
+    }
+
+    operator basic_cstring_view<T>() const noexcept
+    {
+        return basic_cstring_view<T>(*this);
     }
 
     template <typename Traits2, typename Allocator2>

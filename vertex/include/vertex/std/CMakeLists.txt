@@ -27,6 +27,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/char_traits.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_view.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cstring_view.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/static_string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_cast.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert.hpp"

@@ -293,6 +293,11 @@ public:
         return basic_string_view<T>(data(), size());
     }
 
+    operator basic_cstring_view<T>() const noexcept
+    {
+        return basic_cstring_view<T>(*this);
+    }
+
     template <typename Traits2, typename Allocator2>
     operator std::basic_string<T, Traits2, Allocator2>() const
     {
