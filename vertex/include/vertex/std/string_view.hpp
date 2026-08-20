@@ -82,7 +82,7 @@ public:
         return std::basic_string<T, Traits2, Allocator2>(data(), size());
     }
 
-#if defined(__cpp_lib_string_view)
+#if VX_HAVE_STD_STRING_VIEW
 
     template <typename Traits2>
     operator std::basic_string_view<T, Traits2>() const noexcept
@@ -90,7 +90,7 @@ public:
         return std::basic_string_view<T, Traits2>(data(), size());
     }
 
-#endif // defined(__cpp_lib_string_view)
+#endif // VX_HAVE_STD_STRING_VIEW
 
     //=========================================================================
     // assign
@@ -672,9 +672,9 @@ std::basic_ostream<T, Traits2>& operator<<(
 
 using string_view = str::basic_string_view<char>;
 using wstring_view = str::basic_string_view<wchar_t>;
-#if defined(__cpp_lib_char8_t)
+#if VX_HAVE_STD_CHAR8_T
 using u8string_view = str::basic_string_view<char8_t>;
-#endif // defined(__cpp_lib_char8_t)
+#endif // VX_HAVE_STD_CHAR8_T
 using u16string_view = str::basic_string_view<char16_t>;
 using u32string_view = str::basic_string_view<char32_t>;
 

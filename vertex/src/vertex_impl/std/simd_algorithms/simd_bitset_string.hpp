@@ -2,7 +2,7 @@
 
 #include "vertex_impl/std/simd_algorithms/simd_common.hpp"
 
-#if defined(_VX_USE_SIMD_ALGORITHMS)
+#if defined(VX_STD_USE_SIMD_ALGORITHMS)
 
 namespace vx {
 namespace _simd {
@@ -571,4 +571,4 @@ VX_NO_ALIAS bool VX_STDCALL bitset_from_string_2(void* const dest, const wchar_t
 } // namespace _simd
 } // namespace vx
 
-#endif // defined(_VX_USE_SIMD_ALGORITHMS)
+#endif // defined(VX_STD_USE_SIMD_ALGORITHMS)

@@ -6,9 +6,9 @@
 namespace vx {
 namespace type_traits {
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // is char iterator
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 namespace _priv {
 
@@ -27,9 +27,9 @@ struct is_char_iterator_impl<T[N]> : is_char<T> {};
 template <typename T>
 struct is_char_iterator : _priv::is_char_iterator_impl<typename std::remove_cv<T>::type> {};
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // string type
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 template <typename T>
 struct is_string : std::false_type {};
@@ -37,16 +37,16 @@ struct is_string : std::false_type {};
 template <typename Elem, typename Traits, typename Alloc>
 struct is_string<std::basic_string<Elem, Traits, Alloc>> : std::true_type {};
 
-#if defined(__cpp_lib_string_view)
+#if VX_HAVE_STD_STRING_VIEW
 
 template <typename Elem, typename Traits>
 struct is_string<std::basic_string_view<Elem, Traits>> : std::true_type {};
 
-#endif // __cpp_lib_string_view
+#endif // VX_HAVE_STD_STRING_VIEW
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // string-like
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 namespace _priv {
 
@@ -56,12 +56,12 @@ struct is_string_like_impl : is_char_iterator<typename std::decay<T>::type> {};
 template <typename Elem, typename Traits, typename Alloc>
 struct is_string_like_impl<std::basic_string<Elem, Traits, Alloc>> : std::true_type {};
 
-#if defined(__cpp_lib_string_view)
+#if VX_HAVE_STD_STRING_VIEW
 
 template <typename Elem, typename Traits>
 struct is_string_like_impl<std::basic_string_view<Elem, Traits>> : std::true_type {};
 
-#endif // __cpp_lib_string_view
+#endif // VX_HAVE_STD_STRING_VIEW
 
 } // namespace _priv
 

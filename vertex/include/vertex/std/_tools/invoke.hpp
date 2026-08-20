@@ -2,16 +2,16 @@
 
 #include "vertex/config/language_config.hpp"
 
-#if (VX_CPP_STANDARD >= 17)
-#   include <functional>
-#endif // __cpp_lib_invoke
+#if VX_HAVE_STD_INVOKE
+    #include <functional>
+#endif // VX_HAVE_STD_INVOKE
 
 #include "vertex/config/type_traits.hpp"
 
 namespace vx {
 namespace fn {
 
-#if defined(__cpp_lib_invoke)
+#if VX_HAVE_STD_INVOKE
 
 template <typename Callable, typename... Args>
 constexpr auto invoke(Callable&& fn, Args&&... args) noexcept(type_traits::is_nothrow_invocable<Callable, Args...>::value)
@@ -23,9 +23,9 @@ constexpr auto invoke(Callable&& fn, Args&&... args) noexcept(type_traits::is_no
 
 // https://github.com/gcc-mirror/gcc/blob/e8c2f3a427a96a8626f005d4b38492b5d0a96c03/libstdc%2B%2B-v3/include/bits/invoke.h#L92
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // invoke
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 namespace _priv {
 
@@ -72,7 +72,7 @@ constexpr Res invoke_impl(type_traits::_priv::invoke_memobj_deref, MemPtr&& fn, 
 /// Invoke a callable object.
 template <typename Callable, typename... Args>
 constexpr typename type_traits::invoke_result<Callable, Args...>::type
-invoke(Callable&& fn, Args&&... args) noexcept(type_traits::is_nothrow_invocable<Callable, Args...>::value)
+    invoke(Callable&& fn, Args&&... args) noexcept(type_traits::is_nothrow_invocable<Callable, Args...>::value)
 {
     using Res = type_traits::invoke_result<Callable, Args...>;
     using T = typename Res::type;
@@ -80,11 +80,10 @@ invoke(Callable&& fn, Args&&... args) noexcept(type_traits::is_nothrow_invocable
     return type_traits::_priv::invoke_impl<T>(
         tag{},
         std::forward<Callable>(fn),
-        std::forward<Args>(args)...
-    );
+        std::forward<Args>(args)...);
 }
 
-#endif // __cpp_lib_invoke
+#endif // VX_HAVE_STD_INVOKE
 
 //==============================================================================
 // function pass helper

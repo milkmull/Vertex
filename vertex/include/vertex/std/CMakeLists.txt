@@ -4,7 +4,9 @@ file(GLOB VX_STD_HEADER_FILES
     # Core
     "${CMAKE_CURRENT_SOURCE_DIR}/array.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/aligned_storage.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/variant_storage.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/error.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/expected.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/defer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/hex.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/io.hpp"

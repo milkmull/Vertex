@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vertex/config/feature_detection.hpp"
 #include "vertex/config/language_config.hpp"
 
 #include <iterator>
@@ -189,7 +190,7 @@ using remove_cvref = std::remove_cv<typename std::remove_reference<T>::type>;
 // invoke helpers
 //==============================================================================
 
-#if defined(__cpp_lib_is_invocable)
+#if VX_HAVE_STD_IS_INVOKABLE
 
 template <typename Fn, typename... Args>
 using invoke_result = std::invoke_result<Fn, Args...>;
@@ -531,7 +532,7 @@ template <typename Fn, typename... Args>
 struct is_nothrow_invocable : type_traits::conjunction<is_invocable<Fn, Args...>, _priv::call_is_nothrow<Fn, Args...>>::type
 {};
 
-#endif // __cpp_lib_is_invocable
+#endif // VX_HAVE_STD_IS_INVOKABLE
 
 //==============================================================================
 // integer_sequence
@@ -571,9 +572,9 @@ using make_index_sequence = make_integer_sequence<size_t, N>;
 
 template <typename T>
 struct is_char : is_any_of<typename std::remove_cv<T>::type, char, wchar_t,
-#if defined(__cpp_char8_t)
+#if VX_HAVE_STD_CHAR8_T
                      char8_t,
-#endif // __cpp_char8_t
+#endif // VX_HAVE_STD_CHAR8_T
                      char16_t,
                      char32_t>
 {};
@@ -650,11 +651,11 @@ template <typename T>
 struct is_char_or_byte_or_bool : is_char_or_bool<T>
 {};
 
-#ifdef __cpp_lib_byte
+#if VX_HAVE_STD_BYTE
 template <>
 struct is_char_or_byte_or_bool<std::byte> : std::true_type
 {};
-#endif
+#endif // VX_HAVE_STD_BYTE
 
 template <typename IT>
 using iter_ref_t = typename std::iterator_traits<IT>::reference;
@@ -703,9 +704,9 @@ struct is_pointer_address_convertible : bool_constant<std::is_void<Src>::value |
                                             // NOTE: std::is_same is required for function pointers to work
                                             std::is_same<typename std::remove_cv<Src>::type, typename std::remove_cv<Dst>::type>::value
 
-#if defined(__cpp_lib_is_pointer_interconvertible)
+#if VX_HAVE_STD_IS_POINTER_INTERCONVERTIBLE
                                             || std::is_pointer_interconvertible_base_of<Dst, Src>::value
-#endif // __cpp_lib_is_pointer_interconvertible
+#endif // VX_HAVE_STD_IS_POINTER_INTERCONVERTIBLE
 
                                             >
 {};
@@ -821,11 +822,11 @@ struct is_bitwise_comparable : bool_constant<(std::is_same<T1, bool>::value || s
 VX_DISABLE_MSVC_WARNING_POP()
 
 // Allow memcmping std::byte.
-#if defined(__cpp_lib_byte)
+#if  VX_HAVE_STD_BYTE
 template <>
 struct is_bitwise_comparable<std::byte, std::byte, false> : std::true_type
 {};
-#endif // __cpp_lib_byte
+#endif // VX_HAVE_STD_BYTE
 
 // Pointer elements are eligible for memcmp when they point to the same type, ignoring cv-qualification.
 // This handles pointers to object types, pointers to void, and pointers to function types.

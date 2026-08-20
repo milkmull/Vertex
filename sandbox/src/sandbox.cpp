@@ -3,32 +3,22 @@
 #include <forward_list>
 
 #include "vertex/std/io.hpp"
-#include "vertex/std/singly_linked_list.hpp"
+#include "vertex/std/array.hpp"
 
 using namespace vx;
 
-using X = std::list<int>;
-using X = std::forward_list<int>;
-
 int main()
 {
-    single_linked_list<int> list(5, 5);
-
+    array<int, 5> arr = { 0, 1, 2, 3, 4 };
+    auto x = arr.at(2);
+    if (x)
     {
-        auto it = list.begin();
-        size_t i = 2;
-
-        while (i--)
-        {
-            ++it;
-        }
-
-        list.insert_after(it, { 1, 2, 3, 4 });
+        x.value() = -x.value();
+        println("arr[2]: ", x.value());
     }
-
-    for (auto it = list.begin(); it != list.end(); ++it)
+    else
     {
-        print(*it);
+        println("arr[2] error: ", (int)x.error());
     }
 
     return 0;

@@ -14,12 +14,12 @@ namespace _simd {
 
 // Vector algorithms only fully available on x86 with at least SSE2
 #if defined(VX_SIMD_X86) && (VX_SIMD_X86 >= VX_SIMD_X86_SSE2_VERSION)
-    //#define _VX_USE_SIMD_ALGORITHMS 1
+    //#define VX_STD_USE_SIMD_ALGORITHMS 1
 #else
-    #define _VX_USE_SIMD_ALGORITHMS 0
+    #define VX_STD_USE_SIMD_ALGORITHMS 0
 #endif
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
 extern "C" {
 
@@ -482,7 +482,7 @@ T* adjacent_find_simd(T* const first, T* const last) noexcept
     }
 }
 
-    #define _VX_SIMD_THRESHOLD_FIND_FIRST_OF ptrdiff_t{ 16 }
+    #define VX_SIMD_PRIV_THRESHOLD_FIND_FIRST_OF ptrdiff_t{ 16 }
 
 template <typename T1, typename T2>
 T1* search_simd(T1* const first1, T1* const last1, T2* const first2, const size_t count2) noexcept
@@ -679,7 +679,7 @@ size_t find_last_not_of_pos_simd(const T1* const haystack, const size_t haystack
     }
 }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
 } // namespace _simd
 } // namespace vx

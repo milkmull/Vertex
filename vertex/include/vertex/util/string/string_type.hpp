@@ -3,9 +3,9 @@
 #include "vertex/config/language_config.hpp"
 
 #include <string>
-#if (VX_CPP_STANDARD >= 17)
-#   include <string_view>
-#endif // (VX_CPP_STANDARD >= 17)
+#if VX_HAVE_STD_STRING_VIEW
+    #include <string_view>
+#endif // VX_HAVE_STD_STRING_VIEW
 
 namespace vx {
 namespace str {
@@ -14,7 +14,7 @@ namespace str {
 // arg types
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(__cpp_lib_string_view)
+#if VX_HAVE_STD_STRING_VIEW
 
 using str_arg_t = std::string_view;
 using wstr_arg_t = std::wstring_view;
@@ -30,7 +30,7 @@ using wstr_arg_t = std::wstring;
 template <typename char_t>
 using basic_str_arg_t = std::basic_string<char_t>;
 
-#endif  // __cpp_lib_string_view
+#endif // VX_HAVE_STD_STRING_VIEW
 
 } // namespace str
 } // namespace vx

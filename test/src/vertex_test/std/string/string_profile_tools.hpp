@@ -472,7 +472,7 @@ void run(size_t N, size_t R)
 
         for (auto test : selected_tests)
         {
-            test(N, char_type{ 'a' });
+            test(N);
         }
     }
 }

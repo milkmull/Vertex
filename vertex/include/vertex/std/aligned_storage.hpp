@@ -5,7 +5,7 @@
 
 namespace vx {
 
-#define _size_check() \
+#define VX_ALIGNED_STORAGE_PRIV_SIZE_CHECK() \
     VX_STATIC_ASSERT_MSG(sizeof(T) <= size, "size too small"); \
     VX_STATIC_ASSERT_MSG(alignof(T) <= alignment, "alignment too small")
 
@@ -39,53 +39,53 @@ public:
     template <typename T>
     explicit aligned_storage(T&& value) noexcept
     {
-        _size_check();
+        VX_ALIGNED_STORAGE_PRIV_SIZE_CHECK();
         construct<T>(std::move(value));
     }
 
     template <typename T, typename... Args>
     void construct(Args&&... args)
     {
-        _size_check();
+        VX_ALIGNED_STORAGE_PRIV_SIZE_CHECK();
         mem::construct_in_place_maybe_trivial<T>(ptr<T>(), std::forward<Args>(args)...);
     }
 
     template <typename T>
     void destroy() noexcept
     {
-        _size_check();
+        VX_ALIGNED_STORAGE_PRIV_SIZE_CHECK();
         mem::destroy_in_place(ptr<T>());
     }
 
     template <typename T>
     T* ptr() noexcept
     {
-        _size_check();
+        VX_ALIGNED_STORAGE_PRIV_SIZE_CHECK();
         return reinterpret_cast<T*>(m_storage);
     }
 
     template <typename T>
     const T* ptr() const noexcept
     {
-        _size_check();
+        VX_ALIGNED_STORAGE_PRIV_SIZE_CHECK();
         return reinterpret_cast<const T*>(m_storage);
     }
 
     template <typename T>
     T& get() noexcept
     {
-        _size_check();
+        VX_ALIGNED_STORAGE_PRIV_SIZE_CHECK();
         return *ptr<T>();
     }
 
     template <typename T>
     const T& get() const noexcept
     {
-        _size_check();
+        VX_ALIGNED_STORAGE_PRIV_SIZE_CHECK();
         return *ptr<T>();
     }
 };
 
-#undef _size_check
+#undef VX_ALIGNED_STORAGE_PRIV_SIZE_CHECK
 
 } // namespace vx

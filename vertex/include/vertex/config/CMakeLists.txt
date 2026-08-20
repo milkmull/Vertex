@@ -15,6 +15,7 @@ file(GLOB VX_SYSTEM_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/version_number.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/hash.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/type_traits.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/feature_detection.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_SYSTEM_HEADER_FILES})

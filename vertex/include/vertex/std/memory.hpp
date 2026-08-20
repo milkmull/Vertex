@@ -1,6 +1,14 @@
 #pragma once
 
+#include "vertex/config/feature_detection.hpp"
+
 #include <cstring>
+
+#if VX_HAVE_STD_LAUNDER
+    #include <new>
+#else
+    #include "vertex/os/compiler.hpp"
+#endif
 
 #include "vertex/config/assert.hpp"
 #include "vertex/config/language_config.hpp"
@@ -68,6 +76,37 @@ constexpr VX_NO_DISCARD T exchange(T& obj, U&& new_value) noexcept(
     T old_value = move(obj);
     obj = forward<U>(new_value);
     return old_value;
+}
+
+//=========================================================================
+// launder
+//=========================================================================
+
+template <typename T>
+VX_FORCE_INLINE constexpr T* launder(T* p) noexcept
+{
+#if VX_HAVE_STD_LAUNDER
+
+    return std::launder(p);
+
+#elif VX_HAS_BUILTIN(__builtin_launder)
+
+    return __builtin_launder(p);
+
+#else
+
+    // No std::launder or builtin available: falls back to a compiler
+    // barrier, which defeats common load-caching miscompilations but
+    // does not carry the formal [ptr.launder] guarantee.
+    return os::compiler_barrier(p);
+
+#endif
+}
+
+template <typename T>
+VX_FORCE_INLINE constexpr const T* launder(const T* p) noexcept
+{
+    return const_cast<const T*>(launder(const_cast<T*>(p)));
 }
 
 //=========================================================================
@@ -550,13 +589,6 @@ inline void deallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexce
 template <typename T, typename... Args>
 void construct_in_place(T& obj, Args&&... args)
 {
-    constexpr bool may_err = err::constructor_may_set_error<T, Args...>::value;
-
-    VX_IF_CONSTEXPR (may_err)
-    {
-        err::clear();
-    }
-
     VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
     {
         ::new (static_cast<void*>(std::addressof(obj))) T;
@@ -565,26 +597,11 @@ void construct_in_place(T& obj, Args&&... args)
     {
         ::new (static_cast<void*>(std::addressof(obj))) T(std::forward<Args>(args)...);
     }
-
-    VX_IF_CONSTEXPR (may_err)
-    {
-        if VX_UNLIKELY (err::is_set())
-        {
-            err::abort();
-        }
-    }
 }
 
 template <typename T, typename... Args>
 void construct_in_place(T* ptr, Args&&... args)
 {
-    constexpr bool may_err = err::constructor_may_set_error<T, Args...>::value;
-
-    VX_IF_CONSTEXPR (may_err)
-    {
-        err::clear();
-    }
-
     VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
     {
         ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T;
@@ -592,14 +609,6 @@ void construct_in_place(T* ptr, Args&&... args)
     else
     {
         ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T(std::forward<Args>(args)...);
-    }
-
-    VX_IF_CONSTEXPR (may_err)
-    {
-        if VX_UNLIKELY (err::is_set())
-        {
-            err::abort();
-        }
     }
 }
 
@@ -662,22 +671,7 @@ void destroy_in_place(T* ptr)
 {
     VX_IF_CONSTEXPR (!std::is_trivially_destructible<T>::value)
     {
-        constexpr bool may_err = err::destructor_may_set_error<T>::value;
-
-        VX_IF_CONSTEXPR (may_err)
-        {
-            err::clear();
-        }
-
         ptr->~T();
-
-        VX_IF_CONSTEXPR (may_err)
-        {
-            if VX_UNLIKELY (err::is_set())
-            {
-                err::abort();
-            }
-        }
     }
 }
 

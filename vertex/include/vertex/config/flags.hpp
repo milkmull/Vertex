@@ -29,7 +29,8 @@ public: \
 
 #define VX_FLAGS_DECLARE_BEGIN(name) VX_FLAGS_UT_DECLARE_BEGIN(name, int)
 
-#define _VX_FLAGS_DECLARE_FUNCTIONS(name) \
+#define VX_FLAGS_DECLARE_END(name) \
+; \
 \
 constexpr name(enum_type x) noexcept : m_value(static_cast<underlying_type>(x)) {} \
 constexpr explicit operator enum_type() const noexcept {return static_cast<enum_type>(m_value); } \
@@ -65,9 +66,5 @@ friend constexpr name& operator&=(name& lhs, name rhs) noexcept { lhs = lhs & rh
 friend constexpr name& operator&=(name& lhs, enum_type rhs) noexcept { lhs = lhs & rhs; return lhs; } \
 \
 friend constexpr name& operator^=(name& lhs, name rhs) noexcept { lhs = lhs ^ rhs; return lhs; } \
-friend constexpr name& operator^=(name& lhs, enum_type rhs) noexcept { lhs = lhs ^ rhs; return lhs; }
-
-#define VX_FLAGS_DECLARE_END(name) \
-; \
-_VX_FLAGS_DECLARE_FUNCTIONS(name) \
+friend constexpr name& operator^=(name& lhs, enum_type rhs) noexcept { lhs = lhs ^ rhs; return lhs; } \
 };

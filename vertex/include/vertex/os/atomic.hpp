@@ -2,19 +2,19 @@
 
 #include <atomic>
 
-#include "vertex/config/language_config.hpp"
-
 namespace vx {
 namespace os {
 
-//==============================================================================  
+//==============================================================================
 // Atomic
-//==============================================================================  
+//==============================================================================
 
 template <typename T>
 using atomic = std::atomic<T>;
 
-//==============================================================================  
+//==============================================================================
+// helpers
+//==============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/include/SDL3/SDL_atomic.h#L346
 
@@ -50,31 +50,13 @@ VX_FORCE_INLINE void cpu_pause() noexcept
 
     // Watcom inline assembly must be declared externally
     extern VX_FORCE_INLINE void cpu_pause();
-#   pragma aux cpu_pause = ".686p" ".xmm2" "pause"
+    #pragma aux cpu_pause = \
+        ".686p" \
+        ".xmm2" \
+        "pause"
 
 #endif
 }
-
-//==============================================================================
-
-#if defined(_MSC_VER)
-
-template <class T>
-inline void do_not_optimize(T const& value)
-{
-    (void)value;
-    _ReadWriteBarrier();
-}
-
-#else
-
-template <class T>
-inline void do_not_optimize(T const& value)
-{
-    asm volatile("" : : "g"(value) : "memory");
-}
-
-#endif
 
 } // namespace os
 } // namespace vx

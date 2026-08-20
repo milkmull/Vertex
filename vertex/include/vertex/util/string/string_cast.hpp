@@ -85,7 +85,7 @@ inline auto string_cast(
     return res;
 }
 
-#if defined(__cpp_lib_string_view)
+#if VX_HAVE_STD_STRING_VIEW
 
 /**
  * @brief Converts a std::basic_string_view from one character type to another.
@@ -109,7 +109,7 @@ inline auto string_cast(
     return res;
 }
 
-#endif // __cpp_lib_string_view
+#endif // VX_HAVE_STD_STRING_VIEW
 
 /**
  * @brief Converts a null-terminated character sequence to another character type string.

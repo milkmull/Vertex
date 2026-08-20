@@ -9,7 +9,7 @@
 
 #include "vertex/std/_simd/simd_algorithms.hpp"
 
-#if defined(_VX_USE_SIMD_ALGORITHMS)
+#if defined(VX_STD_USE_SIMD_ALGORITHMS)
 
 #include "vertex/config/architecture.hpp"
 #include "vertex/config/language_config.hpp"
@@ -142,4 +142,4 @@ inline void advance_bytes(const void*& target, const Int offset) noexcept
 } // namespace _simd
 } // namespace vx
 
-#endif // defined(_VX_USE_SIMD_ALGORITHMS)
+#endif // defined(VX_STD_USE_SIMD_ALGORITHMS)

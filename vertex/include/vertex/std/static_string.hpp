@@ -299,7 +299,7 @@ public:
         return std::basic_string<T, Traits2, Allocator2>(data(), size());
     }
 
-#if defined(__cpp_lib_string_view)
+#if VX_HAVE_STD_STRING_VIEW
 
     template <typename Traits2>
     operator std::basic_string_view<T, Traits2>() const noexcept
@@ -307,7 +307,7 @@ public:
         return std::basic_string_view<T, Traits2>(data(), size());
     }
 
-#endif // defined(__cpp_lib_string_view)
+#endif // VX_HAVE_STD_STRING_VIEW
 
 private:
 
@@ -2044,10 +2044,10 @@ using static_string = str::basic_static_string<N, char>;
 template <size_t N>
 using static_wstring = str::basic_static_string<N, wchar_t>;
 
-#if defined(__cpp_lib_char8_t)
+#if VX_HAVE_STD_CHAR8_T
 template <size_t N>
 using static_u8string = str::basic_static_string<N, char8_t>;
-#endif // defined(__cpp_lib_char8_t)
+#endif // VX_HAVE_STD_CHAR8_T
 
 template <size_t N>
 using static_u16string = str::basic_static_string<N, char16_t>;

@@ -331,8 +331,8 @@ enum class format_error
 
 struct format_result
 {
-    format_error err;
     size_t count;
+    format_error err;
 };
 
 //==============================================================================
@@ -755,7 +755,7 @@ constexpr format_result format_impl(
     }
 
     const size_t count = out_size - buffer_type.remaining;
-    return { err, count };
+    return { count, err };
 }
 
 template <typename C, typename... Args>
@@ -792,7 +792,7 @@ constexpr format_result format_simple_begin(
         auto parse_ctx = parse_context_creator<C>::create(&end, 1);
         if (!f.parse(parse_ctx))
         {
-            return { format_error::invalid_format, 0 };
+            return { 0, format_error::invalid_format };
         }
     }
 
@@ -806,7 +806,7 @@ constexpr format_result format_simple_begin(
     }
 
     const size_t count = out_size - buffer_type.remaining;
-    return { err, count };
+    return { count, err };
 }
 
 } // namespace _fmt_priv
@@ -884,7 +884,7 @@ public:
 #if defined(VX_FORMAT_ESCAPED_SUPPORT)
             || base::type == C('?')
 #endif
-            );
+        );
     }
 
     constexpr format_error format(
@@ -1858,6 +1858,10 @@ str::basic_string<C> format(
 
     return out;
 }
+
+#if defined(VX_FORMAT_PRIV_RETURN_IF)
+    #undef VX_FORMAT_PRIV_RETURN_IF
+#endif
 
 } // namespace fmt
 } // namespace vx

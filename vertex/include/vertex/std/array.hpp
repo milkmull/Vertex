@@ -2,6 +2,7 @@
 
 #include "vertex/std/_tools/pointer_iterator.hpp"
 #include "vertex/std/memory.hpp"
+#include "vertex/std/expected.hpp"
 
 namespace vx {
 
@@ -9,8 +10,6 @@ template <typename T, size_t N>
 class array
 {
 public:
-
-    VX_STATIC_ASSERT_MSG(N > 0, "Empty array not allowed");
 
     //=========================================================================
     // member types
@@ -65,11 +64,33 @@ public:
 
     constexpr T& operator[](size_type i) noexcept
     {
+        VX_ASSERT(i < N);
         return _m_array[i];
     }
 
     constexpr const T& operator[](size_type i) const noexcept
     {
+        VX_ASSERT(i < N);
+        return _m_array[i];
+    }
+
+    constexpr expected<T&, err::code> at(size_type i) noexcept
+    {
+        if (i >= N)
+        {
+            return make_unexpected(err::out_of_range);
+        }
+
+        return _m_array[i];
+    }
+
+    constexpr expected<const T&, err::code> at(size_type i) const noexcept
+    {
+        if (i >= N)
+        {
+            return make_unexpected(err::out_of_range);
+        }
+
         return _m_array[i];
     }
 
@@ -319,6 +340,16 @@ public:
     {
         VX_ASSERT(false);
         return *data();
+    }
+
+    constexpr expected<T&, err::code> at(size_type i) noexcept
+    {
+        return make_unexpected(err::out_of_range);
+    }
+
+    constexpr expected<const T&, err::code> at(size_type i) const noexcept
+    {
+        return make_unexpected(err::out_of_range);
     }
 
     //=========================================================================

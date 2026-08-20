@@ -10,19 +10,10 @@ namespace fmt {
 // #define VX_FORMAT_DISABLE_OUTPUT_SIZE_CHECKS
 // #define VX_FORMAT_ESCAPED_SUPPORT
 
-#define _VX_FAIL_IF(cond, ret) \
-    do \
-    { \
-        if ((cond)) \
-        { \
-            return (ret); \
-        } \
-    } while (VX_NULL_WHILE_LOOP_CONDITION)
-
 #if !defined(VX_FORMAT_DISABLE_FORMAT_STRING_CHECKS)
-    #define _FORMAT_RET_IF(cond, ret) _VX_FAIL_IF((cond), (ret))
+    #define VX_FORMAT_PRIV_RETURN_IF(cond, ret) VX_RETURN_IF((cond), (ret))
 #else
-    #define _FORMAT_RET_IF(cond, ret) VX_ASSERT(!(cond))
+    #define VX_FORMAT_PRIV_RETURN_IF(cond, ret) VX_ASSERT(!(cond))
 #endif
 
 //==============================================================================
@@ -285,7 +276,7 @@ private:
             ++i;
 
             const bool parse_result = parse_uint(precision, i);
-            _FORMAT_RET_IF((!parse_result), false);
+            VX_FORMAT_PRIV_RETURN_IF((!parse_result), false);
             has_precision = true;
             return true;
         }
@@ -309,11 +300,11 @@ public:
         size_t i = 0;
 
         parse_basic_fill_alignment(i, spec.fill, spec.align);
-        _FORMAT_RET_IF(!check_basic_numeric_flags(i), false);
-        _FORMAT_RET_IF(!parse_basic_width(i, spec.width), false);
+        VX_FORMAT_PRIV_RETURN_IF(!check_basic_numeric_flags(i), false);
+        VX_FORMAT_PRIV_RETURN_IF(!parse_basic_width(i, spec.width), false);
         parse_basic_type(i, spec.type);
 
-        _FORMAT_RET_IF(m_data[i] != C(_fmt_priv::closed_brace), false);
+        VX_FORMAT_PRIV_RETURN_IF(m_data[i] != C(_fmt_priv::closed_brace), false);
         return true;
     }
 
@@ -322,11 +313,11 @@ public:
         size_t i = 0;
 
         parse_basic_fill_alignment(i, spec.fill, spec.align);
-        _FORMAT_RET_IF(!parse_basic_width(i, spec.width), false);
-        _FORMAT_RET_IF(!parse_basic_precision(i, spec.precision, spec.has_precision), false);
+        VX_FORMAT_PRIV_RETURN_IF(!parse_basic_width(i, spec.width), false);
+        VX_FORMAT_PRIV_RETURN_IF(!parse_basic_precision(i, spec.precision, spec.has_precision), false);
         parse_basic_type(i, spec.type);
 
-        _FORMAT_RET_IF(m_data[i] != C(_fmt_priv::closed_brace), false);
+        VX_FORMAT_PRIV_RETURN_IF(m_data[i] != C(_fmt_priv::closed_brace), false);
         return true;
     }
 
@@ -336,10 +327,10 @@ public:
 
         parse_basic_fill_alignment(i, spec.fill, spec.align);
         parse_basic_numeric_flags(i, spec.alternate, spec.zero_pad, spec.sign);
-        _FORMAT_RET_IF(!parse_basic_width(i, spec.width), false);
+        VX_FORMAT_PRIV_RETURN_IF(!parse_basic_width(i, spec.width), false);
         parse_basic_type(i, spec.type);
 
-        _FORMAT_RET_IF(m_data[i] != C(_fmt_priv::closed_brace), false);
+        VX_FORMAT_PRIV_RETURN_IF(m_data[i] != C(_fmt_priv::closed_brace), false);
         return true;
     }
 
@@ -349,11 +340,11 @@ public:
 
         parse_basic_fill_alignment(i, spec.fill, spec.align);
         parse_basic_numeric_flags(i, spec.alternate, spec.zero_pad, spec.sign);
-        _FORMAT_RET_IF(!parse_basic_width(i, spec.width), false);
-        _FORMAT_RET_IF(!parse_basic_precision(i, spec.precision, spec.has_precision), false);
+        VX_FORMAT_PRIV_RETURN_IF(!parse_basic_width(i, spec.width), false);
+        VX_FORMAT_PRIV_RETURN_IF(!parse_basic_precision(i, spec.precision, spec.has_precision), false);
         parse_basic_type(i, spec.type);
 
-        _FORMAT_RET_IF(m_data[i] != C(_fmt_priv::closed_brace), false);
+        VX_FORMAT_PRIV_RETURN_IF(m_data[i] != C(_fmt_priv::closed_brace), false);
         return true;
     }
 
@@ -453,7 +444,7 @@ public:
             tok.first = m_ptr;
 
             advance(1);
-            _FORMAT_RET_IF((empty() || current() != C(closed_brace)), false);
+            VX_FORMAT_PRIV_RETURN_IF((empty() || current() != C(closed_brace)), false);
             advance(1);
 
             return true;
@@ -487,7 +478,7 @@ public:
 
         // consume '{'
         advance(1);
-        _FORMAT_RET_IF(empty(), false);
+        VX_FORMAT_PRIV_RETURN_IF(empty(), false);
 
         // escaped '{': "{{" -> "{"
         if (current() == C(open_brace))
@@ -535,7 +526,7 @@ public:
         }
 
         // {:...}
-        _FORMAT_RET_IF((current() != C(':')), false);
+        VX_FORMAT_PRIV_RETURN_IF((current() != C(':')), false);
         advance(1);
 
         tok.type = token_type::replacement;
@@ -553,7 +544,7 @@ public:
             advance(1);
         }
 
-        _FORMAT_RET_IF(tok.last == nullptr, false);
+        VX_FORMAT_PRIV_RETURN_IF(tok.last == nullptr, false);
         advance(1);
 
         return true;

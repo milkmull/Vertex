@@ -261,7 +261,7 @@
 //     "x = {}, y = {}"      // literal text must match verbatim
 //==============================================================================
 
-#include "vertex/std/_priv/format_scan_common.hpp"
+#include "vertex/std/_format/format_scan_common.hpp"
 
 namespace vx {
 namespace fmt {
@@ -283,8 +283,8 @@ enum class scan_error
 
 struct scan_result
 {
-    scan_error err;
     size_t count;
+    scan_error err;
 };
 
 //==============================================================================
@@ -933,7 +933,7 @@ constexpr scan_result scan_impl(
     }
 
     const size_t count = in_size - input.remaining;
-    return { err, count };
+    return { count, err };
 }
 
 template <typename C, typename... Args>
@@ -969,7 +969,7 @@ constexpr scan_result scan_simple_begin(
         auto parse_ctx = parse_context_creator<C>::create(&end, 1);
         if (!s.parse(parse_ctx))
         {
-            return { scan_error::invalid_format, 0 };
+            return { 0, scan_error::invalid_format };
         }
     }
 
@@ -977,9 +977,9 @@ constexpr scan_result scan_simple_begin(
     auto scan_ctx = scan_context_creator<C>::create(input);
 
     const auto err = s.scan(scan_ctx, value);
-
     const size_t count = in_size - input.remaining;
-    return { err, count };
+
+    return { count, err };
 }
 
 } // namespace _fmt_priv
@@ -1210,7 +1210,7 @@ public:
         const size_t remaining = ctx.remaining();
 
         const int b = _fmt_priv::parse_integer_base(base::type);
-        _FORMAT_RET_IF((b == 0), scan_error::invalid_format);
+        VX_FORMAT_PRIV_RETURN_IF((b == 0), scan_error::invalid_format);
 
         const auto res = strconv::_strconv_priv::parse_integer_impl<I, C, true, true>(
             ptr, remaining,
@@ -1539,7 +1539,7 @@ public:
             }
             default:
             {
-                _FORMAT_RET_IF(true, scan_error::invalid_format);
+                VX_FORMAT_PRIV_RETURN_IF(true, scan_error::invalid_format);
             }
         }
 
@@ -1584,12 +1584,12 @@ private:
     {
         if (size <= 2)
         {
-            return { scan_error::invalid_scaned_field, 0 };
+            return { 0, scan_error::invalid_scaned_field };
         }
 
         if (s[0] != C('0') || (s[1] != C('x') && s[1] != C('X')))
         {
-            return { scan_error::invalid_scaned_field, 0 };
+            return { 0, scan_error::invalid_scaned_field };
         }
 
         constexpr U uint_max = static_cast<U>(-1);
@@ -1624,15 +1624,15 @@ private:
 
         if (i == start)
         {
-            return { scan_error::invalid_scaned_field, 0 };
+            return { 0, scan_error::invalid_scaned_field };
         }
         if (overflow)
         {
-            return { scan_error::result_out_of_range, i };
+            return { i, scan_error::result_out_of_range };
         }
 
         value = uvalue;
-        return { scan_error::none, i };
+        return { i, scan_error::none };
     }
 
 public:

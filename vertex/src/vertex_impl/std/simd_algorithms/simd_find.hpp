@@ -2,7 +2,7 @@
 
 #include "vertex_impl/std/simd_algorithms/simd_common.hpp"
 
-#if defined(_VX_USE_SIMD_ALGORITHMS)
+#if defined(VX_STD_USE_SIMD_ALGORITHMS)
 
 namespace vx {
 namespace _simd {
@@ -1334,4 +1334,4 @@ const void* VX_STDCALL search_n_8(
 } // namespace _simd
 } // namespace vx
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS

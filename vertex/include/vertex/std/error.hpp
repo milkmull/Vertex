@@ -5,6 +5,7 @@
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/os/thread_id.hpp"
+#include "vertex/std/expected.hpp"
 
 namespace vx {
 
@@ -249,66 +250,8 @@ VX_NO_RETURN inline void fast_fail() noexcept
 #define VX_CATCH            if (::vx::err::is_set())
 #define VX_CATCH_CODE(code) if (::vx::err::get_code() == code)
 
-//=============================================================================
-
-/**
- * @brief Indicates whether construction of a type may set the thread-local error.
- *
- * Constructors in Vertex are assumed not to modify the error state unless they
- * explicitly opt in by specializing this trait.
- *
- * This convention is important because Vertex is built with exceptions disabled.
- * Code that constructs an object normally does not need to check the error state
- * afterward. If a constructor can fail through the error-state mechanism, the
- * constructor must be registered with VX_CONSTRUCTOR_MAY_ERR.
- *
- * The trait may be specialized for a particular constructor signature:
- *
- *     VX_CONSTRUCTOR_MAY_ERR(my_type, int, float);
- *
- * which declares that construction of my_type from (int, float) may set an error.
- *
- * Operations that cannot recover from a constructor error (for example,
- * container growth/allocation) may treat such an error as fatal and abort.
- */
-template <typename T, typename... Args>
-struct constructor_may_set_error : std::false_type
-{};
-
-#define VX_CONSTRUCTOR_MAY_SET_ERROR(T, ...) \
-    template <> \
-    struct ::vx::err::constructor_may_set_error<T, ##__VA_ARGS__> : std::true_type \
-    {}
-
-/**
- * @brief Indicates whether destruction of a type may set the thread-local error.
- *
- * Destructors in Vertex are assumed not to modify the error state unless they
- * explicitly opt in by specializing this trait.
- *
- * This convention is important because Vertex is built with exceptions disabled.
- * Code that destroys an object normally does not need to check the error state
- * afterward. If a destructor can report failure through the error-state mechanism,
- * the destructor must be registered with VX_DESTRUCTOR_MAY_SET_ERROR.
- *
- * The trait is specialized for the object type:
- *
- *     VX_DESTRUCTOR_MAY_SET_ERROR(my_type);
- *
- * which declares that destruction of my_type may set an error.
- *
- * Operations that destroy objects and cannot recover from a destructor error
- * (for example, container destruction or cleanup during unwinding) may treat
- * such an error as fatal.
- */
-template <typename T>
-struct destructor_may_set_error : std::false_type
-{};
-
-#define VX_DESTRUCTOR_MAY_SET_ERROR(T) \
-    template <> \
-    struct ::vx::err::destructor_may_set_error<T> : std::true_type \
-    {}
-
 } // namespace err
+
+using error = expected_error<err::code, err::none>;
+
 } // namespace vx

@@ -5,6 +5,7 @@
 #include <string.h>
 #include <wchar.h>
 
+#include "vertex/config/feature_detection.hpp"
 #include "vertex/config/type_traits.hpp"
 #include "vertex/std/_simd/simd_algorithms.hpp"
 #include "vertex/std/crypto/fnv1a.hpp"
@@ -13,7 +14,7 @@
 namespace vx {
 namespace str {
 
-namespace _priv {
+namespace _char_triaits_priv {
 
 //=========================================================================
 // compare
@@ -46,7 +47,7 @@ constexpr int compare(const char* a, const char* b) noexcept
     }
 }
 
-#if defined(__cpp_char8_t)
+#if VX_HAVE_STD_CHAR8_T
 constexpr int compare(const char8_t* a, const char8_t* b) noexcept
 {
     #if VX_HAS_BUILTIN(__builtin_u8strcmp)
@@ -106,7 +107,7 @@ constexpr int compare_n(const char* a, const char* b, size_t n) noexcept
     }
 }
 
-#if defined(__cpp_char8_t)
+#if VX_HAVE_STD_CHAR8_T
 constexpr int compare_n(const char8_t* a, const char8_t* b, size_t n) noexcept
 {
     #if VX_HAS_BUILTIN(__builtin_u8strncmp)
@@ -164,7 +165,7 @@ constexpr char* copy(char* dst, const char* src) noexcept
     }
 }
 
-#if defined(__cpp_char8_t)
+#if VX_HAVE_STD_CHAR8_T
 constexpr char8_t* copy(char8_t* dst, const char8_t* src) noexcept
 {
     #if VX_HAS_BUILTIN(__builtin_u8strcpy)
@@ -221,7 +222,7 @@ constexpr char* copy_n(char* dst, const char* src, size_t n) noexcept
     }
 }
 
-#if defined(__cpp_char8_t)
+#if VX_HAVE_STD_CHAR8_T
 constexpr char8_t* copy_n(char8_t* dst, const char8_t* src, size_t n) noexcept
 {
     if (VX_IS_CONSTANT_EVALUATED())
@@ -293,7 +294,7 @@ constexpr char* assign_n(char* s, size_t n, char c) noexcept
     }
 }
 
-#if defined(__cpp_char8_t)
+#if VX_HAVE_STD_CHAR8_T
 constexpr char8_t* assign_n(char8_t* s, size_t n, char8_t c) noexcept
 {
     if (VX_IS_CONSTANT_EVALUATED())
@@ -352,7 +353,7 @@ constexpr size_t length(const char* s) noexcept
     }
 }
 
-#if defined(__cpp_char8_t)
+#if VX_HAVE_STD_CHAR8_T
 
 constexpr size_t length(const char8_t* s) noexcept
 {
@@ -363,7 +364,7 @@ constexpr size_t length(const char8_t* s) noexcept
     #endif
 }
 
-#endif // defined(__cpp_char8_t)
+#endif // VX_HAVE_STD_CHAR8_T
 
 constexpr size_t length(const wchar_t* s) noexcept
 {
@@ -415,7 +416,7 @@ struct char_traits_base
     static char_type* copy(char_type* const dst, const char_type* const src, const size_t count) noexcept
     {
         // copy [src, src + count) to [dst, ...)
-        return _priv::copy_n(dst, src, count);
+        return _char_triaits_priv::copy_n(dst, src, count);
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
@@ -443,25 +444,25 @@ struct char_traits_base
     static constexpr int compare(const char_type* a, const char_type* b, size_t count) noexcept
     {
         // compare [a, a + count) with [b, ...)
-        return _priv::compare_n(a, b, count);
+        return _char_triaits_priv::compare_n(a, b, count);
     }
 
     static constexpr size_t length(const char_type* s) noexcept
     {
         // find length of null-terminated sequence
-        return _priv::length(s);
+        return _char_triaits_priv::length(s);
     }
 
     static constexpr const char_type* find(const char_type* s, size_t count, const char_type& c) noexcept
     {
         // look for c in [s, s + count)
-        return _priv::find_n(s, count, c);
+        return _char_triaits_priv::find_n(s, count, c);
     }
 
     static char_type* assign(char_type* const s, size_t count, const char_type c) noexcept
     {
         // assign count * c to [s, ...)
-        return _priv::assign_n(s, count, c);
+        return _char_triaits_priv::assign_n(s, count, c);
     }
 
     static void assign(char_type& lhs, const char_type& rhs) noexcept
@@ -512,47 +513,47 @@ struct char_traits_base
     }
 };
 
-} // namespace _priv
+} // namespace _char_triaits_priv
 
 //=========================================================================
 // Traits
 //=========================================================================
 
 template <typename char_t>
-struct char_traits : _priv::char_traits_base<char_t, long, std::fpos<std::mbstate_t>>
+struct char_traits : _char_triaits_priv::char_traits_base<char_t, long, std::fpos<std::mbstate_t>>
 {
 };
 
 template <>
-struct char_traits<char> : _priv::char_traits_base<char, int, std::streampos>
+struct char_traits<char> : _char_triaits_priv::char_traits_base<char, int, std::streampos>
 {
 };
 
 template <>
-struct char_traits<wchar_t> : _priv::char_traits_base<wchar_t, short, std::wstreampos>
+struct char_traits<wchar_t> : _char_triaits_priv::char_traits_base<wchar_t, short, std::wstreampos>
 {
 };
 
-#if defined(__cpp_char8_t)
+#if VX_HAVE_STD_CHAR8_T
 template <>
-struct char_traits<char8_t> : _priv::char_traits_base<char8_t, int, std::u8streampos>
+struct char_traits<char8_t> : _char_triaits_priv::char_traits_base<char8_t, int, std::u8streampos>
 {
 };
-#endif // defined(__cpp_char8_t)
+#endif // VX_HAVE_STD_CHAR8_T
 
 template <>
-struct char_traits<char16_t> : _priv::char_traits_base<char16_t, int_least16_t, std::u16streampos>
+struct char_traits<char16_t> : _char_triaits_priv::char_traits_base<char16_t, int_least16_t, std::u16streampos>
 {
 };
 
 template <>
-struct char_traits<char32_t> : _priv::char_traits_base<char32_t, int_least32_t, std::u32streampos>
+struct char_traits<char32_t> : _char_triaits_priv::char_traits_base<char32_t, int_least32_t, std::u32streampos>
 {
 };
 
 //=========================================================================
 
-namespace _priv {
+namespace _char_triaits_priv {
 
 template <typename Traits>
 using traits_char_t = typename Traits::char_type;
@@ -636,7 +637,7 @@ constexpr int traits_compare(
 template <typename Traits>
 constexpr traits_char_t<Traits>* traits_remove(traits_char_t<Traits>* s, const size_t size, const traits_char_t<Traits> c) noexcept
 {
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
@@ -647,7 +648,7 @@ constexpr traits_char_t<Traits>* traits_remove(traits_char_t<Traits>* s, const s
         }
     }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
     const auto end = s + size;
     auto next = s;
@@ -674,7 +675,7 @@ constexpr void traits_reverse(traits_char_t<Traits>* s, const size_t size) noexc
         return;
     }
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
@@ -685,7 +686,7 @@ constexpr void traits_reverse(traits_char_t<Traits>* s, const size_t size) noexc
         }
     }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
     auto last = s + size;
 
@@ -709,7 +710,7 @@ constexpr void traits_replace(
         return;
     }
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value && _simd::replace_is_safe<traits_char_t<Traits>>::value)
     {
@@ -721,7 +722,7 @@ constexpr void traits_replace(
         }
     }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
     const auto last = s + size;
 
@@ -744,7 +745,7 @@ constexpr size_t traits_count(traits_ptr_t<Traits> s, const size_t size, const t
         return 0;
     }
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
@@ -755,7 +756,7 @@ constexpr size_t traits_count(traits_ptr_t<Traits> s, const size_t size, const t
         }
     }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
     size_t n = 0;
 
@@ -800,7 +801,7 @@ constexpr size_t traits_find(
         return start;
     }
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
@@ -820,7 +821,7 @@ constexpr size_t traits_find(
         }
     }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
     const auto end = haystack + (hay_size - needle_size) + 1;
 
@@ -854,7 +855,7 @@ constexpr size_t traits_find_ch(traits_ptr_t<Traits> haystack, const size_t hay_
         return static_cast<size_t>(-1);
     }
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
@@ -875,7 +876,7 @@ constexpr size_t traits_find_ch(traits_ptr_t<Traits> haystack, const size_t hay_
         }
     }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
     const auto found_at = Traits::find(haystack + start_at, hay_size - start_at, c);
     if (found_at)
@@ -907,7 +908,7 @@ constexpr size_t traits_rfind(traits_ptr_t<Traits> haystack, const size_t hay_si
 
     const size_t actual_start_at = std::min(start_at, hay_size - needle_size);
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
@@ -931,7 +932,7 @@ constexpr size_t traits_rfind(traits_ptr_t<Traits> haystack, const size_t hay_si
         }
     }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
     for (auto match_try = haystack + actual_start_at;; --match_try)
     {
@@ -964,7 +965,7 @@ constexpr size_t traits_rfind_ch(traits_ptr_t<Traits> haystack, const size_t hay
 
     const size_t actual_start_at = std::min(start_at, hay_size - 1);
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
@@ -984,7 +985,7 @@ constexpr size_t traits_rfind_ch(traits_ptr_t<Traits> haystack, const size_t hay
         }
     }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
     for (auto match_try = haystack + actual_start_at;; --match_try)
     {
@@ -1095,12 +1096,12 @@ constexpr size_t traits_find_first_of(
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
         if (!VX_IS_CONSTANT_EVALUATED())
         {
             const size_t remaining_size = hay_size - start_at;
-            if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+            if (remaining_size + needle_size >= VX_SIMD_char_triaits_priv_THRESHOLD_FIND_FIRST_OF)
             {
                 size_t pos = _simd::find_first_of_pos_simd(hay_start, remaining_size, needle, needle_size);
                 if (pos != static_cast<size_t>(-1))
@@ -1111,7 +1112,7 @@ constexpr size_t traits_find_first_of(
             }
         }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
         string_bitmap<typename Traits::char_type> matches;
 
@@ -1170,14 +1171,14 @@ constexpr size_t traits_find_last_of(
     {
         using char_t = typename Traits::char_type;
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
         VX_IF_CONSTEXPR (sizeof(char_t) <= 2)
         {
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_start + 1;
-                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= VX_SIMD_char_triaits_priv_THRESHOLD_FIND_FIRST_OF)
                 {
                     // same threshold for first/last
                     return _simd::find_last_of_pos_simd(haystack, remaining_size, needle, needle_size);
@@ -1185,7 +1186,7 @@ constexpr size_t traits_find_last_of(
             }
         }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
         string_bitmap<char_t> matches;
         if (matches.mark(needle, needle + needle_size))
@@ -1250,14 +1251,14 @@ constexpr size_t traits_find_first_not_of(
     {
         using char_t = typename Traits::char_type;
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
         VX_IF_CONSTEXPR (sizeof(char_t) <= 2)
         {
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_size - start_at;
-                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= VX_SIMD_char_triaits_priv_THRESHOLD_FIND_FIRST_OF)
                 {
                     size_t pos = _simd::find_first_not_of_pos_simd(hay_start, remaining_size, needle, needle_size);
                     if (pos != static_cast<size_t>(-1))
@@ -1269,7 +1270,7 @@ constexpr size_t traits_find_first_not_of(
             }
         }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
         string_bitmap<char_t> matches;
         if (matches.mark(needle, needle + needle_size))
@@ -1320,7 +1321,7 @@ constexpr size_t traits_find_not_ch(traits_ptr_t<Traits> haystack,
 
     const auto end = haystack + hay_size;
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
@@ -1339,7 +1340,7 @@ constexpr size_t traits_find_not_ch(traits_ptr_t<Traits> haystack,
         }
     }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
     for (auto match_try = haystack + start_at; match_try < end; ++match_try)
     {
@@ -1377,14 +1378,14 @@ constexpr size_t traits_find_last_not_of(traits_ptr_t<Traits> haystack,
     {
         using char_t = typename Traits::char_type;
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
         VX_IF_CONSTEXPR (sizeof(char_t) <= 2)
         {
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_start + 1;
-                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= VX_SIMD_char_triaits_priv_THRESHOLD_FIND_FIRST_OF)
                 {
                     // same threshold for first/last
                     return _simd::find_last_not_of_pos_simd(haystack, remaining_size, needle, needle_size);
@@ -1392,7 +1393,7 @@ constexpr size_t traits_find_last_not_of(traits_ptr_t<Traits> haystack,
             }
         }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
         string_bitmap<char_t> m_matches;
         if (m_matches.mark(needle, needle + needle_size))
@@ -1450,7 +1451,7 @@ constexpr size_t traits_rfind_not_ch(traits_ptr_t<Traits> haystack,
 
     const size_t actual_start_at = std::min(start_at, hay_size - 1);
 
-#if _VX_USE_SIMD_ALGORITHMS
+#if VX_STD_USE_SIMD_ALGORITHMS
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
@@ -1460,7 +1461,7 @@ constexpr size_t traits_rfind_not_ch(traits_ptr_t<Traits> haystack,
         }
     }
 
-#endif // _VX_USE_SIMD_ALGORITHMS
+#endif // VX_STD_USE_SIMD_ALGORITHMS
 
     for (auto match_try = haystack + actual_start_at;; --match_try)
     {
@@ -1549,7 +1550,7 @@ constexpr bool check_offset(const size_t size, const size_t off) noexcept
     return (off <= size);
 }
 
-} // namespace _priv
+} // namespace _char_triaits_priv
 
 //=========================================================================
 
@@ -1580,13 +1581,13 @@ template <size_t N, typename T>
 struct is_string_like<basic_static_string<N, T>> : std::true_type
 {};
 
-#if defined(__cpp_lib_string_view)
+#if VX_HAVE_STD_STRING_VIEW
 
 template <typename T, typename Traits>
 struct is_string_like<std::basic_string_view<T, Traits>> : std::true_type
 {};
 
-#endif // defined(__cpp_lib_string_view)
+#endif // VX_HAVE_STD_STRING_VIEW
 
 template <typename T, typename Traits, typename Alloc>
 struct is_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
@@ -1602,13 +1603,13 @@ template <typename T>
 struct is_string_view<basic_string_view<T>> : std::true_type
 {};
 
-#if defined(__cpp_lib_string_view)
+#if VX_HAVE_STD_STRING_VIEW
 
 template <typename T, typename Traits>
 struct is_string_view<std::basic_string_view<T, Traits>> : std::true_type
 {};
 
-#endif // defined(__cpp_lib_string_view)
+#endif // VX_HAVE_STD_STRING_VIEW
 
 //=========================================================================
 

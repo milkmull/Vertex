@@ -49,14 +49,12 @@
 //=========================================================================
 
 #if defined(_WIN32)
-    #define _VX_TEXT(x) L##x
+    #define VX_PRIV_TEXT(x) L##x
 #else
-    #define _VX_TEXT(x) x
+    #define VX_PRIV_TEXT(x) x
 #endif
 
-#define VX_TEXT(x) _VX_TEXT(x)
-
-#define VX_EMPTY_DEFINE(def) defined(def) && ((def) + 0 != -14) && (7 - (def) - 7 == 14)
+#define VX_TEXT(x) VX_PRIV_TEXT(x)
 
 //=========================================================================
 // Source Location
@@ -144,11 +142,11 @@
 //=========================================================================
 
 #if defined(_MSC_VER)
-    #define _VX_PRAGMA(x) __pragma(x)
+    #define VX_PRIV_PRAGMA(x) __pragma(x)
 #elif defined(__GNUC__) || defined(__clang__)
-    #define _VX_PRAGMA(x) _Pragma(VX_STRINGIFY(x))
+    #define VX_PRIV_PRAGMA(x) _Pragma(VX_STRINGIFY(x))
 #else
-    #define _VX_PRAGMA(x)
+    #define VX_PRIV_PRAGMA(x)
 #endif
 
 //=========================================================================
@@ -180,7 +178,7 @@
 #elif defined(__clang__)
 
     #define VX_DISABLE_WARNING_PUSH()                        _Pragma("clang diagnostic push")
-    #define VX_DISABLE_WARNING(warning_name, warning_number) _VX_PRAGMA(clang diagnostic ignored warning_name)
+    #define VX_DISABLE_WARNING(warning_name, warning_number) VX_PRIV_PRAGMA(clang diagnostic ignored warning_name)
     #define VX_DISABLE_WARNING_POP()                         _Pragma("clang diagnostic pop")
 
     #define VX_DISABLE_MSVC_WARNING(warning_number)
@@ -202,7 +200,7 @@
 #elif defined(__GNUC__)
 
     #define VX_DISABLE_WARNING_PUSH()                        _Pragma("GCC diagnostic push")
-    #define VX_DISABLE_WARNING(warning_name, warning_number) _VX_PRAGMA(GCC diagnostic ignored warning_name)
+    #define VX_DISABLE_WARNING(warning_name, warning_number) VX_PRIV_PRAGMA(GCC diagnostic ignored warning_name)
     #define VX_DISABLE_WARNING_POP()                         _Pragma("GCC diagnostic pop")
 
     #define VX_DISABLE_MSVC_WARNING_PUSH()
@@ -252,18 +250,18 @@
 #if VX_CPP_STANDARD >= 20
     #define VX_LIKELY(expr)    (expr) [[likely]]
     #define VX_UNLIKELY(expr)  (expr) [[unlikely]]
-    #define _VX_LIKELY_DEFINED 1
+    #define VX_PRIV_LIKELY_DEFINED 1
 #elif defined(__GNUC__) || defined(__clang__)
     #define VX_LIKELY(expr)    (__builtin_expect(!!(expr), 1))
     #define VX_UNLIKELY(expr)  (__builtin_expect(!!(expr), 0))
-    #define _VX_LIKELY_DEFINED 1
+    #define VX_PRIV_LIKELY_DEFINED 1
 #else
     #define VX_LIKELY(expr)    (expr)
     #define VX_UNLIKELY(expr)  (expr)
-    #define _VX_LIKELY_DEFINED 0
+    #define VX_PRIV_LIKELY_DEFINED 0
 #endif
 
-#if _VX_LIKELY_DEFINED && 0
+#if VX_PRIV_LIKELY_DEFINED && 0
 
     #define VX_UNLIKELY_COLD_PATH(cond, action) \
         do \
@@ -291,7 +289,7 @@
 
 #endif
 
-#undef _VX_LIKELY_DEFINED
+#undef VX_PRIV_LIKELY_DEFINED
 
 #if defined(_MSC_VER)
     #define VX_ASSUME(expr) __assume(expr)
