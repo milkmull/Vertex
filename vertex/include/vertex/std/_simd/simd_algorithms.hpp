@@ -14,7 +14,7 @@ namespace _simd {
 
 // Vector algorithms only fully available on x86 with at least SSE2
 #if defined(VX_SIMD_X86) && (VX_SIMD_X86 >= VX_SIMD_X86_SSE2_VERSION)
-    //#define VX_STD_USE_SIMD_ALGORITHMS 1
+    #define VX_STD_USE_SIMD_ALGORITHMS 1
 #else
     #define VX_STD_USE_SIMD_ALGORITHMS 0
 #endif

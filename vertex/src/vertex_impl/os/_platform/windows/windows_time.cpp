@@ -1,6 +1,7 @@
-#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
-#include "vertex/os/time.hpp"
 #include "vertex/os/shared_library.hpp"
+#include "vertex/os/time.hpp"
+#include "vertex/std/error.hpp"
+#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 
 namespace vx {
 namespace os {
@@ -17,7 +18,7 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
 
     if (!::FileTimeToSystemTime(&ft, &utc_st))
     {
-        windows::error_message("FileTimeToSystemTime()");
+        err::set_last_os_error("FileTimeToSystemTime");
         return dt;
     }
 
@@ -25,14 +26,14 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
     {
         if (!::SystemTimeToTzSpecificLocalTime(NULL, &utc_st, &local_st))
         {
-            windows::error_message("SystemTimeToTzSpecificLocalTime()");
+            err::set_last_os_error("SystemTimeToTzSpecificLocalTime");
             return dt;
         }
 
         FILETIME local_ft{};
         if (!::SystemTimeToFileTime(&local_st, &local_ft))
         {
-            windows::error_message("SystemTimeToFileTime()");
+            err::set_last_os_error("SystemTimeToFileTime");
             return dt;
         }
 
@@ -93,7 +94,7 @@ int64_t get_performance_frequency_impl() noexcept
 
 // CREATE_WAITABLE_TIMER_HIGH_RESOLUTION flag was added in Windows 10 version 1803.
 #if !defined(CREATE_WAITABLE_TIMER_HIGH_RESOLUTION)
-#   define CREATE_WAITABLE_TIMER_HIGH_RESOLUTION 0x00000002
+    #define CREATE_WAITABLE_TIMER_HIGH_RESOLUTION 0x00000002
 #endif
 
 using CreateWaitableTimerExW_t = HANDLE(WINAPI*)(LPSECURITY_ATTRIBUTES lpTimerAttributes, LPCWSTR lpTimerName, DWORD dwFlags, DWORD dwDesiredAccess);
@@ -107,7 +108,8 @@ struct waitable_timer_tools
     CreateWaitableTimerExW_t CreateWaitableTimerExW = nullptr;
     SetWaitableTimerEx_t SetWaitableTimerEx = nullptr;
 
-    bool available() const noexcept { return CreateWaitableTimerExW && SetWaitableTimerEx; }
+    bool available() const noexcept
+    { return CreateWaitableTimerExW && SetWaitableTimerEx; }
 };
 
 static waitable_timer_tools s_wtt;

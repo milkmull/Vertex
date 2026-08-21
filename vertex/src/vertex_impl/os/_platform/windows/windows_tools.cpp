@@ -2,61 +2,16 @@
 
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/util/memory/memory.hpp"
-#include "vertex/system/error.hpp"
-#include "vertex/util/string/string_cast.hpp"
+#include "vertex/os/error.hpp"
+#include "vertex/std/string_cast.hpp"
 
 namespace vx {
 namespace os {
-
-///////////////////////////////////////////////////////////////////////////////
-// Handle
-///////////////////////////////////////////////////////////////////////////////
-
-void handle::close_impl() noexcept
-{
-    ::CloseHandle(m_handle);
-}
-
 namespace windows {
 
-///////////////////////////////////////////////////////////////////////////////
-// Error Handling
-///////////////////////////////////////////////////////////////////////////////
-
-void error_message(const char* msg)
-{
-    err::set(err::system_error, msg);
-
-    //const size_t msg_size = std::strlen(msg);
-    //
-    //DWORD code = ::GetLastError();
-    //WCHAR buffer_type[1024]{};
-    //
-    //::FormatMessageW(
-    //    FORMAT_MESSAGE_FROM_SYSTEM,
-    //    NULL, code, 0,
-    //    buffer_type, static_cast<DWORD>(mem::array_size(buffer_type)), NULL
-    //);
-    //
-    //// Kill CR/LF that FormatMessage() sticks at the end
-    //for (WCHAR* it = buffer_type; *it; ++it)
-    //{
-    //    if (*it == L'\r')
-    //    {
-    //        *it = 0;
-    //        break;
-    //    }
-    //}
-
-    //VX_ERR(vx::err::system_error)
-    //    << msg
-    //    << ((msg_size == 0) ? "" : ": ")
-    //    << str::string_cast<char>(buffer_type);
-}
-
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // helpers
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 const char* check_default_args(int* pargc, char*** pargv, void** pallocated)
 {
@@ -150,9 +105,9 @@ const char* check_default_args(int* pargc, char*** pargv, void** pallocated)
     return NULL;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // COM
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 bool com_initializer::initialize() noexcept
 {
@@ -173,7 +128,7 @@ bool com_initializer::initialize() noexcept
 
     if (!succeeded())
     {
-        error_message("CoInitializeEx()");
+        err::set_last_os_error("CoInitializeEx");
         return false;
     }
 
@@ -189,9 +144,9 @@ void com_initializer::uninitialize() noexcept
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // OLE
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 bool ole_initializer::initialize() noexcept
 {
@@ -199,7 +154,7 @@ bool ole_initializer::initialize() noexcept
 
     if (!succeeded())
     {
-        error_message("OleInitialize()");
+        err::set_last_os_error("OleInitialize");
         return false;
     }
 

@@ -51,7 +51,7 @@ static bool update_file_permissions_internal(
     const DWORD attrs = ::GetFileAttributesW(p.c_str());
     if (attrs == INVALID_FILE_ATTRIBUTES)
     {
-        windows::error_message("GetFileAttributesW()");
+        err::set_last_os_error("GetFileAttributesW");
         return false;
     }
 
@@ -72,14 +72,14 @@ static bool update_file_permissions_internal(
 
         if (!h.is_valid())
         {
-            windows::error_message("CreateFileW()");
+            err::set_last_os_error("CreateFileW");
             return false;
         }
         
         FILE_BASIC_INFO basic_info{};
         if (!::GetFileInformationByHandleEx(h.get(), FileBasicInfo, &basic_info, sizeof(basic_info)))
         {
-            windows::error_message("GetFileInformationByHandleEx()");
+            err::set_last_os_error("GetFileInformationByHandleEx");
             return false;
         }
 
@@ -92,7 +92,7 @@ static bool update_file_permissions_internal(
         basic_info.FileAttributes ^= FILE_ATTRIBUTE_READONLY;
         if (!::SetFileInformationByHandle(h.get(), FileBasicInfo, &basic_info, sizeof(basic_info)))
         {
-            windows::error_message("SetFileInformationByHandle()");
+            err::set_last_os_error("SetFileInformationByHandle");
             return false;
         }
     }
@@ -106,7 +106,7 @@ static bool update_file_permissions_internal(
 
         if (!::SetFileAttributesW(p.c_str(), attrs ^ FILE_ATTRIBUTE_READONLY))
         {
-            windows::error_message("SetFileAttributesW()");
+            err::set_last_os_error("SetFileAttributesW");
             return false;
         }
     }
@@ -189,7 +189,7 @@ static bool get_reparse_point_data_from_handle(
         &count,
         NULL))
     {
-        windows::error_message("DeviceIoControl()");
+        err::set_last_os_error("DeviceIoControl");
         return false;
     }
 
@@ -213,7 +213,7 @@ static bool get_reparse_point_data(const path& p, std::unique_ptr<reparse_point_
     {
         if (throw_on_fail)
         {
-            windows::error_message("CreateFileW()");
+            err::set_last_os_error("CreateFileW");
         }
 
         return false;
@@ -360,7 +360,7 @@ static file_info file_info_from_handle(const handle& h, const path& p)
     BY_HANDLE_FILE_INFORMATION fi;
     if (!::GetFileInformationByHandle(h.get(), &fi))
     {
-        windows::error_message("GetFileInformationByHandle()");
+        err::set_last_os_error("GetFileInformationByHandle");
         return info;
     }
 
@@ -395,7 +395,7 @@ file_info get_file_info_impl(const path& p)
 
         if (!h.is_valid())
         {
-            windows::error_message("CreateFileW()");
+            err::set_last_os_error("CreateFileW");
             info.type = file_type_from_error(GetLastError());
         }
         else
@@ -421,7 +421,7 @@ file_info get_symlink_info_impl(const path& p)
 
     if (!h.is_valid())
     {
-        //windows::error_message("CreateFileW()");
+        //err::set_last_os_error("CreateFileW");
         return {};
     }
 
@@ -442,14 +442,14 @@ size_t hard_link_count_impl(const path& p)
 
     if (!h.is_valid())
     {
-        windows::error_message("CreateFileW()");
+        err::set_last_os_error("CreateFileW");
         return 0;
     }
 
     BY_HANDLE_FILE_INFORMATION fi;
     if (!::GetFileInformationByHandle(h.get(), &fi))
     {
-        windows::error_message("GetFileInformationByHandle()");
+        err::set_last_os_error("GetFileInformationByHandle");
         return 0;
     }
     
@@ -470,7 +470,7 @@ bool set_modify_time_impl(const path& p, time::time_point t)
 
     if (!h.is_valid())
     {
-        windows::error_message("CreateFileW()");
+        err::set_last_os_error("CreateFileW");
         return 0;
     }
 
@@ -479,7 +479,7 @@ bool set_modify_time_impl(const path& p, time::time_point t)
 
     if (!::SetFileTime(h.get(), NULL, NULL, &ft))
     {
-        windows::error_message("SetFileTime()");
+        err::set_last_os_error("SetFileTime");
         return false;
     }
 
@@ -544,7 +544,7 @@ path get_current_path_impl()
     WCHAR buffer_type[MAX_PATH]{};
     if (!::GetCurrentDirectoryW(MAX_PATH, buffer_type))
     {
-        windows::error_message("GetCurrentDirectoryW()");
+        err::set_last_os_error("GetCurrentDirectoryW");
         return {};
     }
 
@@ -555,7 +555,7 @@ bool set_current_path_impl(const path& p)
 {
     if (!::SetCurrentDirectoryW(p.c_str()))
     {
-        windows::error_message("SetCurrentDirectoryW()");
+        err::set_last_os_error("SetCurrentDirectoryW");
         return false;
     }
 
@@ -580,7 +580,7 @@ path canonical_impl(const path& p)
 
     if (!h.is_valid())
     {
-        windows::error_message("CreateFileW()");
+        err::set_last_os_error("CreateFileW");
         return res;
     }
 
@@ -598,7 +598,7 @@ path canonical_impl(const path& p)
 
         if (size == 0)
         {
-            windows::error_message("GetFinalPathNameByHandleW()");
+            err::set_last_os_error("GetFinalPathNameByHandleW");
             return res;
         }
     }
@@ -606,7 +606,7 @@ path canonical_impl(const path& p)
     std::vector<WCHAR> buffer_type(size);
     if (::GetFinalPathNameByHandleW(h.get(), buffer_type.data(), size, flags) == 0)
     {
-        windows::error_message("GetFinalPathNameByHandleW()");
+        err::set_last_os_error("GetFinalPathNameByHandleW");
         return res;
     }
 
@@ -680,7 +680,7 @@ bool equivalent_impl(const path& p1, const path& p2)
 
     if (!h1.is_valid())
     {
-        windows::error_message("CreateFileW()");
+        err::set_last_os_error("CreateFileW");
         return false;
     }
 
@@ -696,21 +696,21 @@ bool equivalent_impl(const path& p1, const path& p2)
 
     if (!h2.is_valid())
     {
-        windows::error_message("CreateFileW()");
+        err::set_last_os_error("CreateFileW");
         return false;
     }
 
     BY_HANDLE_FILE_INFORMATION info1{};
     if (!::GetFileInformationByHandle(h1.get(), &info1))
     {
-        windows::error_message("GetFileInformationByHandle()");
+        err::set_last_os_error("GetFileInformationByHandle");
         return false;
     }
 
     BY_HANDLE_FILE_INFORMATION info2{};
     if (!::GetFileInformationByHandle(h2.get(), &info2))
     {
-        windows::error_message("GetFileInformationByHandle()");
+        err::set_last_os_error("GetFileInformationByHandle");
         return false;
     }
 
@@ -773,7 +773,7 @@ path get_temp_path_impl()
         {
             error:
             {
-                windows::error_message("GetWindowsDirectoryW()");
+                err::set_last_os_error("GetWindowsDirectoryW");
                 return {};
             }
         }
@@ -842,7 +842,7 @@ path get_user_folder_impl(user_folder folder)
     }
     else
     {
-        windows::error_message("SHGetKnownFolderPath()");
+        err::set_last_os_error("SHGetKnownFolderPath");
     }
     ::CoTaskMemFree(szPath);
 
@@ -867,7 +867,7 @@ bool create_file_impl(const path& p)
 
     if (!h.is_valid())
     {
-        windows::error_message("CreateFileW()");
+        err::set_last_os_error("CreateFileW");
         return false;
     }
 
@@ -896,7 +896,7 @@ bool create_directory_impl(const path& p)
             // Exists but is not a directory
         }
 
-        windows::error_message("CreateDirectoryW()");
+        err::set_last_os_error("CreateDirectoryW");
         return false;
     }
 
@@ -911,7 +911,7 @@ static bool create_symlink_impl(const path& target, const path& link, DWORD flag
 #if defined(_CRT_APP)
 
     ::SetLastError(ERROR_NOT_SUPPORTED);
-    windows::error_message("CreateSymbolicLinkW()");
+    err::set_last_os_error("CreateSymbolicLinkW");
     return false;
 
 #else
@@ -922,7 +922,7 @@ static bool create_symlink_impl(const path& target, const path& link, DWORD flag
     {
         if (::GetLastError() != ERROR_INVALID_PARAMETER || !::CreateSymbolicLinkW(link.c_str(), normalized_target.c_str(), flags))
         {
-            windows::error_message("CreateSymbolicLinkW()");
+            err::set_last_os_error("CreateSymbolicLinkW");
             return false;
         }
     }
@@ -947,14 +947,14 @@ bool create_hard_link_impl(const path& target, const path& link)
 #if defined(_CRT_APP)
 
     ::SetLastError(ERROR_NOT_SUPPORTED);
-    windows::error_message("CreateHardLinkW()");
+    err::set_last_os_error("CreateHardLinkW");
     return false;
 
 #else
 
     if (!::CreateHardLinkW(link.c_str(), target.c_str(), NULL))
     {
-        windows::error_message("CreateHardLinkW()");
+        err::set_last_os_error("CreateHardLinkW");
         return false;
     }
 
@@ -973,7 +973,7 @@ bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
 {
     if (!::CopyFileW(from.c_str(), to.c_str(), !overwrite_existing))
     {
-        windows::error_message("CopyFileW()");
+        err::set_last_os_error("CopyFileW");
         return false;
     }
 
@@ -990,7 +990,7 @@ bool rename_impl(const path& from, const path& to)
 {
     if (!::MoveFileExW(from.c_str(), to.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING))
     {
-        windows::error_message("MoveFileExW()");
+        err::set_last_os_error("MoveFileExW");
         return false;
     }
 
@@ -1005,7 +1005,7 @@ static bool clear_readonly_attribute(const path& p, DWORD attrs)
 {
     if (!::SetFileAttributesW(p.c_str(), attrs & ~FILE_ATTRIBUTE_READONLY))
     {
-        windows::error_message("SetFileAttributesW()");
+        err::set_last_os_error("SetFileAttributesW");
         return false;
     }
     return true;
@@ -1026,7 +1026,7 @@ static _priv::remove_error remove_directory(const path& p, bool in_recursive_rem
         if (!not_empty || (not_empty && !in_recursive_remove))
         {
             // don't report an error in recursive remove
-            windows::error_message("RemoveDirectoryW()");
+            err::set_last_os_error("RemoveDirectoryW");
         }
 
         return not_empty
@@ -1043,7 +1043,7 @@ static _priv::remove_error remove_file(const path& p, DWORD attrs)
     {
         restore_readonly_attributes(p, attrs);
 
-        windows::error_message("DeleteFileW()");
+        err::set_last_os_error("DeleteFileW");
         return _priv::remove_error::other;
     }
 
@@ -1076,7 +1076,7 @@ _priv::remove_error remove_impl(const path& p, bool in_recursive_remove)
             return _priv::remove_error::path_not_found;
         }
 
-        windows::error_message("GetFileAttributesExW()");
+        err::set_last_os_error("GetFileAttributesExW");
         return _priv::remove_error::other;
     }
 
@@ -1107,7 +1107,7 @@ space_info space_impl(const path& p)
 
     if (!::GetDiskFreeSpaceExW(p.c_str(), &available, &capacity, &free))
     {
-        windows::error_message("GetDiskFreeSpaceExW()");
+        err::set_last_os_error("GetDiskFreeSpaceExW");
         return {};
     }
 
@@ -1222,7 +1222,7 @@ static void open_directory_iterator(const path& p, directory_entry& entry, handl
 
     if (!h.is_valid())
     {
-        windows::error_message("FindFirstFileExW()");
+        err::set_last_os_error("FindFirstFileExW");
         return;
     }
 

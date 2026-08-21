@@ -1,6 +1,13 @@
 # Source files for vertex/include/vertex/std
 file(GLOB VX_STD_HEADER_FILES
 
+    # Memory
+    "${CMAKE_CURRENT_SOURCE_DIR}/_memory/memory_base.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_memory/memory_core.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_memory/memory_util.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_memory/allocator.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"
+
     # Core
     "${CMAKE_CURRENT_SOURCE_DIR}/array.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/aligned_storage.hpp"
@@ -11,7 +18,6 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/hex.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/io.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/iterator.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/span.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/unique_ptr.hpp"
 
@@ -25,6 +31,7 @@ file(GLOB VX_STD_HEADER_FILES
 
     # Strings
     "${CMAKE_CURRENT_SOURCE_DIR}/char_traits.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/string_traits.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_view.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/cstring_view.hpp"

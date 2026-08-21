@@ -409,7 +409,7 @@ public:
         return m_buffer.ptr;
     }
 
-    const pointer data() const noexcept
+    const_pointer data() const noexcept
     {
         return m_buffer.ptr;
     }

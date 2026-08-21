@@ -3,7 +3,7 @@
 #include <cmath>
 
 #include "vertex/config/language_config.hpp"
-#include "vertex/std/float_traits.hpp"
+#include "vertex/std/math/float_traits.hpp"
 #include "vertex/util/bit/bit.hpp"
 
 namespace vx {

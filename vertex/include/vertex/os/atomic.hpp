@@ -2,6 +2,8 @@
 
 #include <atomic>
 
+#include "vertex/config/language_config.hpp"
+
 namespace vx {
 namespace os {
 

@@ -50,7 +50,7 @@ public:
     //=========================================================================
 
     constexpr basic_cstring_view() noexcept
-        : m_data(empty_string()), m_size(0)
+        : m_view(empty_string(), 0)
     {}
 
     constexpr basic_cstring_view(const basic_cstring_view&) noexcept = default;
@@ -59,30 +59,30 @@ public:
     // String literals are always null terminated, so this is always safe.
     template <size_type N>
     constexpr basic_cstring_view(const value_type (&str)[N]) noexcept
-        : m_data(str), m_size(N - 1)
+        : m_view(str, N - 1)
     {
         VX_ASSERT(str[N - 1] == T());
     }
 
     // Raw C strings are assumed to be null terminated, per convention.
     constexpr basic_cstring_view(const T* ptr) noexcept
-        : m_data(ptr), m_size(traits_type::length(ptr))
+        : m_view(ptr, traits_type::length(ptr))
     {}
 
     basic_cstring_view(nullptr_t) = delete;
 
     template <typename Allocator2>
     constexpr basic_cstring_view(const str::basic_string<T, Allocator2>& s) noexcept
-        : m_data(s.c_str()), m_size(s.size())
+        : m_view(s.c_str(), s.size())
     {}
 
     template <typename Traits2, typename Allocator2>
     constexpr basic_cstring_view(const std::basic_string<T, Traits2, Allocator2>& s) noexcept
-        : m_data(s.c_str()), m_size(s.size())
+        : m_view(s.c_str(), s.size())
     {}
 
     constexpr basic_cstring_view(unsafe_t, const T* ptr, const size_type count) noexcept
-        : m_data(ptr), m_size(count)
+        : m_view(ptr, count)
     {
         VX_ASSERT(ptr);
         VX_ASSERT(ptr[count] == T());
@@ -94,7 +94,7 @@ public:
 
     constexpr operator basic_string_view<T>() const noexcept
     {
-        return basic_string_view<T>(m_data, m_size);
+        return m_view;
     }
 
     template <typename Allocator2>
@@ -125,30 +125,30 @@ public:
 
     constexpr const_reference front() const noexcept
     {
-        VX_ASSERT(m_size > 0);
-        return m_data[0];
+        VX_ASSERT(!m_view.empty());
+        return m_view[0];
     }
 
     constexpr const_reference back() const noexcept
     {
-        VX_ASSERT(m_size > 0);
-        return m_data[m_size - 1];
+        VX_ASSERT(!m_view.empty());
+        return m_view[m_view.size() - 1];
     }
 
     constexpr const_pointer data() const noexcept
     {
-        return m_data;
+        return m_view.data();
     }
 
     constexpr const_pointer c_str() const noexcept
     {
-        return m_data;
+        return m_view.data();
     }
 
     constexpr const_reference operator[](size_type i) const noexcept
     {
-        VX_ASSERT(i < m_size);
-        return m_data[i];
+        VX_ASSERT(i < m_view.size());
+        return m_view[i];
     }
 
     //=========================================================================
@@ -157,7 +157,7 @@ public:
 
     const_iterator begin() const noexcept
     {
-        return const_iterator(m_data);
+        return const_iterator(m_view.data());
     }
     const_iterator cbegin() const noexcept
     {
@@ -166,7 +166,7 @@ public:
 
     const_iterator end() const noexcept
     {
-        return const_iterator(m_data + m_size);
+        return const_iterator(m_view.data() + m_view.size());
     }
     const_iterator cend() const noexcept
     {
@@ -197,11 +197,11 @@ public:
 
     constexpr bool empty() const noexcept
     {
-        return m_size == 0;
+        return m_view.empty();
     }
     constexpr size_type size() const noexcept
     {
-        return m_size;
+        return m_view.size();
     }
     constexpr size_type length() const noexcept
     {
@@ -222,9 +222,9 @@ public:
 
     constexpr void swap(basic_cstring_view& other) noexcept
     {
-        const basic_cstring_view tmp{ other };
-        other = *this;
-        *this = tmp;
+        const basic_string_view<T> tmp{ m_view };
+        m_view = other.m_view;
+        other.m_view = tmp;
     }
 
     //=========================================================================
@@ -233,9 +233,8 @@ public:
 
     constexpr void remove_prefix(const size_type count) noexcept
     {
-        VX_ASSERT(m_size >= count);
-        m_data += count;
-        m_size -= count;
+        VX_ASSERT(m_view.size() >= count);
+        m_view.remove_prefix(count);
     }
 
     //=========================================================================
@@ -249,13 +248,13 @@ public:
 
     constexpr basic_cstring_view substr(const size_type off = 0) const
     {
-        VX_ASSERT(off <= m_size);
-        return basic_cstring_view(unsafe, m_data + off, m_size - off);
+        VX_ASSERT(off <= m_view.size());
+        return basic_cstring_view(unsafe, m_view.data() + off, m_view.size() - off);
     }
 
     constexpr basic_string_view<T> view(const size_type off = 0, const size_type count = npos) const noexcept
     {
-        return basic_string_view<T>(*this).substr(off, count);
+        return m_view.substr(off, count);
     }
 
     //=========================================================================
@@ -264,12 +263,12 @@ public:
 
     constexpr int compare(const basic_string_view<T> right) const noexcept
     {
-        return basic_string_view<T>(*this).compare(right);
+        return m_view.compare(right);
     }
 
     constexpr int compare(const T* const ptr) const noexcept
     {
-        return compare(basic_string_view<T>(ptr));
+        return m_view.compare(basic_string_view<T>(ptr));
     }
 
     //=========================================================================
@@ -278,42 +277,42 @@ public:
 
     constexpr size_type find(const basic_string_view<T> right, const size_type off = 0) const noexcept
     {
-        return basic_string_view<T>(*this).find(right, off);
+        return m_view.find(right, off);
     }
 
     constexpr size_type find(const T c, const size_type off = 0) const noexcept
     {
-        return basic_string_view<T>(*this).find(c, off);
+        return m_view.find(c, off);
     }
 
     constexpr size_type rfind(const basic_string_view<T> right, const size_type off = npos) const noexcept
     {
-        return basic_string_view<T>(*this).rfind(right, off);
+        return m_view.rfind(right, off);
     }
 
     constexpr size_type rfind(const T c, const size_type off = npos) const noexcept
     {
-        return basic_string_view<T>(*this).rfind(c, off);
+        return m_view.rfind(c, off);
     }
 
     constexpr size_type find_first_of(const basic_string_view<T> right, const size_type off = 0) const noexcept
     {
-        return basic_string_view<T>(*this).find_first_of(right, off);
+        return m_view.find_first_of(right, off);
     }
 
     constexpr size_type find_last_of(const basic_string_view<T> right, const size_type off = npos) const noexcept
     {
-        return basic_string_view<T>(*this).find_last_of(right, off);
+        return m_view.find_last_of(right, off);
     }
 
     constexpr size_type find_first_not_of(const basic_string_view<T> right, const size_type off = 0) const noexcept
     {
-        return basic_string_view<T>(*this).find_first_not_of(right, off);
+        return m_view.find_first_not_of(right, off);
     }
 
     constexpr size_type find_last_not_of(const basic_string_view<T> right, const size_type off = npos) const noexcept
     {
-        return basic_string_view<T>(*this).find_last_not_of(right, off);
+        return m_view.find_last_not_of(right, off);
     }
 
 private:
@@ -324,8 +323,7 @@ private:
         return s;
     }
 
-    const_pointer m_data;
-    size_type m_size;
+    basic_string_view<T> m_view;
 };
 
 //=========================================================================
@@ -341,7 +339,7 @@ constexpr bool operator==(
     return _char_traits_priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
 }
 
-template <typename T>
+template <typename T, int = 1>
 constexpr bool operator==(
     const basic_cstring_view<T> lhs,
     const type_traits::identity_t<basic_cstring_view<T>> rhs) noexcept
@@ -350,7 +348,7 @@ constexpr bool operator==(
     return _char_traits_priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
 }
 
-template <typename T>
+template <typename T, int = 2>
 constexpr bool operator==(
     const type_traits::identity_t<basic_cstring_view<T>> lhs,
     const basic_cstring_view<T> rhs) noexcept
@@ -409,7 +407,7 @@ constexpr bool operator<(
     type_traits::identity_t<basic_cstring_view<T>> lhs,
     basic_cstring_view<T> rhs) noexcept
 {
-    return lhs.compare(rhs) > 0;
+    return lhs.compare(rhs) < 0;
 }
 
 //=========================================================================

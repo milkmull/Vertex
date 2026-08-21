@@ -14,7 +14,7 @@ namespace str {
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr size_t length(const C* s) noexcept
 {
-    return _priv::length(s);
+    return _char_traits_priv::length(s);
 }
 
 template <typename S, VX_REQUIRES(is_string_like<S>::value)>
@@ -37,7 +37,7 @@ template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr int compare(const C* a, const size_t a_size, const C* b, const size_t b_size) noexcept
 {
     using traits = char_traits<C>;
-    return _priv::traits_compare<traits>(a, a_size, b, b_size);
+    return _char_traits_priv::traits_compare<traits>(a, a_size, b, b_size);
 }
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
@@ -643,7 +643,7 @@ constexpr size_t find(
     const C c,
     const size_t start = 0) noexcept
 {
-    return _priv::traits_find_ch(haystack, hay_size, start, c);
+    return _char_traits_priv::traits_find_ch(haystack, hay_size, start, c);
 }
 
 template <typename S, VX_REQUIRES(is_string_like<S>::value)>
@@ -652,7 +652,7 @@ constexpr size_t find(
     const typename S::value_type c,
     const size_t start = 0) noexcept
 {
-    return _priv::traits_find_ch(haystack.data(), haystack.size(), start, c);
+    return _char_traits_priv::traits_find_ch(haystack.data(), haystack.size(), start, c);
 }
 
 //==============================================================================
@@ -666,7 +666,7 @@ constexpr size_t find(
     const size_t start = 0) noexcept
 {
     using traits = char_traits<C>;
-    return _priv::traits_find<traits>(haystack, hay_size, start, needle, needle_size);
+    return _char_traits_priv::traits_find<traits>(haystack, hay_size, start, needle, needle_size);
 }
 
 template <typename S, typename C, VX_REQUIRES(is_string_of<S, C>::value)>
@@ -717,7 +717,7 @@ constexpr size_t rfind(
     const size_t start = std::numeric_limits<size_t>::max()) noexcept
 {
     using traits = char_traits<C>;
-    return _priv::traits_rfind_ch<traits>(haystack, hay_size, start, c);
+    return _char_traits_priv::traits_rfind_ch<traits>(haystack, hay_size, start, c);
 }
 
 template <typename S, VX_REQUIRES(is_string_like<S>::value)>
@@ -740,7 +740,7 @@ constexpr size_t rfind(
     const size_t start = std::numeric_limits<size_t>::max()) noexcept
 {
     using traits = char_traits<C>;
-    return _priv::traits_rfind(haystack, hay_size, start, needle, needle_size);
+    return _char_traits_priv::traits_rfind(haystack, hay_size, start, needle, needle_size);
 }
 
 template <typename S, typename C, VX_REQUIRES(is_string_of<S, C>::value)>
@@ -792,7 +792,7 @@ constexpr size_t find_first_of(
     const size_t start = 0) noexcept
 {
     using traits = char_traits<C>;
-    return _priv::traits_find_first_of<traits>(haystack, hay_size, start, needle, needle_size);
+    return _char_traits_priv::traits_find_first_of<traits>(haystack, hay_size, start, needle, needle_size);
 }
 
 template <typename S, typename C, VX_REQUIRES(is_string_of<S, C>::value)>
@@ -844,7 +844,7 @@ constexpr size_t find_last_of(
     const size_t start = std::numeric_limits<size_t>::max()) noexcept
 {
     using traits = char_traits<C>;
-    return _priv::traits_find_last_of<traits>(haystack, hay_size, start, needle, needle_size);
+    return _char_traits_priv::traits_find_last_of<traits>(haystack, hay_size, start, needle, needle_size);
 }
 
 template <typename S, typename C, VX_REQUIRES(is_string_of<S, C>::value)>
@@ -896,7 +896,7 @@ constexpr size_t find_first_not_of(
     const size_t start = 0) noexcept
 {
     using traits = char_traits<C>;
-    return _priv::traits_find_first_not_of<traits>(haystack, hay_size, start, needle, needle_size);
+    return _char_traits_priv::traits_find_first_not_of<traits>(haystack, hay_size, start, needle, needle_size);
 }
 
 template <typename S, typename C, VX_REQUIRES(is_string_of<S, C>::value)>
@@ -948,7 +948,7 @@ constexpr size_t find_last_not_of(
     const size_t start = std::numeric_limits<size_t>::max()) noexcept
 {
     using traits = char_traits<C>;
-    return _priv::traits_find_last_not_of<traits>(haystack, hay_size, start, needle, needle_size);
+    return _char_traits_priv::traits_find_last_not_of<traits>(haystack, hay_size, start, needle, needle_size);
 }
 
 template <typename S, typename C, VX_REQUIRES(is_string_of<S, C>::value)>
@@ -995,14 +995,14 @@ template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr size_t count(const C* s, const size_t size, const C c) noexcept
 {
     using traits = char_traits<C>;
-    return _priv::traits_count<traits>(s, size, c);
+    return _char_traits_priv::traits_count<traits>(s, size, c);
 }
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr size_t count(const C* s, const C c) noexcept
 {
     using traits = char_traits<C>;
-    return _priv::traits_count<traits>(s, length(s), c);
+    return _char_traits_priv::traits_count<traits>(s, length(s), c);
 }
 
 //==============================================================================
@@ -1543,7 +1543,7 @@ template <typename S, VX_REQUIRES(is_mutable_string_like<S>::value)>
 constexpr void remove(S& s, const typename S::value_type c) noexcept
 {
     using traits = char_traits<typename S::value_type>;
-    const auto it = _priv::traits_remove<traits>(s.data(), s.size(), c);
+    const auto it = _char_traits_priv::traits_remove<traits>(s.data(), s.size(), c);
     const size_t off = it - s.data();
     const size_t count = s.size() - off;
     s.erase(off, count);
@@ -1660,7 +1660,7 @@ constexpr void replace(
     const C new_val) noexcept
 {
     using traits = char_traits<C>;
-    _priv::traits_replace<traits>(s, size, old_val, new_val);
+    _char_traits_priv::traits_replace<traits>(s, size, old_val, new_val);
 }
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
@@ -1922,7 +1922,7 @@ template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr void reverse(C* s, const size_t size) noexcept
 {
     using traits = char_traits<C>;
-    _priv::traits_reverse<traits>(s, size);
+    _char_traits_priv::traits_reverse<traits>(s, size);
 }
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>

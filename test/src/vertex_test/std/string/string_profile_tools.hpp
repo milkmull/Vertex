@@ -4,7 +4,7 @@
 #include <string>
 #include <utility>
 
-#include "vertex/os/atomic.hpp"
+#include "vertex/os/compiler.hpp"
 #include "vertex/std/string.hpp"
 #include "vertex/util/random.hpp"
 #define VX_ENABLE_PROFILING

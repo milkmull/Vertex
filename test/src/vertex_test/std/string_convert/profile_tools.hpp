@@ -313,7 +313,7 @@ struct profile_vx_to_string_integer
         char buf[buf_size] = {};
 
         start_timer_int("vx::to_string");
-        const auto r = str::to_string(v, buf, buf_size);
+        const auto r = strconv::to_string(v, buf, buf_size);
         stop_timer();
 
         return r.count;
@@ -345,11 +345,11 @@ struct profile_vx_from_string_integer
     static T run(const T v)
     {
         char buf[buf_size] = {};
-        const auto res = str::to_string(v, buf, buf_size);
+        const auto res = strconv::to_string(v, buf, buf_size);
         T value{};
 
         start_timer_int("vx::from_string");
-        str::from_string(buf, res.count, value, 10);
+        strconv::from_string(buf, res.count, value, 10);
         stop_timer();
 
         return value;
@@ -417,19 +417,19 @@ constexpr std::chars_format std_format_chooser()
 }
 
 template <typename float_format Format>
-constexpr str::float_format vx_format_chooser()
+constexpr strconv::float_format vx_format_chooser()
 {
     VX_IF_CONSTEXPR (Format == float_format::fixed)
     {
-        return str::float_format::fixed;
+        return strconv::float_format::fixed;
     }
     else VX_IF_CONSTEXPR (Format == float_format::scientific)
     {
-        return str::float_format::scientific;
+        return strconv::float_format::scientific;
     }
     else
     {
-        return str::float_format::hex;
+        return strconv::float_format::hex;
     }
 }
 
@@ -438,21 +438,21 @@ constexpr uint32_t precision_chooser()
 {
     VX_IF_CONSTEXPR (Format == float_format::fixed)
     {
-        return str::_string_convert_priv::float_fixed_default_precision;
+        return strconv::_strconv_priv::float_fixed_default_precision;
     }
     else VX_IF_CONSTEXPR (Format == float_format::scientific)
     {
-        return str::_string_convert_priv::float_scientific_default_precision;
+        return strconv::_strconv_priv::float_scientific_default_precision;
     }
     else
     {
         VX_IF_CONSTEXPR (std::is_same<F, float>::value)
         {
-            return str::_string_convert_priv::float_hex_default_precision;
+            return strconv::_strconv_priv::float_hex_default_precision;
         }
         else VX_IF_CONSTEXPR (std::is_same<F, double>::value)
         {
-            return str::_string_convert_priv::double_hex_default_precision;
+            return strconv::_strconv_priv::double_hex_default_precision;
         }
     }
 }
@@ -480,24 +480,24 @@ struct profile_vx_to_string_float
 {
     static size_t run(T v)
     {
-        const str::float_to_string_format_options<char> fmt{ vx_format_chooser<Format>(), precision_chooser<T, Format>() };
+        const strconv::float_to_string_format_options<char> fmt{ vx_format_chooser<Format>(), precision_chooser<T, Format>() };
 
         char buf[buf_size] = {};
-        str::to_string_result res;
+        strconv::to_string_result res;
 
         start_timer_float("vx::to_string");
 
         VX_IF_CONSTEXPR (Format == float_format::fixed)
         {
-            res = str::write_float_fixed(v, buf, buf_size, fmt);
+            res = strconv::write_float_fixed(v, buf, buf_size, fmt);
         }
         else VX_IF_CONSTEXPR (Format == float_format::scientific)
         {
-            res = str::write_float_scientific(v, buf, buf_size, fmt);
+            res = strconv::write_float_scientific(v, buf, buf_size, fmt);
         }
         else
         {
-            res = str::write_float_hex(v, buf, buf_size, fmt);
+            res = strconv::write_float_hex(v, buf, buf_size, fmt);
         }
 
         stop_timer();
@@ -529,16 +529,16 @@ struct profile_vx_from_string_float
 {
     static T run(T v)
     {
-        const str::float_to_string_format_options<char> to_string_fmt{ vx_format_chooser<Format>(), precision_chooser<T, Format>() };
-        const str::float_from_string_format_options<char> from_string_fmt{ vx_format_chooser<Format>() };
+        const strconv::float_to_string_format_options<char> to_string_fmt{ vx_format_chooser<Format>(), precision_chooser<T, Format>() };
+        const strconv::float_from_string_format_options<char> from_string_fmt{ vx_format_chooser<Format>() };
 
         char buf[buf_size] = {};
 
-        const auto res = str::to_string(v, buf, buf_size, to_string_fmt);
+        const auto res = strconv::to_string(v, buf, buf_size, to_string_fmt);
         T value{};
 
         start_timer_float("vx::from_string");
-        str::parse_float(buf, res.count, value, from_string_fmt);
+        strconv::parse_float(buf, res.count, value, from_string_fmt);
         stop_timer();
 
         return value;

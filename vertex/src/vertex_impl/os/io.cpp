@@ -5,7 +5,7 @@ namespace os {
 
 size_t write_raw(stream s, const char* data, size_t size)
 {
-    return write_raw_impl(s, data, size);
+    return write_raw_impl(s, data, size, true);
 }
 
 size_t read_raw(stream s, char* data, size_t size)

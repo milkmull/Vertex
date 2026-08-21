@@ -457,7 +457,8 @@ struct output_buffer
         truncated = truncated || (remaining < n);
 
         const size_t write = truncated ? remaining : n;
-        ptr = mem::copy_range(ptr, s, write);
+        mem::copy_range(ptr, s, write);
+        ptr += write;
         remaining -= write;
 
         return !truncated;
@@ -473,7 +474,8 @@ struct output_buffer
         truncated = truncated || (remaining < n);
 
         const size_t write = truncated ? remaining : n;
-        ptr = mem::fill_range(ptr, write, c);
+        mem::fill_range(ptr, write, c);
+        ptr += n;
         remaining -= write;
 
         return !truncated;

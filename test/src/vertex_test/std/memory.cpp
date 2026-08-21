@@ -756,7 +756,7 @@ VX_TEST_CASE(range_comparison_functions)
         return vec;
     };
 
-        VX_SECTION("trivial pointer ranges")
+    VX_SECTION("trivial pointer ranges")
     {
         trivial_type a[5] = { 1, 2, 3, 4, 5 };
         trivial_type b[5] = { 1, 2, 3, 4, 5 };
@@ -1071,6 +1071,438 @@ VX_TEST_CASE(default_allocator)
         using allocator = vx::mem::default_allocator<trivial_type>;
         trivial_type* ptr = allocator::allocate(0);
         VX_CHECK(ptr == nullptr);
+    }
+}
+
+//=========================================================================
+
+VX_TEST_CASE(construct_in_place_tests)
+{
+    VX_SECTION("construct_in_place with trivial_type (reference)")
+    {
+        trivial_type storage = 999;
+        vx::mem::construct_in_place(storage, 42);
+        VX_CHECK(storage == 42);
+    }
+
+    VX_SECTION("construct_in_place with trivial_type (pointer)")
+    {
+        alignas(alignof(trivial_type)) std::byte buffer[sizeof(trivial_type)];
+        trivial_type* ptr = reinterpret_cast<trivial_type*>(buffer);
+        vx::mem::construct_in_place(ptr, 7);
+        VX_CHECK(*ptr == 7);
+    }
+
+    VX_SECTION("construct_in_place with non_trivial_type (reference)")
+    {
+        non_trivial_type::reset_counters();
+        alignas(alignof(non_trivial_type)) std::byte buffer[sizeof(non_trivial_type)];
+        non_trivial_type* ptr = reinterpret_cast<non_trivial_type*>(buffer);
+
+        vx::mem::construct_in_place(*ptr, 5);
+        VX_CHECK(ptr->x == 5);
+        VX_CHECK(non_trivial_type::construct_count == 1);
+
+        vx::mem::destroy_in_place(ptr);
+    }
+
+    VX_SECTION("construct_in_place_maybe_trivial with trivial_type")
+    {
+        alignas(alignof(trivial_type)) std::byte buffer[sizeof(trivial_type)];
+        trivial_type* ptr = reinterpret_cast<trivial_type*>(buffer);
+        vx::mem::construct_in_place_maybe_trivial(ptr);
+        *ptr = 1; // just confirm the storage is usable
+        VX_CHECK(*ptr == 1);
+    }
+
+    VX_SECTION("construct_in_place_maybe_trivial with non_trivial_type")
+    {
+        non_trivial_type::reset_counters();
+        alignas(alignof(non_trivial_type)) std::byte buffer[sizeof(non_trivial_type)];
+        non_trivial_type* ptr = reinterpret_cast<non_trivial_type*>(buffer);
+
+        vx::mem::construct_in_place_maybe_trivial(*ptr);
+        VX_CHECK(ptr->x == 0);
+        VX_CHECK(non_trivial_type::construct_count == 1);
+
+        vx::mem::destroy_in_place(ptr);
+    }
+}
+
+//=========================================================================
+
+VX_TEST_CASE(swap_range_tests)
+{
+    VX_SECTION("swap_range with trivial_type pointers")
+    {
+        constexpr size_t count = 6;
+        trivial_type a[count] = { 1, 2, 3, 4, 5, 6 };
+        trivial_type b[count] = { 10, 20, 30, 40, 50, 60 };
+
+        trivial_type* end_ptr = vx::mem::swap_range(a, b, count);
+        VX_CHECK(end_ptr == a + count);
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            VX_CHECK(a[i] == static_cast<int>((i + 1) * 10));
+            VX_CHECK(b[i] == static_cast<int>(i + 1));
+        }
+    }
+
+    VX_SECTION("swap_range with non_trivial_type pointers")
+    {
+        non_trivial_type::reset_counters();
+
+        constexpr size_t count = 4;
+        non_trivial_type a[count];
+        non_trivial_type b[count];
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            a[i].x = static_cast<int>(i);
+            b[i].x = static_cast<int>(i + 100);
+        }
+
+        vx::mem::swap_range(a, b, count);
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            VX_CHECK(a[i].x == static_cast<int>(i + 100));
+            VX_CHECK(b[i].x == static_cast<int>(i));
+        }
+    }
+
+    VX_SECTION("swap_range with iterator version")
+    {
+        std::vector<trivial_type> a = { 1, 2, 3, 4 };
+        std::vector<trivial_type> b = { 9, 8, 7, 6 };
+
+        auto end_it = vx::mem::swap_range(a.begin(), a.end(), b.begin());
+        VX_CHECK(end_it == a.end());
+
+        VX_CHECK((a == std::vector<trivial_type>{ 9, 8, 7, 6 }));
+        VX_CHECK((b == std::vector<trivial_type>{ 1, 2, 3, 4 }));
+    }
+
+    VX_SECTION("swap_range with large count spanning multiple internal chunks")
+    {
+        // exceeds the 64-byte temp buffer used internally for memmove-safe types,
+        // exercising the chunked loop
+        constexpr size_t count = 100;
+        trivial_type a[count];
+        trivial_type b[count];
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            a[i] = static_cast<int>(i);
+            b[i] = static_cast<int>(i + 1000);
+        }
+
+        vx::mem::swap_range(a, b, count);
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            VX_CHECK(a[i] == static_cast<int>(i + 1000));
+            VX_CHECK(b[i] == static_cast<int>(i));
+        }
+    }
+}
+
+//=========================================================================
+
+VX_TEST_CASE(shift_range_tests)
+{
+    VX_SECTION("shift_forward_range with trivial_type")
+    {
+        trivial_type buffer[10] = { 1, 2, 3, 4, 5, 0, 0, 0, 0, 0 };
+
+        // returns first + count: start of the newly-vacated hole
+        trivial_type* new_start = vx::mem::shift_forward_range(buffer, buffer + 5, 3);
+        VX_CHECK(new_start == buffer + 3);
+
+        trivial_type expected[10] = { 1, 2, 3, 1, 2, 3, 4, 5, 0, 0 };
+        for (size_t i = 0; i < 10; ++i)
+        {
+            VX_CHECK(buffer[i] == expected[i]);
+        }
+    }
+
+    VX_SECTION("shift_forward_range with count 0 is a no-op")
+    {
+        trivial_type buffer[5] = { 1, 2, 3, 4, 5 };
+        trivial_type* new_start = vx::mem::shift_forward_range(buffer, buffer + 5, 0);
+        VX_CHECK(new_start == buffer); // first + 0
+
+        for (size_t i = 0; i < 5; ++i)
+        {
+            VX_CHECK(buffer[i] == static_cast<int>(i + 1));
+        }
+    }
+
+    VX_SECTION("shift_forward_range with empty input range is a no-op")
+    {
+        trivial_type buffer[5] = { 1, 2, 3, 4, 5 };
+        trivial_type* new_start = vx::mem::shift_forward_range(buffer, buffer, 3);
+        VX_CHECK(new_start == buffer + 3); // first + count
+    }
+
+    VX_SECTION("shift_backward_range with trivial_type")
+    {
+        trivial_type buffer[10] = { 0, 0, 0, 1, 2, 3, 4, 5, 0, 0 };
+
+        // returns last - count: end of the moved-from tail that needs destroying
+        trivial_type* new_end = vx::mem::shift_backward_range(buffer + 3, buffer + 8, 3);
+        VX_CHECK(new_end == buffer + 5);
+
+        trivial_type expected[10] = { 1, 2, 3, 4, 5, 3, 4, 5, 0, 0 };
+        for (size_t i = 0; i < 10; ++i)
+        {
+            VX_CHECK(buffer[i] == expected[i]);
+        }
+    }
+
+    VX_SECTION("shift_backward_range with count 0 is a no-op")
+    {
+        trivial_type buffer[5] = { 1, 2, 3, 4, 5 };
+        trivial_type* new_end = vx::mem::shift_backward_range(buffer, buffer + 5, 0);
+        VX_CHECK(new_end == buffer + 5); // last - 0
+
+        for (size_t i = 0; i < 5; ++i)
+        {
+            VX_CHECK(buffer[i] == static_cast<int>(i + 1));
+        }
+    }
+
+    VX_SECTION("shift_backward_range with empty input range is a no-op")
+    {
+        trivial_type buffer[5] = { 1, 2, 3, 4, 5 };
+        trivial_type* new_end = vx::mem::shift_backward_range(buffer, buffer, 3);
+        VX_CHECK(new_end == buffer - 3); // last - count
+    }
+
+    VX_SECTION("shift_forward_range with non_trivial_type")
+    {
+        non_trivial_type::reset_counters();
+
+        constexpr size_t total = 8;
+        alignas(alignof(non_trivial_type)) std::byte storage[sizeof(non_trivial_type) * total];
+        non_trivial_type* buffer = reinterpret_cast<non_trivial_type*>(storage);
+
+        vx::mem::construct_range(buffer, total);
+        for (size_t i = 0; i < 5; ++i)
+        {
+            buffer[i].x = static_cast<int>(i + 1);
+        }
+
+        non_trivial_type* new_start = vx::mem::shift_forward_range(buffer, buffer + 5, 3);
+        VX_CHECK(new_start == buffer + 3);
+
+        int expected[8] = { 0, 0, 0, 1, 2, 3, 4, 5 };
+        for (size_t i = 0; i < 8; ++i)
+        {
+            VX_CHECK(buffer[i].x == expected[i]);
+        }
+
+        vx::mem::destroy_range(buffer, total);
+    }
+
+    VX_SECTION("shift_backward_range with non_trivial_type")
+    {
+        non_trivial_type::reset_counters();
+
+        constexpr size_t total = 8;
+        alignas(alignof(non_trivial_type)) std::byte storage[sizeof(non_trivial_type) * total];
+        non_trivial_type* buffer = reinterpret_cast<non_trivial_type*>(storage);
+
+        vx::mem::construct_range(buffer, total);
+        for (size_t i = 3; i < 8; ++i)
+        {
+            buffer[i].x = static_cast<int>(i);
+        }
+
+        non_trivial_type* new_end = vx::mem::shift_backward_range(buffer + 3, buffer + 8, 3);
+        VX_CHECK(new_end == buffer + 5);
+
+        int expected[8] = { 3, 4, 5, 6, 7, 0, 0, 0 };
+        for (size_t i = 0; i < 8; ++i)
+        {
+            VX_CHECK(buffer[i].x == expected[i]);
+        }
+
+        vx::mem::destroy_range(buffer, total);
+    }
+}
+
+//=========================================================================
+
+VX_TEST_CASE(copy_move_range_tests)
+{
+    VX_SECTION("copy_move_range with trivial_type pointers")
+    {
+        constexpr size_t count = 6;
+        trivial_type src[count] = { 1, 2, 3, 4, 5, 6 };
+        trivial_type dst[count] = {};
+
+        trivial_type* end_ptr = vx::mem::copy_move_range(dst, src, count);
+        VX_CHECK(end_ptr == dst + count);
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            VX_CHECK(dst[i] == src[i]);
+        }
+    }
+
+    VX_SECTION("copy_move_uninitialized_range with trivial_type pointers")
+    {
+        constexpr size_t count = 4;
+        trivial_type src[count] = { 7, 8, 9, 10 };
+        trivial_type dst[count];
+
+        trivial_type* end_ptr = vx::mem::copy_move_uninitialized_range(dst, src, count);
+        VX_CHECK(end_ptr == dst + count);
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            VX_CHECK(dst[i] == src[i]);
+        }
+    }
+
+    VX_SECTION("copy_move_range with non_trivial_type pointers")
+    {
+        non_trivial_type::reset_counters();
+
+        constexpr size_t count = 4;
+        non_trivial_type src[count];
+        non_trivial_type dst[count];
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            src[i].x = static_cast<int>(i * 3);
+        }
+
+        non_trivial_type* end_ptr = vx::mem::copy_move_range(dst, src, count);
+        VX_CHECK(end_ptr == dst + count);
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            VX_CHECK(dst[i].x == src[i].x);
+        }
+    }
+
+    VX_SECTION("copy_move_uninitialized_range with non_trivial_type pointers")
+    {
+        non_trivial_type::reset_counters();
+
+        constexpr size_t count = 3;
+        alignas(alignof(non_trivial_type)) std::byte src_buffer[sizeof(non_trivial_type) * count];
+        alignas(alignof(non_trivial_type)) std::byte dst_buffer[sizeof(non_trivial_type) * count];
+        non_trivial_type* src = reinterpret_cast<non_trivial_type*>(src_buffer);
+        non_trivial_type* dst = reinterpret_cast<non_trivial_type*>(dst_buffer);
+
+        vx::mem::construct_range(src, count);
+        for (size_t i = 0; i < count; ++i)
+        {
+            src[i].x = static_cast<int>(i * 7);
+        }
+
+        non_trivial_type* end_ptr = vx::mem::copy_move_uninitialized_range(dst, src, count);
+        VX_CHECK(end_ptr == dst + count);
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            VX_CHECK(dst[i].x == src[i].x);
+        }
+
+        vx::mem::destroy_range(src, count);
+        vx::mem::destroy_range(dst, count);
+    }
+
+    VX_SECTION("copy_move_range with iterator version")
+    {
+        std::vector<trivial_type> src = { 1, 2, 3, 4, 5 };
+        std::vector<trivial_type> dst(5);
+
+        auto end_it = vx::mem::copy_move_range(dst.begin(), src.begin(), src.end());
+        VX_CHECK(end_it == dst.end());
+        VX_CHECK(dst == src);
+    }
+
+    VX_SECTION("copy_move_uninitialized_range with iterator version")
+    {
+        std::vector<trivial_type> src = { 6, 7, 8 };
+        std::vector<trivial_type> dst(3);
+
+        auto end_it = vx::mem::copy_move_uninitialized_range(dst.begin(), src.begin(), src.end());
+        VX_CHECK(end_it == dst.end());
+        VX_CHECK(dst == src);
+    }
+}
+
+//=========================================================================
+
+VX_TEST_CASE(null_safety_edge_cases)
+{
+    VX_SECTION("deallocate_aligned (template) with nullptr is a no-op")
+    {
+        void* ptr = nullptr;
+        vx::mem::deallocate_aligned<32>(ptr, 0);
+        VX_CHECK(ptr == nullptr);
+    }
+
+    VX_SECTION("deallocate_aligned (runtime) with nullptr is a no-op")
+    {
+        void* ptr = nullptr;
+        vx::mem::deallocate_aligned(ptr, 0, 32);
+        VX_CHECK(ptr == nullptr);
+    }
+
+    VX_SECTION("reallocate_aligned (template) with nullptr forwards to allocate_aligned")
+    {
+        constexpr size_t alignment = 32;
+        void* ptr = vx::mem::reallocate_aligned<alignment>(nullptr, 64);
+        VX_CHECK(ptr != nullptr);
+        VX_CHECK(reinterpret_cast<uintptr_t>(ptr) % alignment == 0);
+        vx::mem::deallocate_aligned<alignment>(ptr, 64);
+    }
+
+    VX_SECTION("reallocate_aligned (runtime) with nullptr forwards to allocate_aligned")
+    {
+        constexpr size_t alignment = 32;
+        void* ptr = vx::mem::reallocate_aligned(nullptr, 64, alignment);
+        VX_CHECK(ptr != nullptr);
+        VX_CHECK(reinterpret_cast<uintptr_t>(ptr) % alignment == 0);
+        vx::mem::deallocate_aligned(ptr, 64, alignment);
+    }
+
+    VX_SECTION("destroy_safe with trivial_type nullptr")
+    {
+        trivial_type* ptr = nullptr;
+        vx::mem::destroy_safe(ptr);
+        VX_CHECK(ptr == nullptr);
+    }
+
+    VX_SECTION("destroy_array_safe with nullptr is a no-op")
+    {
+        non_trivial_type* ptr = nullptr;
+        vx::mem::destroy_array_safe(ptr, 5);
+        VX_CHECK(ptr == nullptr);
+    }
+
+    VX_SECTION("destroy_array_safe with count 0 leaves pointer untouched")
+    {
+        non_trivial_type::reset_counters();
+
+        non_trivial_type* ptr = vx::mem::construct_array<non_trivial_type>(3);
+        VX_CHECK(ptr != nullptr);
+
+        non_trivial_type* saved = ptr;
+        vx::mem::destroy_array_safe(ptr, 0); // guarded by `ptr && count`, should short-circuit
+        VX_CHECK(ptr == saved);
+        VX_CHECK(non_trivial_type::destruct_count == 0);
+
+        vx::mem::destroy_array_safe(ptr, 3); // now actually clean up
+        VX_CHECK(ptr == nullptr);
+        VX_CHECK(non_trivial_type::destruct_count == 3);
     }
 }
 

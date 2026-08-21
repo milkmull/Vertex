@@ -4,6 +4,7 @@
 
 #include "vertex/std/_tools/pointer_iterator.hpp"
 #include "vertex/std/char_traits.hpp"
+#include "vertex/std/string_traits.hpp"
 
 namespace vx {
 namespace str {
@@ -32,10 +33,10 @@ public:
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    using iterator = vx::_char_traits_priv::pointer_iterator<basic_string_view, const value_type>;
-    using const_iterator = vx::_char_traits_priv::pointer_iterator<basic_string_view, const value_type>;
-    using reverse_iterator = vx::_char_traits_priv::reverse_pointer_iterator<iterator>;
-    using const_reverse_iterator = vx::_char_traits_priv::reverse_pointer_iterator<const_iterator>;
+    using iterator = _priv::pointer_iterator<basic_string_view, const value_type>;
+    using const_iterator = _priv::pointer_iterator<basic_string_view, const value_type>;
+    using reverse_iterator = _priv::reverse_pointer_iterator<iterator>;
+    using const_reverse_iterator = _priv::reverse_pointer_iterator<const_iterator>;
 
     static constexpr auto npos{ static_cast<size_type>(-1) };
 
@@ -503,7 +504,7 @@ constexpr bool operator==(
     return _char_traits_priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
 }
 
-template <typename T>
+template <typename T, int = 1>
 constexpr bool operator==(
     const basic_string_view<T> lhs,
     const type_traits::identity_t<basic_string_view<T>> rhs) noexcept
@@ -512,7 +513,7 @@ constexpr bool operator==(
     return _char_traits_priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
 }
 
-template <typename T>
+template <typename T, int = 2>
 constexpr bool operator==(
     const type_traits::identity_t<basic_string_view<T>> lhs,
     const basic_string_view<T> rhs) noexcept
@@ -571,7 +572,7 @@ constexpr bool operator<(
     type_traits::identity_t<basic_string_view<T>> lhs,
     basic_string_view<T> rhs) noexcept
 {
-    return lhs.compare(rhs) > 0;
+    return lhs.compare(rhs) < 0;
 }
 
 //=========================================================================

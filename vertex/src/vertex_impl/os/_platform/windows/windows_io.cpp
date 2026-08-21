@@ -26,7 +26,7 @@ static HANDLE get_handle(stream s)
     return INVALID_HANDLE_VALUE;
 }
 
-size_t write_raw_impl(stream s, const char* data, size_t size)
+size_t write_raw_impl(stream s, const char* data, size_t size, bool allow_error)
 {
     HANDLE handle = get_handle(s);
     size_t total = 0;
@@ -41,7 +41,10 @@ size_t write_raw_impl(stream s, const char* data, size_t size)
 
         if (!::WriteFile(handle, data, chunk, &written, nullptr) || written == 0)
         {
-            windows::error_message("WriteFile");
+            if (allow_error)
+            {
+                err::set_last_os_error("WriteFile");
+            }
             break;
         }
 
@@ -68,7 +71,7 @@ size_t read_raw_impl(stream s, char* data, size_t size)
 
         if (!::ReadFile(handle, data, chunk, &read, NULL) || read == 0)
         {
-            windows::error_message("ReadFile");
+            err::set_last_os_error("ReadFile");
             break;
         }
 

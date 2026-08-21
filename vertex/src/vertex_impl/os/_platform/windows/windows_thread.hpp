@@ -124,7 +124,7 @@ struct thread_impl
         const DWORD result = ::WaitForSingleObject(data.handle.get(), INFINITE);
         if (result == WAIT_FAILED)
         {
-            windows::error_message("WaitForSingleObject(): WAIT_FAILED");
+            err::set_last_os_error("WaitForSingleObject: WAIT_FAILED");
             return false;
         }
 

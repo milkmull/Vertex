@@ -1,20 +1,18 @@
 #pragma once
 
 #include <cstdio>
-#include <sstream>
-#include <string.h>
 #include <wchar.h>
 
 #include "vertex/config/feature_detection.hpp"
 #include "vertex/config/type_traits.hpp"
 #include "vertex/std/_simd/simd_algorithms.hpp"
 #include "vertex/std/crypto/fnv1a.hpp"
-#include "vertex/std/memory.hpp"
+#include "vertex/std/_memory/memory_base.hpp"
 
 namespace vx {
 namespace str {
 
-namespace _char_triaits_priv {
+namespace _char_traits_priv {
 
 //=========================================================================
 // compare
@@ -416,7 +414,7 @@ struct char_traits_base
     static char_type* copy(char_type* const dst, const char_type* const src, const size_t count) noexcept
     {
         // copy [src, src + count) to [dst, ...)
-        return _char_triaits_priv::copy_n(dst, src, count);
+        return _char_traits_priv::copy_n(dst, src, count);
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
@@ -444,25 +442,25 @@ struct char_traits_base
     static constexpr int compare(const char_type* a, const char_type* b, size_t count) noexcept
     {
         // compare [a, a + count) with [b, ...)
-        return _char_triaits_priv::compare_n(a, b, count);
+        return _char_traits_priv::compare_n(a, b, count);
     }
 
     static constexpr size_t length(const char_type* s) noexcept
     {
         // find length of null-terminated sequence
-        return _char_triaits_priv::length(s);
+        return _char_traits_priv::length(s);
     }
 
     static constexpr const char_type* find(const char_type* s, size_t count, const char_type& c) noexcept
     {
         // look for c in [s, s + count)
-        return _char_triaits_priv::find_n(s, count, c);
+        return _char_traits_priv::find_n(s, count, c);
     }
 
     static char_type* assign(char_type* const s, size_t count, const char_type c) noexcept
     {
         // assign count * c to [s, ...)
-        return _char_triaits_priv::assign_n(s, count, c);
+        return _char_traits_priv::assign_n(s, count, c);
     }
 
     static void assign(char_type& lhs, const char_type& rhs) noexcept
@@ -513,47 +511,47 @@ struct char_traits_base
     }
 };
 
-} // namespace _char_triaits_priv
+} // namespace _char_traits_priv
 
 //=========================================================================
 // Traits
 //=========================================================================
 
 template <typename char_t>
-struct char_traits : _char_triaits_priv::char_traits_base<char_t, long, std::fpos<std::mbstate_t>>
+struct char_traits : _char_traits_priv::char_traits_base<char_t, long, std::fpos<std::mbstate_t>>
 {
 };
 
 template <>
-struct char_traits<char> : _char_triaits_priv::char_traits_base<char, int, std::streampos>
+struct char_traits<char> : _char_traits_priv::char_traits_base<char, int, std::streampos>
 {
 };
 
 template <>
-struct char_traits<wchar_t> : _char_triaits_priv::char_traits_base<wchar_t, short, std::wstreampos>
+struct char_traits<wchar_t> : _char_traits_priv::char_traits_base<wchar_t, short, std::wstreampos>
 {
 };
 
 #if VX_HAVE_STD_CHAR8_T
 template <>
-struct char_traits<char8_t> : _char_triaits_priv::char_traits_base<char8_t, int, std::u8streampos>
+struct char_traits<char8_t> : _char_traits_priv::char_traits_base<char8_t, int, std::u8streampos>
 {
 };
 #endif // VX_HAVE_STD_CHAR8_T
 
 template <>
-struct char_traits<char16_t> : _char_triaits_priv::char_traits_base<char16_t, int_least16_t, std::u16streampos>
+struct char_traits<char16_t> : _char_traits_priv::char_traits_base<char16_t, int_least16_t, std::u16streampos>
 {
 };
 
 template <>
-struct char_traits<char32_t> : _char_triaits_priv::char_traits_base<char32_t, int_least32_t, std::u32streampos>
+struct char_traits<char32_t> : _char_traits_priv::char_traits_base<char32_t, int_least32_t, std::u32streampos>
 {
 };
 
 //=========================================================================
 
-namespace _char_triaits_priv {
+namespace _char_traits_priv {
 
 template <typename Traits>
 using traits_char_t = typename Traits::char_type;
@@ -1101,7 +1099,7 @@ constexpr size_t traits_find_first_of(
         if (!VX_IS_CONSTANT_EVALUATED())
         {
             const size_t remaining_size = hay_size - start_at;
-            if (remaining_size + needle_size >= VX_SIMD_char_triaits_priv_THRESHOLD_FIND_FIRST_OF)
+            if (remaining_size + needle_size >= VX_SIMD_PRIV_THRESHOLD_FIND_FIRST_OF)
             {
                 size_t pos = _simd::find_first_of_pos_simd(hay_start, remaining_size, needle, needle_size);
                 if (pos != static_cast<size_t>(-1))
@@ -1178,7 +1176,7 @@ constexpr size_t traits_find_last_of(
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_start + 1;
-                if (remaining_size + needle_size >= VX_SIMD_char_triaits_priv_THRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= VX_SIMD_PRIV_THRESHOLD_FIND_FIRST_OF)
                 {
                     // same threshold for first/last
                     return _simd::find_last_of_pos_simd(haystack, remaining_size, needle, needle_size);
@@ -1258,7 +1256,7 @@ constexpr size_t traits_find_first_not_of(
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_size - start_at;
-                if (remaining_size + needle_size >= VX_SIMD_char_triaits_priv_THRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= VX_SIMD_PRIV_THRESHOLD_FIND_FIRST_OF)
                 {
                     size_t pos = _simd::find_first_not_of_pos_simd(hay_start, remaining_size, needle, needle_size);
                     if (pos != static_cast<size_t>(-1))
@@ -1385,7 +1383,7 @@ constexpr size_t traits_find_last_not_of(traits_ptr_t<Traits> haystack,
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_start + 1;
-                if (remaining_size + needle_size >= VX_SIMD_char_triaits_priv_THRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= VX_SIMD_PRIV_THRESHOLD_FIND_FIRST_OF)
                 {
                     // same threshold for first/last
                     return _simd::find_last_not_of_pos_simd(haystack, remaining_size, needle, needle_size);
@@ -1550,181 +1548,7 @@ constexpr bool check_offset(const size_t size, const size_t off) noexcept
     return (off <= size);
 }
 
-} // namespace _char_triaits_priv
-
-//=========================================================================
-
-template <typename T>
-class basic_string_view;
-
-template <typename T>
-class basic_cstring_view;
-
-template <typename T, typename Allocator>
-class basic_string;
-
-template <size_t N, typename T>
-class basic_static_string;
-
-//=========================================================================
-
-template <typename T>
-struct is_string_like : std::false_type
-{};
-
-template <typename T>
-struct is_string_like<basic_string_view<T>> : std::true_type
-{};
-
-template <typename T>
-struct is_string_like<basic_cstring_view<T>> : std::true_type
-{};
-
-template <typename T, typename Allocator>
-struct is_string_like<basic_string<T, Allocator>> : std::true_type
-{};
-
-template <size_t N, typename T>
-struct is_string_like<basic_static_string<N, T>> : std::true_type
-{};
-
-#if VX_HAVE_STD_STRING_VIEW
-
-template <typename T, typename Traits>
-struct is_string_like<std::basic_string_view<T, Traits>> : std::true_type
-{};
-
-#endif // VX_HAVE_STD_STRING_VIEW
-
-template <typename T, typename Traits, typename Alloc>
-struct is_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
-{};
-
-//=========================================================================
-
-template <typename T>
-struct is_string_view : std::false_type
-{};
-
-template <typename T>
-struct is_string_view<basic_string_view<T>> : std::true_type
-{};
-
-template <typename T>
-struct is_string_view<basic_cstring_view<T>> : std::true_type
-{};
-
-#if VX_HAVE_STD_STRING_VIEW
-
-template <typename T, typename Traits>
-struct is_string_view<std::basic_string_view<T, Traits>> : std::true_type
-{};
-
-#endif // VX_HAVE_STD_STRING_VIEW
-
-//=========================================================================
-
-template <typename T>
-struct is_null_terminated_string_like : std::false_type
-{};
-
-template <typename T>
-struct is_null_terminated_string_like<basic_cstring_view<T>> : std::true_type
-{};
-
-template <typename T, typename Allocator>
-struct is_null_terminated_string_like<basic_string<T, Allocator>> : std::true_type
-{};
-
-template <size_t N, typename T>
-struct is_null_terminated_string_like<basic_static_string<N, T>> : std::true_type
-{};
-
-template <typename T, typename Traits, typename Alloc>
-struct is_null_terminated_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
-{};
-
-//=========================================================================
-
-template <typename T>
-struct is_mutable_string_like : std::false_type
-{};
-
-template <typename T, typename Allocator>
-struct is_mutable_string_like<basic_string<T, Allocator>> : std::true_type
-{};
-
-template <size_t N, typename T>
-struct is_mutable_string_like<basic_static_string<N, T>> : std::true_type
-{};
-
-template <typename T, typename Traits, typename Alloc>
-struct is_mutable_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
-{};
-
-//=========================================================================
-
-template <typename S, typename T, typename = void>
-struct is_string_of : std::false_type
-{};
-
-template <typename S, typename T>
-struct is_string_of<S, T, type_traits::void_t<typename S::value_type>> : std::bool_constant<is_string_like<S>::value && std::is_same<typename S::value_type, T>::value>
-{};
-
-//=========================================================================
-
-template <typename S1, typename S2, typename = void>
-struct is_string_compatible : std::false_type
-{};
-
-template <typename S1, typename S2>
-struct is_string_compatible<S1, S2, type_traits::void_t<typename S1::value_type, typename S2::value_type>> : std::bool_constant<is_string_like<S1>::value && is_string_like<S2>::value && std::is_same<typename S1::value_type, typename S2::value_type>::value>
-{};
-
-//=========================================================================
-
-template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
-S1 operator+(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().append(rhs.c_str())))
-{
-    return S1(lhs).append(rhs.c_str());
-}
-
-template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
-bool operator==(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
-{
-    return lhs.compare(rhs.c_str()) == 0;
-}
-
-template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
-bool operator!=(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
-{
-    return lhs.compare(rhs.c_str()) != 0;
-}
-
-template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
-bool operator<(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
-{
-    return lhs.compare(rhs.c_str()) < 0;
-}
-
-template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
-bool operator>(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
-{
-    return lhs.compare(rhs.c_str()) > 0;
-}
-
-template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
-bool operator<=(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
-{
-    return lhs.compare(rhs.c_str()) <= 0;
-}
-
-template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
-bool operator>=(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
-{
-    return lhs.compare(rhs.c_str()) >= 0;
-}
+} // namespace _char_traits_priv
 
 } // namespace str
 } // namespace vx

@@ -4,14 +4,13 @@
 #include <initializer_list>
 #include <ratio>
 #include <utility>
-#include <vector>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/std/_memory/allocator.hpp"
 #include "vertex/std/_tools/compressed_pair.hpp"
 #include "vertex/std/_tools/dynamic_array_base.hpp"
 #include "vertex/std/_tools/pointer_iterator.hpp"
-#include "vertex/std/error.hpp"
-#include "vertex/std/memory.hpp"
+#include "vertex/std/expected.hpp"
 #include "vertex/std/vector_traits.hpp"
 
 //#define VX_VECTOR_DISABLE_MAX_SIZE_CHECK 1
@@ -97,19 +96,18 @@ private:
     //=========================================================================
 
     template <construct_method M, typename... Args>
-    inline void construct_n(size_type count, Args&&... args)
+    error construct_n(size_type count, Args&&... args)
     {
         VX_UNLIKELY_COLD_PATH(!count,
             {
-                return;
+                return err::none;
             });
 
 #if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(count > max_size(),
             {
-                err::set(err::size_error);
-                return;
+                return err::size_error;
             });
 
 #endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
@@ -120,7 +118,7 @@ private:
 
         VX_UNLIKELY_COLD_PATH(!new_ptr,
             {
-                return;
+                return err::out_of_memory;
             });
 
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
@@ -152,7 +150,16 @@ private:
         m_data().ptr = new_ptr;
         m_data().size = count;
         m_data().capacity = count;
+
+        return err::none;
     }
+
+    struct uninitialized_tag
+    {};
+
+    vector(uninitialized_tag, const allocator_type& alloc) noexcept
+        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+    {}
 
 public:
 
@@ -240,6 +247,63 @@ public:
         construct_n<construct_method::copy_range>(v.size(), v.data());
     }
 
+    //=========================================================================
+    // fallible construction
+    //=========================================================================
+
+    static expected<vector, error> construct(const allocator_type& alloc = allocator_type())
+    {
+        return vector(uninitialized_tag{}, alloc);
+    }
+
+    static expected<vector, error> construct(size_type count, const allocator_type& alloc = allocator_type())
+    {
+        vector v(uninitialized_tag{}, alloc);
+        const auto e = v.template construct_n<construct_method::default_range>(count);
+        return e ? make_unexpected(e) : v;
+    }
+
+    static expected<vector, error> construct(size_type count, const T& value, const allocator_type& alloc = allocator_type())
+    {
+        vector v(uninitialized_tag{}, alloc);
+        const error e = v.template construct_n<construct_method::fill_range>(count, value);
+        return e ? make_unexpected(e) : v;
+    }
+
+    static expected<vector, error> construct(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
+    {
+        vector v(uninitialized_tag{}, alloc);
+        const error e = v.template construct_n<construct_method::copy_range>(init.size(), init.begin());
+        return e ? make_unexpected(e) : v;
+    }
+
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    static expected<vector, error> construct(IT first, IT last, const allocator_type& alloc = allocator_type())
+    {
+        vector v(uninitialized_tag{}, alloc);
+        const size_type count = static_cast<size_type>(std::distance(first, last));
+
+        error e;
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
+        {
+            e = v.template construct_n<construct_method::copy_range>(count, first.ptr());
+        }
+        else
+        {
+            e = v.template construct_n<construct_method::iterator_range>(count, std::move(first), std::move(last));
+        }
+
+        return e ? make_unexpected(e) : v;
+    }
+
+    template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
+    static expected<vector, error> construct(const V& other, const allocator_type& alloc = allocator_type())
+    {
+        vector v(uninitialized_tag{}, alloc);
+        const error e = v.template construct_n<construct_method::copy_range>(other.size(), other.data());
+        return e ? make_unexpected(e) : v;
+    }
+
 private:
 
     //=========================================================================
@@ -299,14 +363,8 @@ private:
     // assignment helpers
     //=========================================================================
 
-private:
-
-    //=========================================================================
-    // assignment helpers
-    //=========================================================================
-
     template <construct_method M, typename Arg>
-    bool assign_from(const size_type count, Arg&& arg)
+    error assign_from(const size_type count, Arg&& arg)
     {
         auto& ptr = m_data().ptr;
         auto& size = m_data().size;
@@ -318,8 +376,7 @@ private:
 
             VX_UNLIKELY_COLD_PATH(count > max_size(),
                 {
-                    err::set(err::size_error);
-                    return false;
+                    return err::size_error;
                 });
 
 #endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
@@ -330,7 +387,7 @@ private:
 
             VX_UNLIKELY_COLD_PATH(!new_ptr,
                 {
-                    return false;
+                    return err::out_of_memory;
                 });
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -382,11 +439,11 @@ private:
         }
 
         size = count;
-        return true;
+        return err::none;
     }
 
     template <construct_method M, typename IT1, typename IT2>
-    bool assign_from(const size_type count, IT1 first, IT2 last)
+    booerrorl assign_from(const size_type count, IT1 first, IT2 last)
     {
         VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
 
@@ -400,8 +457,7 @@ private:
 
             VX_UNLIKELY_COLD_PATH(count > max_size(),
                 {
-                    err::set(err::size_error);
-                    return false;
+                    return err::size_error;
                 });
 
 #endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
@@ -412,7 +468,7 @@ private:
 
             VX_UNLIKELY_COLD_PATH(!new_ptr,
                 {
-                    return false;
+                    return err::out_of_memory;
                 });
 
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
@@ -438,7 +494,7 @@ private:
         }
 
         size = count;
-        return true;
+        return err::none;
     }
 
 public:
@@ -484,7 +540,7 @@ public:
     // assign
     //=========================================================================
 
-    bool assign(const vector& other)
+    error assign(const vector& other)
     {
         if (this == &other)
         {
@@ -494,29 +550,29 @@ public:
         return assign_from<construct_method::copy_range>(other.m_data().size, other.m_data().ptr);
     }
 
-    bool assign(vector&& other) noexcept
+    error assign(vector&& other) noexcept
     {
         operator=(std::move(other));
-        return true;
+        return err::none;
     }
 
-    bool assign(std::initializer_list<T> init)
+    error assign(std::initializer_list<T> init)
     {
         return assign_from<construct_method::copy_range>(init.size(), init.begin());
     }
 
-    bool assign(const pointer ptr, size_type count)
+    error assign(const pointer ptr, size_type count)
     {
         return assign_from<construct_method::copy_range>(count, ptr);
     }
 
-    bool assign(size_type count, const T& value)
+    error assign(size_type count, const T& value)
     {
         return assign_from<construct_method::fill_range>(count, value);
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    bool assign(IT first, IT last)
+    error assign(IT first, IT last)
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
@@ -531,17 +587,16 @@ public:
     }
 
     template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
-    bool assign(const V& v)
+    error assign(const V& v)
     {
-        assign_from<construct_method::copy_range>(v.size(), v.data());
-        return *this;
+        return assign_from<construct_method::copy_range>(v.size(), v.data());
     }
 
     //=========================================================================
     // element access
     //=========================================================================
 
-    T& front() noexcept
+    expected<T&, error> front() noexcept
     {
         VX_ASSERT(m_data().ptr && m_data().size);
         return *m_data().ptr;

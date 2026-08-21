@@ -1,12 +1,11 @@
 #pragma once
 
-#include <cstddef>
 #include <cstdint>
 
 namespace vx {
-namespace mem {
+namespace os {
 
+using error_type = uint32_t; 
 
-
-} // namespace mem
+} // namespace os
 } // namespace vx

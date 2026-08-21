@@ -8,7 +8,7 @@ namespace os {
 
 #define unsupported(op) VX_UNSUPPORTED("os::io::" op "()")
 
-static size_t write_raw_impl(stream s, const char* data, size_t size)
+static size_t write_raw_impl(stream s, const char* data, size_t size, bool allow_error)
 {
     unsupported("write_raw");
     return 0;

@@ -4,12 +4,30 @@
 #include <utility>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/os/error_type.hpp"
 #include "vertex/os/thread_id.hpp"
-#include "vertex/std/expected.hpp"
+#include "vertex/std/_memory/memory_base.hpp"
+
+//=============================================================================
+// configuration macros
+//=============================================================================
+// The following macros can be defined - typically via a build system flag -
+// before this header (and the corresponding .cpp) is compiled, to configure
+// the error module:
+//
+//   VX_ERR_BUFFER_MAX_SIZE
+//       Maximum size, in bytes, of the thread-local buffer used to store the
+//       formatted message set by err::set(). Longer messages are silently
+//       truncated to fit. Defaults to 1024 if left undefined.
+//
+//   VX_ERR_DISABLE_PRINT_ERROR_HOOK
+//       If defined, omits err::print_error_hook() - the default hook that
+//       writes error info to stderr - along with its declaration below.
+//=============================================================================
 
 namespace vx {
 
-using error_t = int;
+using error_type = os::error_type;
 
 namespace err {
 
@@ -17,11 +35,11 @@ namespace err {
 // error code
 //=============================================================================
 
-enum code : error_t
+enum code : error_type
 {
     // General success and error indicators
-    none = 0,   // No error; indicates a successful operation or no action needed
-    failed = 1, // General error indicator
+    none = error_type{}, // No error; indicates a successful operation or no action needed
+    failed = 1,          // General error indicator
 
     // Runtime-specific errors
     runtime_error,  // Error occurring during runtime, often due to unexpected conditions
@@ -67,116 +85,167 @@ enum code : error_t
  * @param err The error code to describe.
  * @return A constant C-string describing the error.
  */
-constexpr const char* code_to_string(code err)
+constexpr const char* code_to_string(code c) noexcept
 {
-    switch (err)
-    {
-        case code::none: return "";
-        case code::failed: return "failed";
+    constexpr const char* strings[] = {
+        "",       // none
+        "failed", // failed
 
-        case code::runtime_error: return "runtime error";
-        case code::not_configured: return "not configured";
+        "runtime error",  // runtime_error
+        "not configured", // not_configured
 
-        case code::out_of_range: return "out of range";
-        case code::out_of_memory: return "out of memory";
-        case code::size_error: return "size error";
+        "out of range",  // out_of_range
+        "out of memory", // out_of_memory
+        "size error",    // size_error
 
-        case code::invalid_data: return "invalid data";
-        case code::invalid_argument: return "invalid argument";
-        case code::unsupported_format: return "unsupported format";
-        case code::unsupported_conversion: return "unsupported conversion";
-        case code::unsupported_operation: return "unsupported operation";
+        "invalid data",           // invalid_data
+        "invalid argument",       // invalid_argument
+        "unsupported format",     // unsupported_format
+        "unsupported conversion", // unsupported_conversion
+        "unsupported operation",  // unsupported_operation
 
-        case code::resource_not_found: return "resource not found";
-        case code::resource_already_exists: return "resource already exists";
+        "resource not found",      // resource_not_found
+        "resource already exists", // resource_already_exists
 
-        case code::file_operation_failed: return "file operation failed";
-        case code::file_open_failed: return "file open failed";
-        case code::file_read_failed: return "file read failed";
-        case code::file_write_failed: return "file write failed";
+        "file operation failed", // file_operation_failed
+        "file open failed",      // file_open_failed
+        "file read failed",      // file_read_failed
+        "file write failed",     // file_write_failed
 
-        case code::file_no_permission: return "file no permission";
-        case code::file_in_use: return "file in use";
-        case code::file_corrupt: return "file corrupt";
+        "file no permission", // file_no_permission
+        "file in use",        // file_in_use
+        "file corrupt",       // file_corrupt
 
-        case code::system_error: return "system error";
-        default: return "";
-    }
+        "system error" // system_error
+    };
+
+    constexpr size_t count = mem::array_size(strings);
+    VX_STATIC_ASSERT_MSG(count == static_cast<size_t>(code::system_error) + 1,
+        "code_to_string: string table is out of sync with the err::code enum");
+
+    const size_t index = static_cast<size_t>(c);
+    return (index < count) ? strings[index] : strings[0];
 }
 
-/**
- * @struct info
- * @brief Holds the current error state and message for the current thread.
- *
- * Represents the result of an operation, including an error code and an optional
- * descriptive message. The error state is thread-local, ensuring independent error
- * tracking across threads. Can be evaluated in boolean context to check if an error is set.
- */
-struct info
-{
-    code err = code::none;
-    const char* message = nullptr;
+//=============================================================================
+// error wrapper
+//=============================================================================
 
-    constexpr explicit operator bool() const
+class error
+{
+public:
+
+    constexpr error() noexcept : m_code(err::none)
+    {}
+    constexpr error(error_type c) noexcept : m_code(c)
+    {}
+    constexpr error(code c) noexcept : m_code(static_cast<error_type>(c))
+    {}
+
+    constexpr error(const error&) noexcept = default;
+    constexpr error(error&&) noexcept = default;
+
+    constexpr error& operator=(const error&) noexcept = default;
+    constexpr error& operator=(error&&) noexcept = default;
+
+    // true if this represents an actual error (i.e. not err::none)
+    constexpr explicit operator bool() const noexcept
     {
-        return (err != code::none);
+        return m_code != err::none;
     }
+
+    constexpr error_type value() const noexcept
+    {
+        return m_code;
+    }
+
+    constexpr const char* message() const noexcept
+    {
+        return code_to_string(static_cast<code>(m_code));
+    }
+
+    constexpr friend bool operator==(const error& lhs, const error& rhs) noexcept
+    {
+        return lhs.m_code == rhs.m_code;
+    }
+
+    constexpr friend bool operator!=(const error& lhs, const error& rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
+
+    constexpr friend bool operator==(const error& lhs, code rhs) noexcept
+    {
+        return lhs.m_code == static_cast<error_type>(rhs);
+    }
+
+    constexpr friend bool operator==(code lhs, const error& rhs) noexcept
+    {
+        return rhs == lhs;
+    }
+
+private:
+
+    error_type m_code;
+};
+
+//=============================================================================
+// error info
+//=============================================================================
+
+struct error_string
+{
+    const char* data;
+    size_t size;
+};
+
+struct error_info
+{
+    error_type code;
+    error_string message;
+    os::thread_id thread;
 };
 
 //=============================================================================
 // error accessors and manipulators
 //=============================================================================
 
-VX_API code get_code() noexcept;
-VX_API const char* get_message() noexcept;
+VX_API error_info get() noexcept;
 
-VX_API void set(code err, const char* msg, const char* function, const char* file, int line);
+VX_API error_string get_message() noexcept;
+VX_API error_type get_code() noexcept;
 
-inline void set(code err, const char* msg)
+VX_API void set(error_type e, const char* msg, const char* function, const char* file, int line);
+
+inline void set(error_type e, const char* msg)
 {
-    set(err, msg, nullptr, nullptr, 0);
+    set(e, msg, nullptr, nullptr, 0);
 }
 
-/**
- * @brief Sets the current thread's error state using only an error code.
- *
- * Uses the default string description for the given code.
- * @param err The error code.
- */
-VX_API void set(code err) noexcept;
+inline void set(error_type e)
+{
+    set(e, nullptr);
+}
 
-/**
- * @brief Checks if an error is currently set in the current thread.
- *
- * @return true if an error is present; false otherwise.
- */
 inline bool is_set() noexcept
 {
-    return get_code() != none;
+    return get_code() != error_type{};
 }
 
-/**
- * @brief Clears the current thread's error state.
- *
- * Resets the error code to NONE and clears the message for the calling thread.
- */
 inline void clear() noexcept
 {
-    set(code::none);
+    set(error_type{}, nullptr);
 }
 
-template <typename R>
-auto return_error(err::code e, R&& ret) noexcept
-{
-    set(e);
-    return std::forward<R>(ret);
-}
+VX_API void set_last_os_error(const char* message = nullptr);
 
 //=============================================================================
 // error hook
 //=============================================================================
 
-using error_hook_t = bool (*)(code err, const char* msg, os::thread_id thread);
+using error_hook_t = bool (*)(error_info info);
+
+#if !defined(VX_ERR_DISABLE_HOOK)
 
 /**
  * @brief Sets a thread-local hook that intercepts errors before they are stored.
@@ -189,11 +258,30 @@ VX_API void set_hook(error_hook_t hook) noexcept;
  */
 VX_API error_hook_t get_hook() noexcept;
 
-VX_API bool print_error_hook(code err, const char* msg, os::thread_id thread);
+    #if !defined(VX_ERR_DISABLE_PRINT_ERROR_HOOK)
+
+VX_API bool print_error_hook(error_info info);
+
+    #endif // !defined(VX_ERR_DISABLE_PRINT_ERROR_HOOK)
+
+#endif // !defined(VX_ERR_DISABLE_HOOK)
+
+//=============================================================================
+// printing
+//=============================================================================
+
+VX_API void safe_print(const char* data, const size_t count);
 
 //=============================================================================
 // calls
 //=============================================================================
+
+template <typename R>
+auto return_error(error_type e, R&& ret) noexcept
+{
+    set(e);
+    return std::forward<R>(ret);
+}
 
 /**
  * @brief Terminates the process immediately.
@@ -240,6 +328,7 @@ VX_NO_RETURN inline void fast_fail() noexcept
     { \
         if (!(cond)) \
         { \
+            ::vx::err::safe_print(msg, mem::literal_size(msg)); \
             ::vx::err::fast_fail(); \
         } \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
@@ -252,6 +341,6 @@ VX_NO_RETURN inline void fast_fail() noexcept
 
 } // namespace err
 
-using error = expected_error<err::code, err::none>;
+using error = err::error;
 
 } // namespace vx

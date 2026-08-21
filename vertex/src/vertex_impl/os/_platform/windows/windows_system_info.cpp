@@ -23,7 +23,7 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
     status = ::RegOpenKeyExW(HKEY_LOCAL_MACHINE, subkey, 0, KEY_READ, &key);
     if (status != ERROR_SUCCESS)
     {
-        windows::error_message("RegOpenKeyExW()");
+        err::set_last_os_error("RegOpenKeyExW");
         goto cleanup;
     }
 
@@ -39,7 +39,7 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
 
     if (status != ERROR_SUCCESS)
     {
-        windows::error_message("RegQueryValueExW()");
+        err::set_last_os_error("RegQueryValueExW");
         goto cleanup;
     }
 
@@ -65,7 +65,7 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
 
     if (status != ERROR_SUCCESS)
     {
-        windows::error_message("RegQueryValueExW()");
+        err::set_last_os_error("RegQueryValueExW");
         goto cleanup;
     }
 
@@ -112,7 +112,7 @@ std::string get_system_name_impl()
 
         if (!::GetComputerNameW(data, &size))
         {
-            windows::error_message("GetComputerNameW()");
+            err::set_last_os_error("GetComputerNameW");
             cache = "Unknown";
         }
         else
@@ -188,7 +188,7 @@ bool get_version_impl(uint32_t* major, uint32_t* minor, uint32_t* patch)
     RTL_OSVERSIONINFOW info{ sizeof(RTL_OSVERSIONINFOW) };
     if (RtlGetVersion(&info) != STATUS_SUCCESS)
     {
-        windows::error_message("RtlGetVersion");
+        err::set_last_os_error("RtlGetVersion");
         return false;
     }
 

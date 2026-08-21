@@ -1,8 +1,9 @@
 #pragma once
 
-#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/os/shared_library.hpp"
+#include "vertex/std/error.hpp"
 #include "vertex/util/string/string_cast.hpp"
+#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 
 namespace vx {
 namespace os {
@@ -21,7 +22,7 @@ struct shared_library_impl
         h = ::LoadLibraryW(wlib.c_str());
         if (h == NULL)
         {
-            windows::error_message(lib);
+            err::set_last_os_error(lib);
             return false;
         }
 

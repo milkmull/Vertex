@@ -76,7 +76,7 @@ struct file_impl
 
         if (!h.is_valid())
         {
-            windows::error_message("CreateFileW()");
+            err::set_last_os_error("CreateFileW");
             return false;
         }
 
@@ -91,7 +91,7 @@ struct file_impl
 
         if (!::GetFileSizeEx(h.get(), &size))
         {
-            windows::error_message("GetFileSizeEx()");
+            err::set_last_os_error("GetFileSizeEx");
             return file::invalid_size;
         }
 
@@ -127,7 +127,7 @@ struct file_impl
 
         if (!::SetFilePointerEx(h.get(), distance, &distance, method))
         {
-            windows::error_message("SetFilePointerEx()");
+            err::set_last_os_error("SetFilePointerEx");
             return false;
         }
 
@@ -145,7 +145,7 @@ struct file_impl
 
         if (!::SetEndOfFile(h.get()))
         {
-            windows::error_message("SetEndOfFile()");
+            err::set_last_os_error("SetEndOfFile");
             return false;
         }
 
@@ -162,7 +162,7 @@ struct file_impl
         // Use SetFilePointerEx to query the current position
         if (!::SetFilePointerEx(h.get(), off, &off, FILE_CURRENT))
         {
-            windows::error_message("SetFilePointerEx()");
+            err::set_last_os_error("SetFilePointerEx");
             return file::invalid_position;
         }
 
@@ -175,7 +175,7 @@ struct file_impl
 
         if (!::FlushFileBuffers(h.get()))
         {
-            windows::error_message("FlushFileBuffers()");
+            err::set_last_os_error("FlushFileBuffers");
             return false;
         }
 
@@ -189,7 +189,7 @@ struct file_impl
         DWORD count = 0;
         if (!::ReadFile(h.get(), data, static_cast<DWORD>(size), &count, NULL))
         {
-            windows::error_message("ReadFile()");
+            err::set_last_os_error("ReadFile");
             return 0;
         }
 
@@ -203,7 +203,7 @@ struct file_impl
         DWORD count = 0;
         if (!::WriteFile(h.get(), data, static_cast<DWORD>(size), &count, NULL))
         {
-            windows::error_message("WriteFile()");
+            err::set_last_os_error("WriteFile");
             return 0;
         }
 

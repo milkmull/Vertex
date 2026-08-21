@@ -358,7 +358,7 @@ public:
 
     constexpr bool value() const noexcept
     {
-        has_value();
+        return has_value();
     }
 
     constexpr E& error() & noexcept

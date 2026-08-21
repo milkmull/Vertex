@@ -1,4 +1,4 @@
-#include "vertex/std/string.hpp"
+#include "vertex/std/string_view.hpp"
 #include "vertex_test/test.hpp"
 
 // https://github.com/microsoft/STL/blob/e2ef398685f7e470dbaeaf65ff919de72bda7489/tests/tr1/tests/string1/test.cpp

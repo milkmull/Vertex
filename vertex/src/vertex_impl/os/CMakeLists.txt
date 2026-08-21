@@ -5,7 +5,11 @@
 
 # Source files for vertex/src/vertex_impl/os
 file(GLOB VX_OS_SOURCE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.cpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_error.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/error.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_io.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/io.cpp"
@@ -49,6 +53,8 @@ target_sources(Vertex PRIVATE ${VX_OS_SOURCE_FILES})
 
 # Header files for dummy modules
 file(GLOB VX_OS_DUMMY_SOURCE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_handle.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_error.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_io.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_filesystem.hpp"
@@ -72,6 +78,8 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_tools.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_tools.cpp"
 
+        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_handle.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_error.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_io.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_io.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_file.hpp"
@@ -103,6 +111,8 @@ elseif(VX_CMAKE_PLATFORM_UNIX)
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_tools.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_tools.cpp"
 
+        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_handle.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_error.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_io.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_io.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_file.hpp"

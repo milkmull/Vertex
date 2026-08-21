@@ -13,7 +13,7 @@ template <size_t Size, size_t Alignment>
 class aligned_storage
 {
     VX_STATIC_ASSERT_MSG(Size > 0, "size too small");
-    VX_STATIC_ASSERT_MSG(mem::_priv::is_pow_2(Alignment), "alignment must be power of 2");
+    VX_STATIC_ASSERT_MSG(mem::_mem_priv::is_pow_2(Alignment), "alignment must be power of 2");
     VX_STATIC_ASSERT_MSG(Alignment > 0, "alignment size too small");
 
 public:

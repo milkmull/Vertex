@@ -12,7 +12,7 @@
 #define CHECK_STR(a, b) VX_CHECK(vx::str::compare(a, b) == 0)
 
 #define PRINT_CASE       0
-#define SKIP_BUFFER_TEST 1
+#define SKIP_BUFFER_TEST 0
 
 using namespace vx;
 

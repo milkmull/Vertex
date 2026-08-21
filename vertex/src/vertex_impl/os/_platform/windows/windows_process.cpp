@@ -244,7 +244,7 @@ bool process::process_impl::start(process* p, const config& config)
 
                 if (h == INVALID_HANDLE_VALUE)
                 {
-                    windows::error_message("CreateFileW()");
+                    err::set_last_os_error("CreateFileW");
                     goto cleanup;
                 }
 
@@ -256,20 +256,20 @@ bool process::process_impl::start(process* p, const config& config)
                 // Create a pipe for communication between parent and child process
                 if (!::CreatePipe(&stream.read_pipe(), &stream.write_pipe(), &security_attributes, 0))
                 {
-                    windows::error_message("CreatePipe()");
+                    err::set_last_os_error("CreatePipe");
                     goto cleanup;
                 }
                 // Set the pipe to non-blocking mode
                 DWORD pipe_mode = PIPE_NOWAIT;
                 if (!::SetNamedPipeHandleState(stream.user_pipe(), &pipe_mode, NULL, NULL))
                 {
-                    windows::error_message("SetNamedPipeHandleState()");
+                    err::set_last_os_error("SetNamedPipeHandleState");
                     goto cleanup;
                 }
                 // Ensure the user pipe handle is not inherited by the child process
                 if (!::SetHandleInformation(stream.user_pipe(), HANDLE_FLAG_INHERIT, 0))
                 {
-                    windows::error_message("SetHandleInformation()");
+                    err::set_last_os_error("SetHandleInformation");
                     goto cleanup;
                 }
 
@@ -300,7 +300,7 @@ bool process::process_impl::start(process* p, const config& config)
                     DUPLICATE_SAME_ACCESS))
                 {
                     stream.proc_pipe() = INVALID_HANDLE_VALUE;
-                    windows::error_message("DuplicateHandle()");
+                    err::set_last_os_error("DuplicateHandle");
                     goto cleanup;
                 }
 
@@ -313,7 +313,7 @@ bool process::process_impl::start(process* p, const config& config)
                     DWORD wait_mode = PIPE_WAIT;
                     if (!::SetNamedPipeHandleState(stream.proc_pipe(), &wait_mode, NULL, NULL))
                     {
-                        windows::error_message("SetNamedPipeHandleState()");
+                        err::set_last_os_error("SetNamedPipeHandleState");
                         goto cleanup;
                     }
                 }
@@ -334,7 +334,7 @@ bool process::process_impl::start(process* p, const config& config)
                     DUPLICATE_SAME_ACCESS))
                 {
                     stream.proc_pipe() = INVALID_HANDLE_VALUE;
-                    windows::error_message("DuplicateHandle()");
+                    err::set_last_os_error("DuplicateHandle");
                     goto cleanup;
                 }
 
@@ -360,7 +360,7 @@ bool process::process_impl::start(process* p, const config& config)
         &startup_info,              // Startup information (with redirected stdin/stdout/stderr)
         &m_process_information))    // Process information
     {
-        windows::error_message("CreateProcess()");
+        err::set_last_os_error("CreateProcess");
         goto cleanup;
     }
 
@@ -434,7 +434,7 @@ bool process::process_impl::is_alive() const
     DWORD exit_code;
     if (!::GetExitCodeProcess(m_process_information.hProcess, &exit_code))
     {
-        windows::error_message("GetExitCodeProcess()");
+        err::set_last_os_error("GetExitCodeProcess");
         return false;
     }
 
@@ -452,7 +452,7 @@ bool process::process_impl::is_complete() const
 
     if (result == WAIT_FAILED)
     {
-        windows::error_message("WaitForSingleObject(): WAIT_FAILED");
+        err::set_last_os_error("WaitForSingleObject: WAIT_FAILED");
         return false;
     }
 
@@ -470,7 +470,7 @@ bool process::process_impl::join()
 
     if (result == WAIT_FAILED)
     {
-        windows::error_message("WaitForSingleObject(): WAIT_FAILED");
+        err::set_last_os_error("WaitForSingleObject: WAIT_FAILED");
         return false;
     }
 
@@ -483,7 +483,7 @@ bool process::process_impl::kill(bool force)
 
     if (!::TerminateProcess(m_process_information.hProcess, 1))
     {
-        windows::error_message("TerminateProcess()");
+        err::set_last_os_error("TerminateProcess");
         return false;
     }
 
@@ -498,7 +498,7 @@ bool process::process_impl::get_exit_code(int* exit_code) const
     DWORD rc;
     if (!::GetExitCodeProcess(m_process_information.hProcess, &rc))
     {
-        windows::error_message("GetExitCodeProcess()");
+        err::set_last_os_error("GetExitCodeProcess");
         return false;
     }
 
@@ -523,7 +523,7 @@ process::environment this_process::get_environment_impl()
     LPWCH environment_strings = ::GetEnvironmentStringsW();
     if (!environment_strings)
     {
-        windows::error_message("GetEnvironmentStringsW()");
+        err::set_last_os_error("GetEnvironmentStringsW");
         return environment;
     }
 
@@ -558,7 +558,7 @@ std::string this_process::get_environment_variable_impl(const std::string& name)
     DWORD buffer_size = ::GetEnvironmentVariableW(wname.c_str(), NULL, 0);
     if (buffer_size == 0)
     {
-        //windows::error_message("GetEnvironmentVariableW()");
+        //err::set_last_os_error("GetEnvironmentVariableW");
         return std::string{};
     }
 
@@ -574,7 +574,7 @@ bool this_process::set_environment_variable_impl(const std::string& name, const 
 
     if (::SetEnvironmentVariableW(wname.c_str(), wvalue.c_str()) == 0)
     {
-        windows::error_message("SetEnvironmentVariableW()");
+        err::set_last_os_error("SetEnvironmentVariableW");
         return false;
     }
     return true;
@@ -601,7 +601,7 @@ static io_stream get_stream_handle(DWORD nStdHandle)
         TRUE,
         DUPLICATE_SAME_ACCESS))
     {
-        windows::error_message("DuplicateHandle()");
+        err::set_last_os_error("DuplicateHandle");
     }
 
     return _priv::file_impl::from_native_handle(

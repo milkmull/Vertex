@@ -1,10 +1,9 @@
 #pragma once
 
 #include <initializer_list>
-//#include <span>
 
 #include "vertex/config/type_traits.hpp"
-#include "vertex/std/_priv/pointer_iterator.hpp"
+#include "vertex/std/_tools/pointer_iterator.hpp"
 #include "vertex/std/array.hpp"
 
 namespace vx {
