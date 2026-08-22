@@ -3,7 +3,7 @@
 #include "vertex/config/type_traits.hpp"
 
 namespace vx {
-namespace _compressed_pair_priv {
+namespace _priv {
 
 // tag type for value-initializing first, constructing second from remaining args
 struct zero_then_variadic_args_tag
@@ -81,5 +81,5 @@ public:
     }
 };
 
-} // namespace _compressed_pair_priv
+} // namespace _priv
 } // namespace vx

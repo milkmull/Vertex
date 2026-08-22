@@ -35,7 +35,7 @@ constexpr size_t max_array_size() noexcept
 // memory management (unaligned)
 //=========================================================================
 
-VX_ALLOCATOR inline void* allocate(const size_t bytes) noexcept
+inline VX_ALLOCATOR VX_NO_DISCARD void* allocate(const size_t bytes) noexcept
 {
     return ::malloc(bytes);
 }
@@ -50,7 +50,7 @@ inline void deallocate(void* ptr, VX_MAYBE_UNUSED const size_t bytes) noexcept
     ::free(ptr);
 }
 
-inline void* reallocate(void* ptr, const size_t bytes) noexcept
+inline VX_NO_DISCARD void* reallocate(void* ptr, const size_t bytes) noexcept
 {
     return ::realloc(ptr, bytes);
 }

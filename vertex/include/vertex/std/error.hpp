@@ -190,6 +190,75 @@ private:
 };
 
 //=============================================================================
+// success wrapper
+//=============================================================================
+
+class success
+{
+public:
+
+    constexpr success() noexcept : m_code(err::none)
+    {}
+    constexpr success(error_type c) noexcept : m_code(c)
+    {}
+    constexpr success(code c) noexcept : m_code(static_cast<error_type>(c))
+    {}
+    constexpr success(const error& e) noexcept : m_code(e.value())
+    {}
+
+    constexpr success(const success&) noexcept = default;
+    constexpr success(success&&) noexcept = default;
+
+    constexpr success& operator=(const success&) noexcept = default;
+    constexpr success& operator=(success&&) noexcept = default;
+
+    // true if this represents success (i.e. err::none)
+    constexpr explicit operator bool() const noexcept
+    {
+        return m_code == err::none;
+    }
+
+    constexpr operator error() const noexcept
+    {
+        return error(m_code);
+    }
+
+    constexpr error_type value() const noexcept
+    {
+        return m_code;
+    }
+
+    constexpr const char* message() const noexcept
+    {
+        return code_to_string(static_cast<code>(m_code));
+    }
+
+    constexpr friend bool operator==(const success& lhs, const success& rhs) noexcept
+    {
+        return lhs.m_code == rhs.m_code;
+    }
+
+    constexpr friend bool operator!=(const success& lhs, const success& rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
+
+    constexpr friend bool operator==(const success& lhs, code rhs) noexcept
+    {
+        return lhs.m_code == static_cast<error_type>(rhs);
+    }
+
+    constexpr friend bool operator==(code lhs, const success& rhs) noexcept
+    {
+        return rhs == lhs;
+    }
+
+private:
+
+    error_type m_code;
+};
+
+//=============================================================================
 // error info
 //=============================================================================
 
@@ -342,5 +411,11 @@ VX_NO_RETURN inline void fast_fail() noexcept
 } // namespace err
 
 using error = err::error;
+using success = err::success;
+
+inline error make_error(error_type e) noexcept
+{
+    return error{ e };
+}
 
 } // namespace vx

@@ -274,6 +274,12 @@ public:
         return m_has_value ? value_traits::get(m_storage) : static_cast<T>(std::forward<U>(default_value));
     }
 
+    template <typename U>
+    E error_or(U&& default_error) const&
+    {
+        return !m_has_value ? error_traits::get(m_storage) : static_cast<E>(std::forward<U>(default_error));
+    }
+
 private:
 
     void destroy() noexcept

@@ -80,7 +80,6 @@ public:
         {
             return make_unexpected(err::out_of_range);
         }
-
         return _m_array[i];
     }
 
@@ -90,7 +89,6 @@ public:
         {
             return make_unexpected(err::out_of_range);
         }
-
         return _m_array[i];
     }
 

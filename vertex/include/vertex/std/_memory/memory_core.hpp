@@ -171,7 +171,7 @@ enum : size_t
 //=========================================================================
 
 template <size_t alignment>
-VX_ALLOCATOR void* allocate_aligned(const size_t bytes) noexcept
+VX_ALLOCATOR VX_NO_DISCARD void* allocate_aligned(const size_t bytes) noexcept
 {
     VX_STATIC_ASSERT_MSG(_mem_priv::is_pow_2(alignment), "alignment must be power of 2");
 
@@ -198,7 +198,7 @@ VX_ALLOCATOR void* allocate_aligned(const size_t bytes) noexcept
     return ptr;
 }
 
-VX_ALLOCATOR inline void* allocate_aligned(const size_t bytes, const size_t alignment) noexcept
+VX_ALLOCATOR inline VX_NO_DISCARD void* allocate_aligned(const size_t bytes, const size_t alignment) noexcept
 {
     VX_ASSERT(_mem_priv::is_pow_2(alignment));
 
@@ -228,7 +228,7 @@ VX_ALLOCATOR inline void* allocate_aligned(const size_t bytes, const size_t alig
 //=========================================================================
 
 template <size_t alignment>
-void* reallocate_aligned(void* ptr, size_t bytes) noexcept
+VX_NO_DISCARD void* reallocate_aligned(void* ptr, size_t bytes) noexcept
 {
     VX_STATIC_ASSERT_MSG(_mem_priv::is_pow_2(alignment), "alignment must be power of 2");
 
@@ -264,7 +264,7 @@ void* reallocate_aligned(void* ptr, size_t bytes) noexcept
     return ptr;
 }
 
-inline void* reallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexcept
+inline VX_NO_DISCARD void* reallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexcept
 {
     VX_ASSERT(_mem_priv::is_pow_2(alignment));
 
@@ -383,7 +383,7 @@ void construct_in_place_maybe_trivial(T* ptr, Args&&... args)
 }
 
 template <typename T, typename... Args>
-VX_ALLOCATOR T* construct(Args&&... args)
+VX_ALLOCATOR VX_NO_DISCARD T* construct(Args&&... args)
 {
     void* raw_ptr = nullptr;
 
@@ -513,14 +513,21 @@ T* construct_range_maybe_trivial(T* ptr, size_t count)
 template <typename T>
 T* destroy_range(T* ptr, size_t count) noexcept
 {
-    const T* last = ptr + count;
-    while (ptr != last)
+    VX_IF_CONSTEXPR (!std::is_trivially_destructible<T>::value)
     {
-        destroy_in_place(ptr);
-        ++ptr;
+        return ptr + count;
     }
+    else
+    {
+        const T* last = ptr + count;
+        while (ptr != last)
+        {
+            destroy_in_place(ptr);
+            ++ptr;
+        }
 
-    return ptr;
+        return ptr;
+    }
 }
 
 //=========================================================================
@@ -544,7 +551,7 @@ constexpr T* fill_range(T* ptr, size_t count, const U& value)
     VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<T*, U>::value))
     {
         // can optimize with memset
-        auto end = set(ptr, static_cast<int>(value), bytes);
+        set(ptr, static_cast<int>(value), bytes);
         return ptr + count;
     }
     else
@@ -911,7 +918,7 @@ IT1 copy_move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
     {
         const size_t count = static_cast<size_t>(std::distance(first, last));
         const size_t bytes = count * sizeof(T);
-        move(dst, first, bytes);
+        copy(dst, first, bytes);
         return dst + count;
     }
     else
@@ -1124,7 +1131,7 @@ int compare_range(IT1 first1, IT1 last1, IT2 first2, IT2 last2)
 //=========================================================================
 
 template <typename T>
-VX_ALLOCATOR T* construct_array(const size_t count)
+VX_ALLOCATOR VX_NO_DISCARD T* construct_array(const size_t count)
 {
     if (count == 0)
     {
@@ -1160,7 +1167,7 @@ VX_ALLOCATOR T* construct_array(const size_t count)
 }
 
 template <typename T>
-VX_ALLOCATOR T* construct_array(const size_t count, const T& value)
+VX_ALLOCATOR VX_NO_DISCARD T* construct_array(const size_t count, const T& value)
 {
     if (count == 0)
     {

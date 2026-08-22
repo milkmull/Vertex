@@ -61,7 +61,7 @@ private:
 
     // holds the allocator alongside the buffer_type; empty-base-optimized when
     // allocator_type is stateless, so sizeof(basic_string) is unaffected in that case
-    _compressed_pair_priv::compressed_pair<allocator_type, data_type> m_storage;
+    _priv::compressed_pair<allocator_type, data_type> m_storage;
 
     allocator_type& m_allocator() noexcept
     {
@@ -225,26 +225,26 @@ public:
     basic_string(std::nullptr_t) = delete;
 
     basic_string() noexcept(noexcept(allocator_type()))
-        : m_storage(_compressed_pair_priv::zero_then_variadic_args_tag{})
+        : m_storage(_priv::zero_then_variadic_args_tag{})
     {
         construct_empty();
     }
 
     explicit basic_string(const allocator_type& alloc)
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         construct_empty();
     }
 
     basic_string(const basic_string& other)
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, other.m_allocator())
+        : m_storage(_priv::one_then_variadic_args_tag{}, other.m_allocator())
     {
         construct_n<construct_method::from_string>(other.size(), other.data());
     }
 
     // copy with an explicitly supplied allocator
     basic_string(const basic_string& other, const allocator_type& alloc)
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         construct_n<construct_method::from_string>(other.size(), other.data());
     }
@@ -252,13 +252,13 @@ public:
     // move takes over the source's allocator along with its buffer_type, since
     // the buffer_type must always be freed by the allocator that produced it
     basic_string(basic_string&& other) noexcept
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, std::move(other.m_allocator()))
+        : m_storage(_priv::one_then_variadic_args_tag{}, std::move(other.m_allocator()))
     {
         m_data().acquire(other.m_data());
     }
 
     basic_string(basic_string&& other, const allocator_type& alloc) noexcept
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         m_data().acquire(other.m_data());
     }
@@ -266,7 +266,7 @@ public:
     //=========================================================================
 
     basic_string(const basic_string& other, size_type off, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         if (_char_traits_priv::check_offset(other.size(), off))
         {
@@ -279,7 +279,7 @@ public:
     }
 
     basic_string(const basic_string& other, size_type off, size_type count, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         if (_char_traits_priv::check_offset(other.size(), off))
         {
@@ -295,7 +295,7 @@ public:
     //=========================================================================
 
     basic_string(size_type count, const T value, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         construct_n<construct_method::from_char_count>(count, value);
     }
@@ -303,14 +303,14 @@ public:
     //=========================================================================
 
     basic_string(const T* const ptr, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         const size_type count = static_cast<size_type>(traits_type::length(ptr));
         construct_n<construct_method::from_pointer>(count, ptr);
     }
 
     basic_string(const T* const ptr, size_type count, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         construct_n<construct_method::from_pointer>(count, ptr);
     }
@@ -319,7 +319,7 @@ public:
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     basic_string(IT first, IT last, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
@@ -336,7 +336,7 @@ public:
     //=========================================================================
 
     basic_string(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         const size_type count = static_cast<size_type>(init.size());
         construct_n<construct_method::from_pointer>(count, init.begin());
@@ -346,7 +346,7 @@ public:
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
     basic_string(const S& t, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         const size_type count = static_cast<size_type>(t.size());
         construct_n<construct_method::from_pointer>(count, t.data());
@@ -354,7 +354,7 @@ public:
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
     basic_string(const S& t, size_type off, size_type count = npos, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         if (_char_traits_priv::check_offset(t.size(), off))
         {

@@ -143,7 +143,7 @@ struct non_trivial_type
 
 //=========================================================================
 
-static constexpr size_t RR = 500; // number of repetitions
+static constexpr size_t RR = 2000; // number of repetitions
 // this needs to stay small enough to not trigger std::vector alignment optimization
 static constexpr size_t NN = 100; // number of elements
 
@@ -574,7 +574,7 @@ void run(size_t N, size_t R)
         profile_copy_constructor<Vec>,
         profile_range_constructor<Vec>,
         profile_move_constructor<Vec>,
-
+        
         profile_destructor<Vec>,
 
         profile_copy_assignment_reallocate<Vec>,
@@ -582,30 +582,30 @@ void run(size_t N, size_t R)
         profile_copy_assignment_shrink<Vec>,
         profile_list_assignment<Vec>,
         profile_move_assignment<Vec>,
-
+        
         profile_reserve_grow<Vec>,
         profile_reserve_shrink<Vec>,
-
+        
         profile_clear<Vec>,
         profile_shrink_to_fit<Vec>,
-
+        
         profile_resize_grow<Vec>,
         profile_resize_shrink<Vec>,
-
+        
         profile_emplace<Vec>,
         profile_emplace_grow<Vec>,
-
+        
         profile_insert_n<Vec>,
         profile_insert_n_unused<Vec>,
         profile_insert_n_back<Vec>,
         profile_insert_range<Vec>,
-
+        
         profile_erase<Vec>,
         profile_erase_range<Vec>,
-
+        
         profile_push_back<Vec>,
         profile_reserve_push_back<Vec>,
-
+        
         profile_compare<Vec>
     };
 

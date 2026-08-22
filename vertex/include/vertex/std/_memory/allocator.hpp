@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/std/_memory/memory_base.hpp"
+#include "vertex/std/_memory/memory_core.hpp"
 
 namespace vx {
 namespace mem {
@@ -77,7 +77,7 @@ public:
         return max_array_size<T>();
     }
 
-    VX_ALLOCATOR static pointer_type allocate(const size_t count) noexcept
+    VX_ALLOCATOR static VX_NO_DISCARD pointer_type allocate(const size_t count) noexcept
     {
         VX_UNLIKELY_COLD_PATH(count == 0,
             {
@@ -96,7 +96,7 @@ public:
         }
     }
 
-    static pointer_type reallocate(pointer_type ptr, const size_t count) noexcept
+    static VX_NO_DISCARD pointer_type reallocate(pointer_type ptr, const size_t count) noexcept
     {
         const size_t bytes = count * sizeof(value_type);
 
