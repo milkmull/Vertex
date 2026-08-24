@@ -240,31 +240,31 @@ public:
 
     T& value() & noexcept
     {
-        VX_VERIFY(m_has_value, "");
+        VX_VERIFY(m_has_value);
         return value_traits::get(m_storage);
     }
 
     const T& value() const& noexcept
     {
-        VX_VERIFY(m_has_value, "");
+        VX_VERIFY(m_has_value);
         return value_traits::get(m_storage);
     }
 
     T&& value() && noexcept
     {
-        VX_VERIFY(m_has_value, "");
+        VX_VERIFY(m_has_value);
         return value_traits::get_rv(m_storage);
     }
 
     E& error() & noexcept
     {
-        VX_VERIFY(!m_has_value, "");
+        VX_VERIFY(!m_has_value);
         return error_traits::get(m_storage);
     }
 
     const E& error() const& noexcept
     {
-        VX_VERIFY(!m_has_value, "");
+        VX_VERIFY(!m_has_value);
         return error_traits::get(m_storage);
     }
 

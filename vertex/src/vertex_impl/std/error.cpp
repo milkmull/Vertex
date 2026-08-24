@@ -10,7 +10,11 @@
 namespace vx {
 namespace err {
 
-struct error_writer
+//=============================================================================
+// low-level formatting helper
+//=============================================================================
+
+struct error_formatter
 {
     using C = char;
     using traits = str::char_traits<C>;
@@ -55,16 +59,24 @@ struct error_writer
         append(buffer, result.count);
     }
 
-    void format_message(error_type e, const char* msg, const char* function, const char* file, int line)
+    void format_message(bool system_error, error_type e, const char* msg, const error_site& site)
     {
-        const char start_text[] = "[SYSTEM ERROR]: ";
+        const char error_prefix[] = "[ERROR]: ";
+        const char system_error_prefix[] = "[SYSTEM ERROR]: ";
         const char function_text[] = "function: ";
         const char file_text[] = "file: ";
         const char line_text[] = "line: ";
         const char separator_text[] = " | ";
 
-        // start
-        append_literal(start_text);
+        // prefix
+        if (system_error)
+        {
+            append_literal(system_error_prefix);
+        }
+        else
+        {
+            append_literal(error_prefix);
+        }
 
         // error code
         append_number(e);
@@ -75,33 +87,38 @@ struct error_writer
             append_cstr(msg);
         }
 
-        if (function)
+        if (site.function)
         {
             append_literal(separator_text);
             append_literal(function_text);
-            append_cstr(function);
+            append_cstr(site.function);
         }
 
-        if (file)
+        if (site.file)
         {
             append_literal(separator_text);
             append_literal(file_text);
-            append_cstr(file);
+            append_cstr(site.file);
         }
 
-        if (line > 0)
+        if (site.line > 0)
         {
             append_literal(separator_text);
             append_literal(line_text);
-            append_number(line);
+            append_number(site.line);
         }
 
         *ptr = '\0';
     }
 };
 
+//=============================================================================
+// thread-local error state
+//=============================================================================
+
 struct info_impl
 {
+    bool is_system_error;
     error_type err;
     char message[VX_ERR_BUFFER_MAX_SIZE + 1];
     size_t message_size;
@@ -109,24 +126,26 @@ struct info_impl
 
 private:
 
-    void format_message(const char* msg, const char* function, const char* file, int line)
+    void format_message(const char* msg, const error_site& site)
     {
-        error_writer writer{ message, VX_ERR_BUFFER_MAX_SIZE };
-        writer.format_message(err, msg, function, file, line);
-        message_size = (VX_ERR_BUFFER_MAX_SIZE - writer.remaining);
+        error_formatter fmt{ message, VX_ERR_BUFFER_MAX_SIZE };
+        fmt.format_message(is_system_error, err, msg, site);
+        message_size = (VX_ERR_BUFFER_MAX_SIZE - fmt.remaining);
     }
 
 public:
 
-    void update(error_type e, const char* msg, const char* function, const char* file, int line)
+    void update(bool system_error, error_type e, const char* msg, const error_site& site)
     {
+        is_system_error = system_error;
         err = e;
-        format_message(msg, function, file, line);
+        format_message(msg, site);
         thread = os::this_thread::get_id();
     }
 
     void clear()
     {
+        is_system_error = false;
         err = error_type{};
         message[0] = '\0';
         message_size = 0;
@@ -137,12 +156,60 @@ static thread_local info_impl s_err = {};
 static error_hook_t s_hook = nullptr;
 
 //=============================================================================
+// printing
+//=============================================================================
+
+static void safe_print_impl(const char* data, const size_t count) noexcept
+{
+    os::write_raw_impl(os::stream::err, data, count, false);
+}
+
+void safe_print(const char* data, const size_t count)
+{
+    if (!data || count == 0)
+    {
+        return;
+    }
+
+    safe_print_impl(data, count);
+}
+
+//=============================================================================
+// error formatting
+//=============================================================================
+
+void print_error(
+    bool system_error,
+    error_type e,
+    const char* msg,
+    const error_site& site) noexcept
+{
+    // Local buffer only - deliberately not thread-local and not shared with
+    // any other error state. This runs on fatal/unrecoverable paths, where
+    // we want zero dependency on shared mutable state that might itself be
+    // in a bad way by the time we get here.
+    constexpr size_t buffer_size = VX_ERR_BUFFER_MAX_SIZE;
+    char buffer[buffer_size + 1];
+
+    error_formatter fmt{ buffer, buffer_size };
+    fmt.format_message(system_error, e, msg, site);
+    const size_t written = buffer_size - fmt.remaining;
+
+    safe_print(buffer, written);
+}
+
+//=============================================================================
 // error accessors and manipulators
 //=============================================================================
 
 error_info get() noexcept
 {
-    return error_info{ s_err.err, s_err.message };
+    return error_info{
+        s_err.is_system_error,
+        s_err.err,
+        { s_err.message, s_err.message_size },
+        s_err.thread
+    };
 }
 
 error_type get_code() noexcept
@@ -155,7 +222,7 @@ error_string get_message() noexcept
     return { s_err.message, s_err.message_size };
 }
 
-void set(error_type e, const char* msg, const char* function, const char* file, int line)
+void _err_priv::set_impl(bool system_error, error_type e, const char* msg, const error_site& site)
 {
     if (e == error_type{})
     {
@@ -165,14 +232,20 @@ void set(error_type e, const char* msg, const char* function, const char* file, 
 
     if (!s_hook)
     {
-        s_err.update(e, msg, function, file, line);
+        s_err.update(system_error, e, msg, site);
         return;
     }
 
     info_impl tmp;
-    tmp.update(e, msg, function, file, line);
+    tmp.update(system_error, e, msg, site);
 
-    const error_info info{ tmp.err, tmp.message, tmp.thread };
+    const error_info info{
+        tmp.is_system_error,
+        tmp.err,
+        { tmp.message, tmp.message_size },
+        tmp.thread
+    };
+
     if (!s_hook(info))
     {
         s_err.clear();
@@ -187,11 +260,25 @@ void set_last_os_error(const char* message)
     constexpr size_t buffer_size = VX_ERR_BUFFER_MAX_SIZE;
     char buffer[buffer_size + 1];
 
-    const auto e = os::get_last_error();
-    const size_t written = os::format_error(e, buffer, buffer_size);
-    buffer[written] = '\0';
+    error_formatter fmt{ buffer, buffer_size };
 
-    set(e, buffer, message, nullptr, 0);
+    // fold the caller-supplied context message in ahead of the OS-provided
+    // error text, instead of dropping it
+    if (message)
+    {
+        fmt.append_cstr(message);
+        fmt.append_literal(": ");
+    }
+
+    const auto e = os::get_last_error();
+    const size_t os_msg_capacity = fmt.remaining;
+    const size_t os_msg_size = os::format_error(e, fmt.ptr, os_msg_capacity);
+
+    fmt.ptr += os_msg_size;
+    fmt.remaining -= os_msg_size;
+    *fmt.ptr = '\0';
+
+    _err_priv::set_impl(true, e, buffer, {});
 }
 
 //=============================================================================
@@ -210,16 +297,11 @@ error_hook_t get_hook() noexcept
     return s_hook;
 }
 
-static void safe_print_impl(const char* data, const size_t count) noexcept
-{
-    os::write_raw_impl(os::stream::err, data, count, false);
-}
-
     #if !defined(VX_ERR_DISABLE_PRINT_ERROR_HOOK)
 
 bool print_error_hook(error_info info)
 {
-    if (!info.message.size == 0)
+    if (info.message.size != 0)
     {
         safe_print(info.message.data, info.message.size);
 
@@ -245,16 +327,6 @@ bool print_error_hook(error_info info)
     #endif // !defined(VX_ERR_DISABLE_PRINT_ERROR_HOOK)
 
 #endif // !defined(VX_ERR_DISABLE_HOOK)
-
-void safe_print(const char* data, const size_t count)
-{
-    if (!data || count == 0)
-    {
-        return;
-    }
-
-    safe_print_impl(data, count);
-}
 
 } // namespace err
 } // namespace vx

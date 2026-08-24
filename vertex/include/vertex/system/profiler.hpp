@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vertex/util/time/timer.hpp"
+#include "vertex/std/io.hpp"
 
 namespace vx {
 namespace profile {

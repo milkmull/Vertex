@@ -22,14 +22,30 @@
 #define VX_INVALID_INDEX SIZE_MAX
 
 //=============================================================================
+// Branch Prediction
+//=============================================================================
+
+#define VX_UNLIKELY_COLD_PATH(cond, action) \
+    do \
+    { \
+        if VX_UNLIKELY (cond) \
+        { \
+            action; \
+        } \
+    } while (0)
+
+//=============================================================================
 // Return If
 //=============================================================================
 
-#define VX_RETURN_IF(cond, ret) \
+#define VX_RET_IF(cond, ...) \
     do \
     { \
-        if ((cond)) \
+        if (!(cond)) \
         { \
-            return (ret); \
+            return __VA_ARGS__; \
         } \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
+
+#define VX_RET_IF_UL(cond, ...) \
+    VX_UNLIKELY_COLD_PATH((cond), return __VA_ARGS__)

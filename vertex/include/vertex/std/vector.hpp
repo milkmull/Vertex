@@ -13,8 +13,6 @@
 #include "vertex/std/expected.hpp"
 #include "vertex/std/vector_traits.hpp"
 
-//#define VX_VECTOR_DISABLE_MAX_SIZE_CHECK 1
-
 namespace vx {
 
 template <typename T, typename Allocator = mem::default_allocator<T>>
@@ -98,30 +96,11 @@ private:
     template <construct_method M, typename... Args>
     success construct_n(size_type count, Args&&... args)
     {
-        VX_UNLIKELY_COLD_PATH(!count,
-            {
-                return make_error(err::none);
-            });
+        VX_RET_ERR_IF(!count, success{});
+        VX_RET_ERR_IF(count > max_size(), err::size_error);
 
-#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
-        VX_UNLIKELY_COLD_PATH(count > max_size(),
-            {
-                return make_error(err::size_error);
-            });
-
-#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
-        auto new_ptr = m_allocator().allocate(count);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-        VX_UNLIKELY_COLD_PATH(!new_ptr,
-            {
-                return make_error(err::out_of_memory);
-            });
-
-#endif // !defined(VX_ALLOCATE_FAIL_FAST)
+        pointer new_ptr = m_allocator().allocate(count);
+        VX_RET_ERR_IF(!new_ptr, err::out_of_memory);
 
         VX_IF_CONSTEXPR (M == construct_method::default_range)
         {
@@ -151,7 +130,7 @@ private:
         m_data().size = count;
         m_data().capacity = count;
 
-        return make_error(err::none);
+        return success{};
     }
 
     struct uninitialized_tag
@@ -178,51 +157,41 @@ public:
     explicit vector(size_type count, const allocator_type& alloc = allocator_type())
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
-        if (!construct_n<construct_method::default_range>(count))
-        {
-            err::fast_fail();
-        }
+        const auto e = construct_n<construct_method::default_range>(count);
+        VX_VERIFY(e);
     }
 
     vector(const size_type count, const T& value, const allocator_type& alloc = allocator_type())
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
-        if (!construct_n<construct_method::fill_range>(count, value))
-        {
-            err::fast_fail();
-        }
+        const auto e = construct_n<construct_method::fill_range>(count, value);
+        VX_VERIFY(e);
     }
 
     vector(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
-        if (!construct_n<construct_method::copy_range>(init.size(), init.begin()))
-        {
-            err::fast_fail();
-        }
+        const auto e = construct_n<construct_method::copy_range>(init.size(), init.begin());
+        VX_VERIFY(e);
     }
 
     vector(const vector& other)
         : m_storage(_priv::one_then_variadic_args_tag{}, other.m_allocator())
     {
-        if (!construct_n<construct_method::copy_range>(
-                other.m_data().size,
-                other.m_data().ptr))
-        {
-            err::fast_fail();
-        }
+        const auto e = construct_n<construct_method::copy_range>(
+            other.m_data().size,
+            other.m_data().ptr);
+        VX_VERIFY(e);
     }
 
     // copy with an explicitly supplied allocator
     vector(const vector& other, const allocator_type& alloc)
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
-        if (!construct_n<construct_method::copy_range>(
-                other.m_data().size,
-                other.m_data().ptr))
-        {
-            err::fast_fail();
-        }
+        const auto e = construct_n<construct_method::copy_range>(
+            other.m_data().size,
+            other.m_data().ptr);
+        VX_VERIFY(e);
     }
 
     // move takes over the source's allocator along with its data_type, since
@@ -255,77 +224,72 @@ public:
             e = construct_n<construct_method::iterator_range>(count, std::move(first), std::move(last));
         }
 
-        if (!e)
-        {
-            err::fast_fail();
-        }
+        VX_VERIFY(e);
     }
 
     template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
     vector(const V& v, const allocator_type& alloc = allocator_type())
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
-        if (!construct_n<construct_method::copy_range>(v.size(), v.data()))
-        {
-            err::fast_fail();
-        }
+        const auto e = construct_n<construct_method::copy_range>(v.size(), v.data());
+        VX_VERIFY(e);
     }
 
     //=========================================================================
     // fallible construction
     //=========================================================================
 
-    static expected<vector, error> construct(const allocator_type& alloc = allocator_type())
+    static expected<vector, error> create(const allocator_type& alloc = allocator_type())
     {
         return vector(uninitialized_tag{}, alloc);
     }
 
-    static expected<vector, error> construct(size_type count, const allocator_type& alloc = allocator_type())
+    static expected<vector, error> create(size_type count, const allocator_type& alloc = allocator_type())
     {
         vector v(uninitialized_tag{}, alloc);
-        const auto e = v.template construct_n<construct_method::default_range>(count);
-        return e ? make_unexpected(e) : v;
+        const auto ok = v.template construct_n<construct_method::default_range>(count);
+        return ok ? v : make_unexpected(error{ ok });
     }
 
-    static expected<vector, error> construct(size_type count, const T& value, const allocator_type& alloc = allocator_type())
+    static expected<vector, error> create(size_type count, const T& value, const allocator_type& alloc = allocator_type())
     {
         vector v(uninitialized_tag{}, alloc);
-        const error e = v.template construct_n<construct_method::fill_range>(count, value);
-        return e ? make_unexpected(e) : v;
+        const auto ok = v.template construct_n<construct_method::fill_range>(count, value);
+        return ok ? v : make_unexpected(error{ ok });
     }
 
-    static expected<vector, error> construct(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
+    static expected<vector, error> create(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
     {
         vector v(uninitialized_tag{}, alloc);
-        const error e = v.template construct_n<construct_method::copy_range>(init.size(), init.begin());
-        return e ? make_unexpected(e) : v;
+        const auto ok = v.template construct_n<construct_method::copy_range>(init.size(), init.begin());
+        return ok ? v : make_unexpected(error{ ok });
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    static expected<vector, error> construct(IT first, IT last, const allocator_type& alloc = allocator_type())
+    static expected<vector, error> create(IT first, IT last, const allocator_type& alloc = allocator_type())
     {
         vector v(uninitialized_tag{}, alloc);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        error e;
+        success ok;
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
-            e = v.template construct_n<construct_method::copy_range>(count, first.ptr());
+            ok = v.template construct_n<construct_method::copy_range>(count, first.ptr());
         }
         else
         {
-            e = v.template construct_n<construct_method::iterator_range>(count, std::move(first), std::move(last));
+            ok = v.template construct_n<construct_method::iterator_range>(count, std::move(first), std::move(last));
         }
 
-        return e ? make_unexpected(e) : v;
+        return ok ? v : make_unexpected(error{ ok });
     }
 
     template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
-    static expected<vector, error> construct(const V& other, const allocator_type& alloc = allocator_type())
+    static expected<vector, error> create(const V& other, const allocator_type& alloc = allocator_type())
     {
         vector v(uninitialized_tag{}, alloc);
-        const error e = v.template construct_n<construct_method::copy_range>(other.size(), other.data());
-        return e ? make_unexpected(e) : v;
+        const auto ok = v.template construct_n<construct_method::copy_range>(other.size(), other.data());
+        return ok ? v : make_unexpected(error{ ok });
     }
 
 private:
@@ -396,24 +360,11 @@ private:
 
         if (count > capacity)
         {
-#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
-            VX_UNLIKELY_COLD_PATH(count > max_size(),
-                {
-                    return make_error(err::size_error);
-                });
-
-#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
+            VX_RET_ERR_IF(!count, success{});
+            VX_RET_ERR_IF(count > max_size(), err::size_error);
 
             pointer new_ptr = m_allocator().allocate(count);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-            VX_UNLIKELY_COLD_PATH(!new_ptr,
-                {
-                    return make_error(err::out_of_memory);
-                });
-#endif // !defined(VX_ALLOCATE_FAIL_FAST)
+            VX_RET_ERR_IF(!new_ptr, err::out_of_memory);
 
             mem::destroy_range(ptr, size);
             m_allocator().deallocate(ptr, capacity);
@@ -435,7 +386,7 @@ private:
             }
 
             size = count;
-            return make_error(err::none);
+            return success{};
         }
 
         if (count > size)
@@ -479,7 +430,7 @@ private:
         }
 
         size = count;
-        return make_error(err::none);
+        return success{};
     }
 
     template <construct_method M, typename IT1, typename IT2>
@@ -493,25 +444,11 @@ private:
 
         if (count > capacity)
         {
-#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
-            VX_UNLIKELY_COLD_PATH(count > max_size(),
-                {
-                    return make_error(err::size_error);
-                });
-
-#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
+            VX_RET_ERR_IF(!count, success{});
+            VX_RET_ERR_IF(count > max_size(), err::size_error);
 
             pointer new_ptr = m_allocator().allocate(count);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-            VX_UNLIKELY_COLD_PATH(!new_ptr,
-                {
-                    return make_error(err::out_of_memory);
-                });
-
-#endif // !defined(VX_ALLOCATE_FAIL_FAST)
+            VX_RET_ERR_IF(!new_ptr, err::out_of_memory);
 
             mem::destroy_range(ptr, size);
             m_allocator().deallocate(ptr, capacity);
@@ -534,7 +471,7 @@ private:
         }
 
         size = count;
-        return make_error(err::none);
+        return success{};
     }
 
 public:
@@ -545,10 +482,8 @@ public:
 
     vector& operator=(const vector& other)
     {
-        if (!assign_from<construct_method::copy_range>(other.m_data().size, other.m_data().ptr))
-        {
-            err::fast_fail();
-        }
+        const auto e = assign_from<construct_method::copy_range>(other.m_data().size, other.m_data().ptr);
+        VX_VERIFY(e);
         return *this;
     }
 
@@ -565,20 +500,16 @@ public:
 
     vector& operator=(std::initializer_list<T> init)
     {
-        if (!assign_from<construct_method::copy_range>(init.size(), init.begin()))
-        {
-            err::fast_fail();
-        }
+        const auto e = assign_from<construct_method::copy_range>(init.size(), init.begin());
+        VX_VERIFY(e);
         return *this;
     }
 
     template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
     vector& operator=(const V& v)
     {
-        if (!assign_from<construct_method::copy_range>(v.size(), v.data()))
-        {
-            err::fast_fail();
-        }
+        const auto e = assign_from<construct_method::copy_range>(v.size(), v.data());
+        VX_VERIFY(e);
         return *this;
     }
 
@@ -595,10 +526,9 @@ public:
         return assign_from<construct_method::copy_range>(other.m_data().size, other.m_data().ptr);
     }
 
-    success assign(vector&& other) noexcept
+    void assign(vector&& other) noexcept
     {
         operator=(std::move(other));
-        return make_error(err::none);
     }
 
     success assign(std::initializer_list<T> init)
@@ -643,37 +573,25 @@ public:
 
     expected<T&, error> front() noexcept
     {
-        if (empty())
-        {
-            return make_unexpected(make_error(err::out_of_range));
-        }
+        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
         return *m_data().ptr;
     }
 
     expected<const T&, error> front() const noexcept
     {
-        if (empty())
-        {
-            return make_unexpected(make_error(err::out_of_range));
-        }
+        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
         return *m_data().ptr;
     }
 
     expected<T&, error> back() noexcept
     {
-        if (empty())
-        {
-            return make_unexpected(make_error(err::out_of_range));
-        }
+        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
         return m_data().ptr[m_data().size - 1];
     }
 
     expected<const T&, error> back() const noexcept
     {
-        if (empty())
-        {
-            return make_unexpected(make_error(err::out_of_range));
-        }
+        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
         return m_data().ptr[m_data().size - 1];
     }
 
@@ -701,19 +619,13 @@ public:
 
     expected<T&, error> at(size_type i) noexcept
     {
-        if (i >= m_data().size)
-        {
-            return make_unexpected(make_error(err::out_of_range));
-        }
+        VX_RET_UNEXPECTED_ERR_IF(i >= m_data().size, err::out_of_range);
         return operator[](i);
     }
 
     expected<const T&, error> at(size_type i) const noexcept
     {
-        if (i >= m_data().size)
-        {
-            return make_unexpected(make_error(err::out_of_range));
-        }
+        VX_RET_UNEXPECTED_ERR_IF(i >= m_data().size, err::out_of_range);
         return operator[](i);
     }
 
@@ -819,22 +731,14 @@ public:
 
     success acquire(pointer ptr, size_type count) noexcept
     {
-#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
-        VX_UNLIKELY_COLD_PATH(count > max_size(),
-            {
-                return make_error(err::size_error);
-            });
-
-#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
+        VX_RET_ERR_IF(count > max_size(), err::size_error);
         destroy_range();
 
         m_data().ptr = ptr;
         m_data().size = count;
         m_data().capacity = count;
 
-        return make_error(err::none);
+        return success{};
     }
 
     // swap keeps allocator and data_type glued together because each
@@ -910,47 +814,21 @@ private:
         auto& size = m_data().size;
         auto& capacity = m_data().capacity;
 
-        pointer new_ptr;
+        pointer new_ptr = m_allocator().allocate(new_capacity);
+        VX_RET_ERR_IF(!new_ptr, err::out_of_memory);
 
-        VX_IF_CONSTEXPR (try_reallocate && std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
+        VX_IF_CONSTEXPR (shrinking)
         {
-            new_ptr = m_allocator().reallocate(ptr, new_capacity);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-            if (!new_ptr)
-            {
-                return make_error(err::out_of_memory);
-            }
-
-#endif // !defined(VX_ALLOCATE_FAIL_FAST)
+            VX_ASSERT(size > 0);
+            mem::move_uninitialized_range(new_ptr, ptr, new_capacity);
         }
         else
         {
-            new_ptr = m_allocator().allocate(new_capacity);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-            if (!new_ptr)
-            {
-                return make_error(err::out_of_memory);
-            }
-
-#endif // !defined(VX_ALLOCATE_FAIL_FAST)
-
-            VX_IF_CONSTEXPR (shrinking)
-            {
-                VX_ASSERT(size > 0);
-                mem::move_uninitialized_range(new_ptr, ptr, new_capacity);
-            }
-            else
-            {
-                mem::move_uninitialized_range(new_ptr, ptr, size);
-            }
-
-            mem::destroy_range(ptr, size);
-            m_allocator().deallocate(ptr, capacity);
+            mem::move_uninitialized_range(new_ptr, ptr, size);
         }
+
+        mem::destroy_range(ptr, size);
+        m_allocator().deallocate(ptr, capacity);
 
         ptr = new_ptr;
         VX_IF_CONSTEXPR (shrinking)
@@ -959,7 +837,7 @@ private:
         }
         capacity = new_capacity;
 
-        return make_error(err::none);
+        return success{};
     }
 
 public:
@@ -972,19 +850,11 @@ public:
     {
         if (new_capacity > m_data().capacity)
         {
-#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
-            VX_UNLIKELY_COLD_PATH(new_capacity > max_size(),
-                {
-                    return make_error(err::size_error);
-                });
-
-#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
+            VX_RET_ERR_IF(new_capacity > max_size(), err::size_error);
             return reallocate(new_capacity);
         }
 
-        return make_error(err::none);
+        return success{};
     }
 
 private:
@@ -1000,25 +870,9 @@ private:
         auto& size = m_data().size;
         auto& capacity = m_data().capacity;
 
-#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
-        VX_UNLIKELY_COLD_PATH(new_size > max_size(),
-            {
-                return make_error(err::size_error);
-            });
-
-#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
+        VX_RET_ERR_IF(new_size > max_size(), err::size_error);
         pointer new_ptr = m_allocator().allocate(new_size);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-        VX_UNLIKELY_COLD_PATH(!new_ptr,
-            {
-                return make_error(err::out_of_memory);
-            });
-
-#endif // !defined(VX_ALLOCATE_FAIL_FAST)
+        VX_RET_ERR_IF(!new_ptr, err::out_of_memory);
 
         const size_type grow_count = new_size - size;
         pointer end_ptr = new_ptr + size;
@@ -1042,7 +896,7 @@ private:
         size = new_size;
         capacity = new_size;
 
-        return make_error(err::none);
+        return success{};
     }
 
     template <typename... Args>
@@ -1085,7 +939,7 @@ private:
         }
 
         size = new_size;
-        return make_error(err::none);
+        return success{};
     }
 
 public:
@@ -1192,29 +1046,13 @@ private:
         auto& size = m_data().size;
         auto& capacity = m_data().capacity;
 
-#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
-        VX_UNLIKELY_COLD_PATH(count > max_size() - size,
-            {
-                return make_unexpected(make_error(err::size_error));
-            });
-
-#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
+        VX_RET_UNEXPECTED_ERR_IF(count > max_size() - size, err::size_error);
         const size_type new_size = size + count;
         const size_type new_capacity = _dynamic_array_base_priv::grow_capacity<growth_rate>(new_size, capacity, max_size());
         VX_ASSERT(new_capacity > capacity);
 
         pointer new_ptr = m_allocator().allocate(new_capacity);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-        VX_UNLIKELY_COLD_PATH(!new_ptr,
-            {
-                return make_unexpected(make_error(err::out_of_memory));
-            });
-
-#endif // defined(VX_ALLOCATE_FAIL_FAST)
+        VX_RET_UNEXPECTED_ERR_IF(!new_ptr, err::out_of_memory);
 
         const size_type off = static_cast<size_type>(pos - ptr);
         pointer dst = new_ptr + off;
@@ -1260,10 +1098,7 @@ private:
 
     expected<pointer, error> checked_offset_ptr(size_type off) noexcept
     {
-        if (off > m_data().size)
-        {
-            return make_unexpected(make_error(err::out_of_range));
-        }
+        VX_RET_UNEXPECTED_ERR_IF(off > m_data().size, err::out_of_range);
         return m_data().ptr + off;
     }
 
@@ -1287,16 +1122,11 @@ private:
     expected<iterator, error> insert_checked(size_type off, size_type count, Args&&... args)
     {
         auto p = checked_offset_ptr(off);
-        if (!p)
-        {
-            return make_unexpected(p.error());
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!p, p.error());
 
         const auto res = insert_n<growth_rate, M>(p.value(), count, std::forward<Args>(args)...);
-        if (!res)
-        {
-            return make_unexpected(res.error());
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!res, res.error());
+
         return iterator(res.value());
     }
 
@@ -1306,12 +1136,10 @@ private:
         VX_ASSERT(pos >= cbegin() && pos <= cend());
         auto ptr = const_cast<pointer>(pos.ptr());
 
-        const auto res = insert_n<growth_rate, M>(ptr, count, std::forward<Args>(args)...);
-        if (!res)
-        {
-            err::fast_fail();
-        }
-        return iterator(res.value());
+        const auto e = insert_n<growth_rate, M>(ptr, count, std::forward<Args>(args)...);
+        VX_VERIFY(e);
+
+        return iterator(e.value());
     }
 
 public:
@@ -1418,21 +1246,11 @@ public:
         if (size == capacity)
         {
             const size_type count = size + 1;
-
-#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
-
-            VX_UNLIKELY_COLD_PATH(count > max_size() - size,
-                {
-                    return make_unexpected(make_error(err::size_error));
-                });
-
-#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
+            VX_RET_UNEXPECTED_ERR_IF(count > max_size() - size, err::size_error);
 
             const size_type new_capacity = _dynamic_array_base_priv::grow_capacity<growth_rate>(count, capacity, max_size());
-            VX_UNLIKELY_COLD_PATH(!reallocate(new_capacity),
-                {
-                    return make_unexpected(make_error(err::out_of_memory));
-                });
+            const auto reallocate_ok = reallocate(new_capacity);
+            VX_RET_UNEXPECTED_ERR_IF(!reallocate_ok, err::out_of_memory);
         }
 
         pointer dst = ptr + size;
@@ -1494,26 +1312,18 @@ private:
 
 public:
 
-    success erase(size_type off)
+    void erase(size_type off)
     {
-        if (off >= size())
-        {
-            return make_error(err::out_of_range);
-        }
+        VX_RET_ERR_IF(off >= size(), err::out_of_range);
         auto ptr = m_data().ptr + off;
         erase_n(ptr, 1);
-        return make_error(err::none);
     }
 
-    success erase(size_type off, size_type count)
+    void erase(size_type off, size_type count)
     {
-        if (off > size() || count > size() - off)
-        {
-            return make_error(err::out_of_range);
-        }
+        VX_RET_ERR_IF(off > size() || count > size() - off, err::out_of_range);
         auto ptr = m_data().ptr + off;
         erase_n(ptr, count);
-        return make_error(err::none);
     }
 
     iterator erase(const_iterator pos)
@@ -1535,19 +1345,16 @@ public:
 
     //=========================================================================
 
-    success pop_back()
+    void pop_back()
     {
         auto& ptr = m_data().ptr;
         auto& size = m_data().size;
 
-        if (size == 0)
+        if (size)
         {
-            return make_error(err::out_of_range);
+            --size;
+            mem::destroy_in_place(ptr + size);
         }
-
-        --size;
-        mem::destroy_in_place(ptr + size);
-        return make_error(err::none);
     }
 };
 

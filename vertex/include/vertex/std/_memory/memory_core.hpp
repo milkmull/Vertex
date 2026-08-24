@@ -9,20 +9,8 @@
 #include "vertex/std/_memory/memory_util.hpp"
 #include "vertex/std/error.hpp"
 
-#define VX_ALLOCATE_FAIL_FAST
-
 namespace vx {
 namespace mem {
-
-//=========================================================================
-// enable crash when allocation fails
-//=========================================================================
-
-#if defined(VX_ALLOCATE_FAIL_FAST)
-    #define VX_ALLOCATOR_FAILED(ret) ::vx::err::fast_fail();
-#else
-    #define VX_ALLOCATOR_FAILED(ret) return ::vx::err::return_error(err::out_of_memory, ret)
-#endif
 
 //=========================================================================
 // memory management (aligned) internal
@@ -132,7 +120,7 @@ void adjust_aligned_pointer(void*& out_ptr, size_t& bytes) noexcept
 #endif
 
     const uintptr_t back_shift = reinterpret_cast<uintptr_t>(ptr) - block_addr;
-    VX_VERIFY(back_shift >= aligned_header_size && back_shift <= padding, "invalid argument");
+    VX_VERIFY_MSG(back_shift >= aligned_header_size && back_shift <= padding, "invalid argument");
     out_ptr = reinterpret_cast<void*>(block_addr);
 }
 
@@ -152,7 +140,7 @@ inline void adjust_aligned_pointer(void*& out_ptr, size_t& bytes, const size_t p
 #endif
 
     const uintptr_t back_shift = reinterpret_cast<uintptr_t>(ptr) - block_addr;
-    VX_VERIFY(back_shift >= aligned_header_size && back_shift <= padding, "invalid argument");
+    VX_VERIFY_MSG(back_shift >= aligned_header_size && back_shift <= padding, "invalid argument");
     out_ptr = reinterpret_cast<void*>(block_addr);
 }
 
@@ -177,16 +165,10 @@ VX_ALLOCATOR VX_NO_DISCARD void* allocate_aligned(const size_t bytes) noexcept
 
     constexpr size_t padding = _mem_priv::alignment_padding_size(alignment);
     const size_t block_size = bytes + padding;
-    VX_UNLIKELY_COLD_PATH(block_size <= bytes,
-        {
-            return err::return_error(err::size_error, nullptr);
-        });
+    VX_RET_IF_UL(block_size <= bytes, nullptr);
 
     const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(allocate(block_size));
-    VX_UNLIKELY_COLD_PATH(block_ptr == 0,
-        {
-            VX_ALLOCATOR_FAILED(nullptr);
-        });
+    VX_VERIFY_MSG(block_ptr != 0, "invalid argument");
 
     void* const ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
     *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
@@ -204,16 +186,10 @@ VX_ALLOCATOR inline VX_NO_DISCARD void* allocate_aligned(const size_t bytes, con
 
     const size_t padding = _mem_priv::alignment_padding_size(alignment);
     const size_t block_size = bytes + padding;
-    VX_UNLIKELY_COLD_PATH(block_size <= bytes,
-        {
-            return err::return_error(err::size_error, nullptr);
-        });
+    VX_VERIFY_MSG(block_size <= bytes, "size_t overflow");
 
     const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(allocate(block_size));
-    VX_UNLIKELY_COLD_PATH(block_ptr == 0,
-        {
-            VX_ALLOCATOR_FAILED(nullptr);
-        });
+    VX_VERIFY_MSG(block_ptr != 0, "invalid argument");
 
     void* const ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
     *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
@@ -240,19 +216,13 @@ VX_NO_DISCARD void* reallocate_aligned(void* ptr, size_t bytes) noexcept
     constexpr size_t padding = _mem_priv::alignment_padding_size(alignment);
     size_t block_size = bytes;
     _mem_priv::adjust_aligned_pointer<alignment>(ptr, block_size);
-    VX_UNLIKELY_COLD_PATH(block_size <= bytes,
-        {
-            return err::return_error(err::size_error, nullptr);
-        });
+    VX_VERIFY_MSG(block_size <= bytes, "size_t overflow");
 
     VX_DISABLE_MSVC_WARNING_PUSH();
     VX_DISABLE_MSVC_WARNING(6308);
     const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(reallocate(ptr, block_size));
     VX_DISABLE_MSVC_WARNING_POP();
-    VX_UNLIKELY_COLD_PATH(block_ptr == 0,
-        {
-            VX_ALLOCATOR_FAILED(nullptr);
-        });
+    VX_VERIFY_MSG(block_ptr != 0, "invalid argument");
 
     ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
     *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
@@ -276,19 +246,13 @@ inline VX_NO_DISCARD void* reallocate_aligned(void* ptr, size_t bytes, size_t al
     const size_t padding = _mem_priv::alignment_padding_size(alignment);
     size_t block_size = bytes;
     _mem_priv::adjust_aligned_pointer(ptr, block_size, padding);
-    VX_UNLIKELY_COLD_PATH(block_size <= bytes,
-        {
-            return err::return_error(err::size_error, nullptr);
-        });
+    VX_VERIFY_MSG(block_size <= bytes, "size_t overflow");
 
     VX_DISABLE_MSVC_WARNING_PUSH();
     VX_DISABLE_MSVC_WARNING(6308);
     const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(reallocate(ptr, block_size));
     VX_DISABLE_MSVC_WARNING_POP();
-    VX_UNLIKELY_COLD_PATH(block_ptr == 0,
-        {
-            VX_ALLOCATOR_FAILED(nullptr);
-        });
+    VX_VERIFY_MSG(block_ptr != 0, "invalid argument");
 
     ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
     *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
@@ -485,8 +449,6 @@ bool is_all_bits_zero(const T& x) noexcept
 template <typename T>
 T* construct_range(T* ptr, size_t count)
 {
-    //VX_STATIC_ASSERT_MSG(std::is_default_constructible<T>::value, "Type must be default constructible");
-
     const T* last = ptr + count;
     while (ptr != last)
     {
@@ -691,7 +653,6 @@ template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>
 IT1 copy_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
-    //using U = typename type_traits::value_type<IT2>::type;
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
@@ -702,8 +663,6 @@ IT1 copy_range(IT1 dst, IT2 first, IT2 last)
     }
     else
     {
-        //VX_STATIC_ASSERT_MSG((std::is_assignable<T, U>::value), "T must be assignable to U");
-
         for (; first != last; ++first)
         {
             *dst = *first;
@@ -718,7 +677,6 @@ template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>
 IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
-    //using U = typename type_traits::value_type<IT2>::type;
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
@@ -729,8 +687,6 @@ IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
     }
     else
     {
-        //VX_STATIC_ASSERT_MSG((std::is_assignable<T, U>::value), "T must be assignable to U");
-
         for (; first != last; ++first)
         {
             construct_in_place(*dst, *first);
@@ -885,7 +841,6 @@ template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>
 IT1 copy_move_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
-    //using U = typename type_traits::value_type<IT2>::type;
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
@@ -896,8 +851,6 @@ IT1 copy_move_range(IT1 dst, IT2 first, IT2 last)
     }
     else
     {
-        //VX_STATIC_ASSERT_MSG((std::is_assignable<T, U>::value), "T must be assignable to U");
-
         for (; first != last; ++first)
         {
             *dst = *first;
@@ -912,7 +865,6 @@ template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>
 IT1 copy_move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
-    //using U = typename type_traits::value_type<IT2>::type;
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
@@ -923,8 +875,6 @@ IT1 copy_move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
     }
     else
     {
-        //VX_STATIC_ASSERT_MSG((std::is_assignable<T, U>::value), "T must be assignable to U");
-
         for (; first != last; ++first)
         {
             construct_in_place(*dst, *first);
@@ -1133,16 +1083,8 @@ int compare_range(IT1 first1, IT1 last1, IT2 first2, IT2 last2)
 template <typename T>
 VX_ALLOCATOR VX_NO_DISCARD T* construct_array(const size_t count)
 {
-    if (count == 0)
-    {
-        return nullptr;
-    }
-
-    if (_mem_priv::range_will_overflow<T>(count))
-    {
-        VX_ERR(err::size_error);
-        return nullptr;
-    }
+    VX_RET_IF_UL(count == 0, nullptr);
+    VX_VERIFY_MSG(!_mem_priv::range_will_overflow<T>(count), "array size too big");
 
     const size_t size = sizeof(T) * count;
     void* raw_ptr;
@@ -1156,10 +1098,7 @@ VX_ALLOCATOR VX_NO_DISCARD T* construct_array(const size_t count)
         raw_ptr = mem::allocate_aligned<alignof(T)>(size);
     }
 
-    if (!raw_ptr)
-    {
-        return nullptr;
-    }
+    VX_RET_IF_UL(!raw_ptr, nullptr);
 
     T* ptr = static_cast<T*>(raw_ptr);
     construct_range(static_cast<T*>(ptr), count);
@@ -1169,16 +1108,8 @@ VX_ALLOCATOR VX_NO_DISCARD T* construct_array(const size_t count)
 template <typename T>
 VX_ALLOCATOR VX_NO_DISCARD T* construct_array(const size_t count, const T& value)
 {
-    if (count == 0)
-    {
-        return nullptr;
-    }
-
-    if (_mem_priv::range_will_overflow<T>(count))
-    {
-        VX_ERR(err::size_error);
-        return nullptr;
-    }
+    VX_RET_IF_UL(count == 0, nullptr);
+    VX_VERIFY_MSG(!_mem_priv::range_will_overflow<T>(count), "array size too big");
 
     const size_t size = sizeof(T) * count;
     void* raw_ptr;
@@ -1192,10 +1123,7 @@ VX_ALLOCATOR VX_NO_DISCARD T* construct_array(const size_t count, const T& value
         raw_ptr = mem::allocate_aligned<alignof(T)>(size);
     }
 
-    if (!raw_ptr)
-    {
-        return nullptr;
-    }
+    VX_RET_IF_UL(!raw_ptr, nullptr);
 
     T* ptr = static_cast<T*>(raw_ptr);
     fill_uninitialized_range(ptr, count, value);

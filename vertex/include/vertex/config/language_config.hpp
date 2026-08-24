@@ -247,58 +247,15 @@
 // Control Flow & Branch Prediction
 //=========================================================================
 
-#if VX_CPP_STANDARD >= 20
-    #define VX_LIKELY(expr)    (expr) [[likely]]
-    #define VX_UNLIKELY(expr)  (expr) [[unlikely]]
-    #define VX_PRIV_LIKELY_DEFINED 1
-#elif defined(__GNUC__) || defined(__clang__)
-    #define VX_LIKELY(expr)    (__builtin_expect(!!(expr), 1))
-    #define VX_UNLIKELY(expr)  (__builtin_expect(!!(expr), 0))
-    #define VX_PRIV_LIKELY_DEFINED 1
+#if defined(__GNUC__) || defined(__clang__)
+    #define VX_LIKELY(expr)        (__builtin_expect(!!(expr), 1))
+    #define VX_UNLIKELY(expr)      (__builtin_expect(!!(expr), 0))
+#elif VX_CPP_STANDARD >= 20
+    #define VX_LIKELY(expr)        (expr) [[likely]]
+    #define VX_UNLIKELY(expr)      (expr) [[unlikely]]
 #else
-    #define VX_LIKELY(expr)    (expr)
-    #define VX_UNLIKELY(expr)  (expr)
-    #define VX_PRIV_LIKELY_DEFINED 0
-#endif
-
-#if VX_PRIV_LIKELY_DEFINED && 0
-
-    #define VX_UNLIKELY_COLD_PATH(cond, action) \
-        do \
-        { \
-            if VX_UNLIKELY (cond) \
-            { \
-                action; \
-            } \
-        } while (0)
-
-#else
-
-    #define VX_UNLIKELY_COLD_PATH(cond, action) \
-        do \
-        { \
-            if (!(cond)) \
-            { \
-                break; \
-            } \
-            do \
-            { \
-                action; \
-            } while (0); \
-        } while (0)
-
-#endif
-
-#undef VX_PRIV_LIKELY_DEFINED
-
-#if defined(_MSC_VER)
-    #define VX_ASSUME(expr) __assume(expr)
-#elif VX_HAS_BUILTIN(__builtin_assume)
-    #define VX_ASSUME(expr) __builtin_assume(expr)
-#elif defined(__clang__) || defined(__GNUC__)
-    #define VX_ASSUME(expr) ((expr) ? static_cast<void>(0) : __builtin_unreachable())
-#else
-    #define VX_ASSUME(expr) VX_UNUSED(expr)
+    #define VX_LIKELY(expr)        (expr)
+    #define VX_UNLIKELY(expr)      (expr)
 #endif
 
 //=========================================================================
@@ -360,6 +317,16 @@
     #define VX_NO_RETURN
 #endif
 
+#if VX_HAS_ATTRIBUTE(assume)
+    #define VX_ASSUME(expr) [[assume(expr)]]
+#elif defined(_MSC_VER)
+    #define VX_ASSUME(expr) __assume(expr)
+#elif VX_HAS_BUILTIN(__builtin_assume)
+    #define VX_ASSUME(expr) __builtin_assume(expr)
+#else
+    #define VX_ASSUME(expr) VX_UNUSED(expr)
+#endif
+
 //=========================================================================
 // Additional Attributes (Added)
 //=========================================================================
@@ -408,7 +375,8 @@
     #define VX_MAYBE_UNUSED
 #endif
 
-#define VX_UNUSED(x) ((void)(x))
+#define VX_UNUSED(x)         (static_cast<void>(x))
+#define VX_EMPTY_STATEMENT() VX_UNUSED(0)
 
 //=========================================================================
 // Language Utilities
@@ -479,6 +447,18 @@
     #define VX_IF_CONSTEXPR(...) if (__VA_ARGS__)
 #endif
 
+#if VX_CPP_STANDARD >= 11
+    #define VX_NOEXCEPT noexcept
+#else
+    #define VX_NOEXCEPT
+#endif
+
+#if VX_CPP_STANDARD >= 11
+    #define VX_NOEXCEPT_IF(...) noexcept(__VA_ARGS__)
+#else
+    #define VX_NOEXCEPT_IF(...)
+#endif
+
 #if defined(_MSC_VER)
     #define VX_NULL_WHILE_LOOP_CONDITION (0, 0)
 #else
@@ -513,12 +493,30 @@
 // Trap / Unreachable
 //=========================================================================
 
+#if !defined(VX_TRAP_CODE_DEFAULT)
+    #define VX_TRAP_CODE_DEFAULT 7 // FAST_FAIL_FATAL_APP_EXIT
+#endif
+
+#define VX_PRIV_TRAP_CODE_0()     VX_TRAP_CODE_DEFAULT
+#define VX_PRIV_TRAP_CODE_1(code) code
+
+#define VX_PRIV_TRAP_CODE_SELECT(_0, _1, NAME, ...) NAME
+
+#define VX_PRIV_TRAP_CODE(...) \
+    VX_PRIV_TRAP_CODE_SELECT( \
+        __VA_ARGS__, \
+        VX_PRIV_TRAP_CODE_1, \
+        VX_PRIV_TRAP_CODE_0)(__VA_ARGS__)
+
 #if defined(_MSC_VER)
-    #define VX_GENERATE_TRAP() ::__fastfail(7)
+    #define VX_GENERATE_TRAP(...) \
+        ::__fastfail(static_cast<unsigned int>(VX_PRIV_TRAP_CODE(__VA_ARGS__)))
 #elif VX_HAS_BUILTIN(__builtin_trap)
-    #define VX_GENERATE_TRAP() ::__builtin_trap()
+    #define VX_GENERATE_TRAP(...) \
+        (VX_UNUSED(VX_PRIV_TRAP_CODE(__VA_ARGS__)), ::__builtin_trap())
 #else
-    #define VX_GENERATE_TRAP() ::std::abort() // needs <cstdlib>
+    #define VX_GENERATE_TRAP(...) \
+        (VX_UNUSED(VX_PRIV_TRAP_CODE(__VA_ARGS__)), ::std::abort())
 #endif
 
 #if defined(_MSC_VER) || VX_HAS_BUILTIN(__builtin_unreachable)
