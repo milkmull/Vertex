@@ -475,7 +475,7 @@ T* construct_range_maybe_trivial(T* ptr, size_t count)
 template <typename T>
 T* destroy_range(T* ptr, size_t count) noexcept
 {
-    VX_IF_CONSTEXPR (!std::is_trivially_destructible<T>::value)
+    VX_IF_CONSTEXPR (std::is_trivially_destructible<T>::value)
     {
         return ptr + count;
     }
@@ -794,19 +794,19 @@ IT1 move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 //=========================================================================
 
 template <typename T>
-constexpr T* copy_move_range(T* dst, const T* src, size_t count)
+constexpr T* copy_or_move_range(T* dst, T* src, size_t count)
 {
     if (!VX_IS_CONSTANT_EVALUATED() && type_traits::memmove_is_safe<T*>::value)
     {
         const size_t bytes = count * sizeof(T);
-        move(dst, src, bytes);
+        copy(dst, src, bytes);
         return dst + count;
     }
     else
     {
         for (; 0 < count; --count)
         {
-            *dst = *src;
+            *dst = std::move(*src);
             ++src;
             ++dst;
         }
@@ -816,19 +816,19 @@ constexpr T* copy_move_range(T* dst, const T* src, size_t count)
 }
 
 template <typename T>
-T* copy_move_uninitialized_range(T* dst, const T* src, size_t count)
+T* copy_or_move_uninitialized_range(T* dst, T* src, size_t count)
 {
     VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
         const size_t bytes = count * sizeof(T);
-        move(dst, src, bytes);
+        copy(dst, src, bytes);
         return dst + count;
     }
     else
     {
         for (; 0 < count; --count)
         {
-            construct_in_place(*dst, *src);
+            construct_in_place(*dst, std::move(*src));
             ++src;
             ++dst;
         }
@@ -838,31 +838,7 @@ T* copy_move_uninitialized_range(T* dst, const T* src, size_t count)
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-IT1 copy_move_range(IT1 dst, IT2 first, IT2 last)
-{
-    using T = typename type_traits::value_type<IT1>::type;
-
-    VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
-    {
-        const size_t count = static_cast<size_t>(std::distance(first, last));
-        const size_t bytes = count * sizeof(T);
-        move(dst, first, bytes);
-        return dst + count;
-    }
-    else
-    {
-        for (; first != last; ++first)
-        {
-            *dst = *first;
-            ++dst;
-        }
-
-        return dst;
-    }
-}
-
-template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-IT1 copy_move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
+IT1 copy_or_move_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
 
@@ -877,7 +853,31 @@ IT1 copy_move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
     {
         for (; first != last; ++first)
         {
-            construct_in_place(*dst, *first);
+            *dst = std::move(*first);
+            ++dst;
+        }
+
+        return dst;
+    }
+}
+
+template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
+IT1 copy_or_move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
+{
+    using T = typename type_traits::value_type<IT1>::type;
+
+    VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
+    {
+        const size_t count = static_cast<size_t>(std::distance(first, last));
+        const size_t bytes = count * sizeof(T);
+        copy(dst, first, bytes);
+        return dst + count;
+    }
+    else
+    {
+        for (; first != last; ++first)
+        {
+            construct_in_place(*dst, std::move(*first));
             ++dst;
         }
 

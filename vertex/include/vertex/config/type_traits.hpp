@@ -187,6 +187,25 @@ template <typename T>
 using remove_cvref = std::remove_cv<typename std::remove_reference<T>::type>;
 
 //==============================================================================
+// pointers
+//==============================================================================
+
+template <typename T, typename U>
+struct is_pointer_to
+    : bool_constant<
+          std::is_pointer<typename remove_cvref<T>::type>::value &&
+          std::is_same<
+              typename std::remove_cv<
+                  typename std::remove_pointer<
+                      typename remove_cvref<T>::type
+                  >::type
+              >::type,
+              typename std::remove_cv<U>::type
+          >::value
+      >
+{};
+
+//==============================================================================
 // invoke helpers
 //==============================================================================
 

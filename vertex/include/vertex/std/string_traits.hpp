@@ -13,6 +13,23 @@
 namespace vx {
 namespace str {
 
+namespace _string_traits_priv {
+
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+constexpr const C* empty_string() noexcept
+{
+    static constexpr C s[1] = { C() };
+    return s;
+}
+
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+constexpr bool is_empty_string(const C* ptr) noexcept
+{
+    return ptr == empty_string<C>();
+}
+
+} // namespace _string_traits_priv
+
 //=========================================================================
 
 template <typename T>
@@ -152,12 +169,7 @@ struct is_string_compatible_operator : std::false_type
 {};
 
 template <typename S1, typename S2>
-struct is_string_compatible_operator<S1, S2, type_traits::void_t<typename S1::value_type, typename S2::value_type>>
-    : std::bool_constant<
-    is_string_like<S1>::value &&
-    is_string_like<S2>::value &&
-    std::is_same<typename S1::value_type, typename S2::value_type>::value &&
-    !std::is_same<typename type_traits::remove_cvref<S1>::type, typename type_traits::remove_cvref<S2>::type>::value>
+struct is_string_compatible_operator<S1, S2, type_traits::void_t<typename S1::value_type, typename S2::value_type>> : std::bool_constant<is_string_like<S1>::value && is_string_like<S2>::value && std::is_same<typename S1::value_type, typename S2::value_type>::value && !std::is_same<typename type_traits::remove_cvref<S1>::type, typename type_traits::remove_cvref<S2>::type>::value>
 {};
 
 } // namespace _string_traits_priv

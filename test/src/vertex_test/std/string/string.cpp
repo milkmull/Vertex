@@ -171,11 +171,11 @@ static void test_container()
     VX_CHECK(v0.end()[-1] == T('a'));
 
     v0.pop_back();
-    VX_CHECK(v0.front() == T('x'));
-    VX_CHECK(v0.back() == T('z'));
+    VX_CHECK(v0.front().value() == T('x'));
+    VX_CHECK(v0.back().value() == T('z'));
 
     v0.shrink_to_fit();
-    VX_CHECK(v0.front() == T('x'));
+    VX_CHECK(v0.front().value() == T('x'));
 
     VX_SECTION("move")
     {

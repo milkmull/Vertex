@@ -170,12 +170,12 @@ std::string function_name(const char* fn)
     }
     else VX_IF_CONSTEXPR ((std::is_same<Vec, vec2<trivial_type>>::value))
     {
-        return std::string(fn) + " (trivial vx)";
+        return std::string(fn) + " (trivial vx )";
     }
     else // VX_IF_CONSTEXPR((std::is_same<Vec, vec2<non_trivial_type>>::value))
     {
         VX_STATIC_ASSERT_MSG((std::is_same<Vec, vec2<non_trivial_type>>::value), "invalid type");
-        return std::string(fn) + " (non trivial vx)";
+        return std::string(fn) + " (non trivial vx )";
     }
 }
 

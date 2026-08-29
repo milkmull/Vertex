@@ -37,7 +37,7 @@ constexpr size_t max_array_size() noexcept
 
 inline VX_ALLOCATOR VX_NO_DISCARD void* allocate(const size_t bytes) noexcept
 {
-    return ::operator new(bytes);
+    return ::malloc(bytes);
 }
 
 inline void deallocate_raw(void* ptr) noexcept
@@ -47,7 +47,7 @@ inline void deallocate_raw(void* ptr) noexcept
 
 inline void deallocate(void* ptr, VX_MAYBE_UNUSED const size_t bytes) noexcept
 {
-    ::operator delete(ptr, bytes);
+    ::free(ptr);
 }
 
 inline VX_NO_DISCARD void* reallocate(void* ptr, const size_t bytes) noexcept

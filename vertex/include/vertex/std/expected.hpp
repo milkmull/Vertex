@@ -105,6 +105,93 @@ struct expected_storage
     using type = variant_storage<value_stored, error_stored>;
 };
 
+//=============================================================================
+// expected_storage_base
+//=============================================================================
+
+template <typename T, typename E>
+struct expected_storage_traits
+{
+    using value_traits = storage_traits<T>;
+    using error_traits = storage_traits<E>;
+    using storage_type = typename expected_storage<T, E>::type;
+
+    static constexpr bool is_trivial =
+        std::is_trivially_destructible<typename value_traits::stored_type>::value &&
+        std::is_trivially_destructible<typename error_traits::stored_type>::value;
+};
+
+template <typename T, typename E, bool = expected_storage_traits<T, E>::is_trivial>
+struct expected_storage_base
+{
+    using value_traits = typename expected_storage_traits<T, E>::value_traits;
+    using error_traits = typename expected_storage_traits<T, E>::error_traits;
+    using storage_type = typename expected_storage_traits<T, E>::storage_type;
+
+    storage_type m_storage;
+    bool m_has_value;
+
+    expected_storage_base() noexcept : m_has_value(false)
+    {}
+
+    explicit expected_storage_base(bool has_value) noexcept
+        : m_has_value(has_value)
+    {}
+
+    // non-trivial: must actually tear down whichever alternative is active
+    ~expected_storage_base()
+    {
+        destroy();
+    }
+
+    void destroy() noexcept
+    {
+        if (m_has_value)
+        {
+            value_traits::destroy(m_storage);
+        }
+        else
+        {
+            error_traits::destroy(m_storage);
+        }
+    }
+};
+
+template <typename T, typename E>
+struct expected_storage_base<T, E, true>
+{
+    using value_traits = typename expected_storage_traits<T, E>::value_traits;
+    using error_traits = typename expected_storage_traits<T, E>::error_traits;
+    using storage_type = typename expected_storage_traits<T, E>::storage_type;
+
+    storage_type m_storage;
+    bool m_has_value;
+
+    expected_storage_base() noexcept : m_has_value(false)
+    {}
+
+    explicit expected_storage_base(bool has_value) noexcept
+        : m_has_value(has_value)
+    {}
+
+    // trivial: both alternatives are trivially destructible, so leaving
+    // this defaulted makes expected_storage_base (and expected) trivially
+    // destructible in turn
+    ~expected_storage_base() = default;
+
+    void destroy() noexcept
+    {
+        if (m_has_value)
+        {
+            value_traits::destroy(m_storage);
+        }
+        else
+        {
+            error_traits::destroy(m_storage);
+        }
+    }
+};
+
 } // namespace _expected_priv
 
 //=============================================================================
@@ -112,11 +199,12 @@ struct expected_storage
 //=============================================================================
 
 template <typename T, typename E>
-class expected
+class expected : private _expected_priv::expected_storage_base<T, E>
 {
-    using value_traits = _expected_priv::storage_traits<T>;
-    using error_traits = _expected_priv::storage_traits<E>;
-    using storage_type = typename _expected_priv::expected_storage<T, E>::type;
+    using base = _expected_priv::expected_storage_base<T, E>;
+    using value_traits = typename base::value_traits;
+    using error_traits = typename base::error_traits;
+    using storage_type = typename base::storage_type;
 
 public:
 
@@ -130,46 +218,46 @@ public:
             !_expected_priv::is_unexpected<typename std::decay<U>::type>::value &&
             std::is_constructible<T, U&&>::value)>
     expected(U&& value) noexcept
-        : m_has_value(true)
+        : base(true)
     {
-        value_traits::construct(m_storage, std::forward<U>(value));
+        value_traits::construct(base::m_storage, std::forward<U>(value));
     }
 
     expected(const unexpected<E>& unex) noexcept
-        : m_has_value(false)
+        : base(false)
     {
-        error_traits::construct(m_storage, unex.error);
+        error_traits::construct(base::m_storage, unex.error);
     }
 
     expected(unexpected<E>&& unex) noexcept
-        : m_has_value(false)
+        : base(false)
     {
-        error_traits::construct(m_storage, std::move(unex.error));
+        error_traits::construct(base::m_storage, std::move(unex.error));
     }
 
     expected(const expected& other) noexcept
-        : m_has_value(other.m_has_value)
+        : base(other.m_has_value)
     {
-        if (m_has_value)
+        if (base::m_has_value)
         {
-            value_traits::construct(m_storage, other.value());
+            value_traits::construct(base::m_storage, other.value());
         }
         else
         {
-            error_traits::construct(m_storage, other.error());
+            error_traits::construct(base::m_storage, other.error());
         }
     }
 
     expected(expected&& other) noexcept
-        : m_has_value(other.m_has_value)
+        : base(other.m_has_value)
     {
-        if (m_has_value)
+        if (base::m_has_value)
         {
-            value_traits::construct(m_storage, std::move(other).value());
+            value_traits::construct(base::m_storage, std::move(other).value());
         }
         else
         {
-            error_traits::construct(m_storage, std::move(other.error()));
+            error_traits::construct(base::m_storage, std::move(other.error()));
         }
     }
 
@@ -177,8 +265,10 @@ public:
     // destructor / assignment
     //=====================================
 
-    ~expected()
-    { destroy(); }
+    // defaulted so triviality is inherited from expected_storage_base:
+    // when both T and E are trivially destructible, this destructor (and
+    // therefore expected itself) is trivial too.
+    ~expected() = default;
 
     expected& operator=(const expected& other) noexcept
     {
@@ -187,16 +277,16 @@ public:
             return *this;
         }
 
-        destroy();
+        base::destroy();
 
-        m_has_value = other.m_has_value;
-        if (m_has_value)
+        base::m_has_value = other.m_has_value;
+        if (base::m_has_value)
         {
-            value_traits::construct(m_storage, other.value());
+            value_traits::construct(base::m_storage, other.value());
         }
         else
         {
-            error_traits::construct(m_storage, other.error());
+            error_traits::construct(base::m_storage, other.error());
         }
 
         return *this;
@@ -209,16 +299,16 @@ public:
             return *this;
         }
 
-        destroy();
+        base::destroy();
 
-        m_has_value = other.m_has_value;
-        if (m_has_value)
+        base::m_has_value = other.m_has_value;
+        if (base::m_has_value)
         {
-            value_traits::construct(m_storage, std::move(other).value());
+            value_traits::construct(base::m_storage, std::move(other).value());
         }
         else
         {
-            error_traits::construct(m_storage, std::move(other.error()));
+            error_traits::construct(base::m_storage, std::move(other.error()));
         }
 
         return *this;
@@ -230,54 +320,54 @@ public:
 
     bool has_value() const noexcept
     {
-        return m_has_value;
+        return base::m_has_value;
     }
 
     explicit operator bool() const noexcept
     {
-        return m_has_value;
+        return base::m_has_value;
     }
 
     T& value() & noexcept
     {
-        VX_VERIFY(m_has_value);
-        return value_traits::get(m_storage);
+        VX_VERIFY(base::m_has_value);
+        return value_traits::get(base::m_storage);
     }
 
     const T& value() const& noexcept
     {
-        VX_VERIFY(m_has_value);
-        return value_traits::get(m_storage);
+        VX_VERIFY(base::m_has_value);
+        return value_traits::get(base::m_storage);
     }
 
     T&& value() && noexcept
     {
-        VX_VERIFY(m_has_value);
-        return value_traits::get_rv(m_storage);
+        VX_VERIFY(base::m_has_value);
+        return value_traits::get_rv(base::m_storage);
     }
 
     E& error() & noexcept
     {
-        VX_VERIFY(!m_has_value);
-        return error_traits::get(m_storage);
+        VX_VERIFY(!base::m_has_value);
+        return error_traits::get(base::m_storage);
     }
 
     const E& error() const& noexcept
     {
-        VX_VERIFY(!m_has_value);
-        return error_traits::get(m_storage);
+        VX_VERIFY(!base::m_has_value);
+        return error_traits::get(base::m_storage);
     }
 
     template <typename U>
     T value_or(U&& default_value) const&
     {
-        return m_has_value ? value_traits::get(m_storage) : static_cast<T>(std::forward<U>(default_value));
+        return base::m_has_value ? value_traits::get(base::m_storage) : static_cast<T>(std::forward<U>(default_value));
     }
 
     template <typename U>
     E error_or(U&& default_error) const&
     {
-        return !m_has_value ? error_traits::get(m_storage) : static_cast<E>(std::forward<U>(default_error));
+        return !base::m_has_value ? error_traits::get(base::m_storage) : static_cast<E>(std::forward<U>(default_error));
     }
 
 private:
@@ -296,90 +386,6 @@ private:
 
     storage_type m_storage;
     bool m_has_value;
-};
-
-//=============================================================================
-// expected_error
-//=============================================================================
-
-template <typename E, E NoError = E{}>
-class expected_error
-{
-public:
-
-    //=====================================
-    // constructors
-    //=====================================
-
-    constexpr expected_error() noexcept
-        : m_error(NoError)
-    {
-    }
-
-    constexpr expected_error(const unexpected<E>& unex) noexcept
-        : m_error(unex.error)
-    {
-    }
-
-    constexpr expected_error(unexpected<E>&& unex) noexcept
-        : m_error(std::move(unex.error))
-    {
-    }
-
-    //=====================================
-
-    constexpr expected_error(const expected_error&) noexcept = default;
-    constexpr expected_error(expected_error&&) noexcept = default;
-
-    //=====================================
-    // destructor
-    //=====================================
-
-    ~expected_error() = default;
-
-    //=====================================
-    // assignment
-    //=====================================
-
-    constexpr expected_error& operator=(const expected_error&) noexcept = default;
-    constexpr expected_error& operator=(expected_error&&) noexcept = default;
-
-    //=====================================
-    // observers
-    //=====================================
-
-    constexpr bool has_value() const noexcept
-    {
-        return m_error == NoError;
-    }
-
-    constexpr explicit operator bool() const noexcept
-    {
-        return has_value();
-    }
-
-    //=====================================
-    // accessors
-    //=====================================
-
-    constexpr bool value() const noexcept
-    {
-        return has_value();
-    }
-
-    constexpr E& error() & noexcept
-    {
-        return m_error;
-    }
-
-    constexpr const E& error() const& noexcept
-    {
-        return m_error;
-    }
-
-private:
-
-    E m_error;
 };
 
 } // namespace vx

@@ -41,7 +41,7 @@
 #define VX_RET_IF(cond, ...) \
     do \
     { \
-        if (!(cond)) \
+        if ((cond)) \
         { \
             return __VA_ARGS__; \
         } \

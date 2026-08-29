@@ -9,7 +9,7 @@ namespace vx {
 
 //=========================================================================
 
-template <typename T, typename Allocator>
+template <typename T, typename Allocator, typename Growth>
 class vector;
 
 template <size_t N, typename T>
@@ -21,8 +21,8 @@ template <typename T>
 struct is_vector_like : std::false_type
 {};
 
-template <typename T, typename Allocator>
-struct is_vector_like<vector<T, Allocator>> : std::true_type
+template <typename T, typename Allocator, typename Growth>
+struct is_vector_like<vector<T, Allocator, Growth>> : std::true_type
 {};
 
 template <size_t N, typename T>

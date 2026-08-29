@@ -19,21 +19,22 @@ static void test_container()
     vec v1a(6, 'x');
     VX_CHECK(v1.size() == 5);
     VX_CHECK(v1a.size() == 6);
-    VX_CHECK(v1a.back() == 'x');
+    VX_CHECK(v1a.back().value() == 'x');
 
     vec v2(v1a);
     VX_CHECK(v2.size() == 6);
-    VX_CHECK(v2.front() == 'x');
+    VX_CHECK(v2.front().value() == 'x');
 
     vec v3(v1a.begin(), v1a.end());
     VX_CHECK(v3.size() == 6);
-    VX_CHECK(v3.front() == 'x');
+    VX_CHECK(v3.front().value() == 'x');
 
     const vec v4(v1a.begin(), v1a.end());
     v0 = v4;
     VX_CHECK(v0.size() == 6);
-    VX_CHECK(v0.front() == 'x');
+    VX_CHECK(v0.front().value() == 'x');
     VX_CHECK(v0[0] == 'x');
+    VX_CHECK(v0.at(5).value() == 'x');
 
     v0.reserve(12);
     VX_CHECK(12 <= v0.capacity());
@@ -41,7 +42,7 @@ static void test_container()
     VX_CHECK(v0.size() == 8);
     v0.resize(10, 'z');
     VX_CHECK(v0.size() == 10);
-    VX_CHECK(v0.back() == 'z');
+    VX_CHECK(v0.back().value() == 'z');
     VX_CHECK(v0.size() <= v0.max_size());
 
     VX_SECTION("iterators")
@@ -84,14 +85,14 @@ static void test_container()
         VX_CHECK(p_it1 == p_it2); // VX_CHECK null forward iterator comparisons
     }
 
-    VX_CHECK(v0.front() == 'x');
-    VX_CHECK(v4.front() == 'x');
+    VX_CHECK(v0.front().value() == 'x');
+    VX_CHECK(v4.front().value() == 'x');
 
     v0.push_back('a');
-    VX_CHECK(v0.back() == 'a');
+    VX_CHECK(v0.back().value() == 'a');
     v0.pop_back();
-    VX_CHECK(v0.back() == 'z');
-    VX_CHECK(v4.back() == 'x');
+    VX_CHECK(v0.back().value() == 'z');
+    VX_CHECK(v4.back().value() == 'x');
 
     {
         vec v5;
@@ -130,17 +131,17 @@ static void test_container()
         VX_CHECK(v10[1].val == 1);
 
         v10.emplace_back();
-        VX_CHECK(v10.back().val == 0);
+        VX_CHECK(v10.back().value().val == 0);
         v10.emplace_back(2);
-        VX_CHECK(v10.back().val == 2);
+        VX_CHECK(v10.back().value().val == 2);
         v10.emplace_back(3, 2);
-        VX_CHECK(v10.back().val == 0x32);
+        VX_CHECK(v10.back().value().val == 0x32);
         v10.emplace_back(4, 3, 2);
-        VX_CHECK(v10.back().val == 0x432);
+        VX_CHECK(v10.back().value().val == 0x432);
         v10.emplace_back(5, 4, 3, 2);
-        VX_CHECK(v10.back().val == 0x5432);
+        VX_CHECK(v10.back().value().val == 0x5432);
         v10.emplace_back(6, 5, 4, 3, 2);
-        VX_CHECK(v10.back().val == 0x65432);
+        VX_CHECK(v10.back().value().val == 0x65432);
 
         v10.emplace(v10.begin() + 1);
         VX_CHECK(v10[1].val == 0);
@@ -184,26 +185,26 @@ static void test_container()
         typename vec::iterator p_it;
         v0.assign(v4.begin(), v4.end());
         VX_CHECK(v0.size() == v4.size());
-        VX_CHECK(v0.front() == v4.front());
+        VX_CHECK(v0.front().value() == v4.front().value());
         v0.assign(4, 'w');
         VX_CHECK(v0.size() == 4);
-        VX_CHECK(v0.front() == 'w');
+        VX_CHECK(v0.front().value() == 'w');
         VX_CHECK(*v0.insert(v0.begin(), 'a') == 'a');
-        VX_CHECK(v0.front() == 'a');
+        VX_CHECK(v0.front().value() == 'a');
         VX_CHECK(*++(p_it = v0.begin()) == 'w');
         VX_CHECK(*v0.insert(v0.begin(), 2, 'b') == 'b');
-        VX_CHECK(v0.front() == 'b');
+        VX_CHECK(v0.front().value() == 'b');
         VX_CHECK(*++(p_it = v0.begin()) == 'b');
         VX_CHECK(*++ ++(p_it = v0.begin()) == 'a');
         VX_CHECK(*v0.insert(v0.end(), v4.begin(), v4.end()) == *v4.begin());
-        VX_CHECK(v0.back() == v4.back());
+        VX_CHECK(v0.back().value() == v4.back().value());
         VX_CHECK(*v0.insert(v0.end(), carr, carr + 3) == *carr);
-        VX_CHECK(v0.back() == 'c');
+        VX_CHECK(v0.back().value() == 'c');
         v0.erase(v0.begin());
-        VX_CHECK(v0.front() == 'b');
+        VX_CHECK(v0.front().value() == 'b');
         VX_CHECK(*++(p_it = v0.begin()) == 'a');
         v0.erase(v0.begin(), ++(p_it = v0.begin()));
-        VX_CHECK(v0.front() == 'a');
+        VX_CHECK(v0.front().value() == 'a');
     }
 
     {
@@ -265,21 +266,18 @@ static void test_failure()
     using big_vec = vx::static_vector<vec::capacity() + 1, char>;
     using small_vec = vx::static_vector<vec::capacity() - 1, char>;
 
-    VX_EXPECT_ERROR_CODE(vec a(6, 'x'), vx::err::size_error);
+    VX_CHECK_EXPECTED_ERROR(vec::create(6, 'x'), vx::err::size_error);
 
     vec s;
     const big_vec big = { '1', '2', '3', '4', '5', '6' };
     const big_vec small = { '1', '2', '3', '4' };
 
-    VX_EXPECT_ERROR_CODE(s = big, vx::err::size_error);
-    VX_EXPECT_ERROR_CODE(s.assign(big), vx::err::size_error);
-    VX_EXPECT_ERROR_CODE(s.insert(s.begin(), big.begin(), big.end()), vx::err::size_error);
+    VX_CHECK_ERROR(s.assign(big.begin(), big.end()), vx::err::size_error);
+    VX_CHECK_EXPECTED_ERROR(s.insert(0, big.begin(), big.end()), vx::err::size_error);
 
-    VX_EXPECT_NO_ERROR(s = small);
+    VX_CHECK(s.assign(small.begin(), small.end()));
     s.clear();
-    VX_EXPECT_NO_ERROR(s.assign(small));
-    s.clear();
-    VX_EXPECT_NO_ERROR(s.insert(s.begin(), small.begin(), small.end()));
+    VX_CHECK(s.insert(0, small.begin(), small.end()));
     s.clear();
 }
 

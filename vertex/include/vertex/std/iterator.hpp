@@ -2,6 +2,7 @@
 
 #include <iterator>
 
+#include "vertex/config/assert.hpp"
 #include "vertex/config/type_traits.hpp"
 
 namespace vx {
@@ -16,16 +17,36 @@ class reverse_pointer_iterator;
 
 //==============================================================================
 
-template <typename>
-struct is_pointer_iterator : std::false_type
+namespace _iterator_priv {
+
+template <typename T>
+struct is_pointer_iterator_impl : std::false_type
 {};
 
 template <typename Owner, typename T>
-struct is_pointer_iterator<pointer_iterator<Owner, T>> : std::true_type
+struct is_pointer_iterator_impl<pointer_iterator<Owner, T>> : std::true_type
 {};
 
 template <typename IT>
-struct is_pointer_iterator<reverse_pointer_iterator<IT>> : std::true_type
+struct is_pointer_iterator_impl<reverse_pointer_iterator<IT>> : std::true_type
+{};
+
+template <typename IT, typename Owner>
+struct is_my_pointer_iterator_impl : std::false_type
+{};
+
+template <typename Owner1, typename T, typename Owner2>
+struct is_my_pointer_iterator_impl<pointer_iterator<Owner1, T>, Owner2> : std::is_same<Owner1, Owner2>
+{};
+
+} // namespace _iterator_priv
+
+template <typename T>
+struct is_pointer_iterator : _iterator_priv::is_pointer_iterator_impl<typename type_traits::remove_cvref<T>::type>
+{};
+
+template <typename IT, typename Owner>
+struct is_my_pointer_iterator : _iterator_priv::is_my_pointer_iterator_impl<typename type_traits::remove_cvref<IT>::type, Owner>
 {};
 
 //==============================================================================
@@ -581,5 +602,34 @@ constexpr move_iterator<IT> make_move_iterator(IT it) noexcept
 {
     return move_iterator<IT>(it);
 }
+
+namespace _priv {
+
+template <typename IT1, typename IT2, VX_REQUIRES(type_traits::is_iterator<IT1>::value&& type_traits::is_iterator<IT2>::value)>
+constexpr bool assert_valid_iterator_range(const IT1& first, const IT2& last)
+{
+#if VX_DEBUG
+
+    VX_IF_CONSTEXPR (
+        (std::is_pointer<IT1>::value && std::is_pointer<IT2>::value) ||
+        (is_pointer_iterator<IT1>::value && is_pointer_iterator<IT2>::value))
+    {
+        // transposed pointer range
+        return (first <= last);
+    }
+
+#else
+
+    VX_UNUSED(first);
+    VX_UNUSED(last);
+
+#endif
+
+    return true;
+}
+
+#define VX_PRIV_ASSERT_ITER_RANGE(first, last) ::vx::_priv::assert_valid_iterator_range(first, last)
+
+} // namespace _priv
 
 } // namespace vx

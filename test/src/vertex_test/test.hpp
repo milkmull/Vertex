@@ -68,10 +68,10 @@ private:
     std::vector<TestCase> tests;
 };
 
-inline void fail_test(const char* condition, const char* func, int line)
+inline void fail_test(const char* cond, const char* func, int line)
 {
     std::ostringstream oss;
-    oss << "Check failed: " << condition
+    oss << "Check failed: " << cond
         << " at " << func << ":" << line;
     throw std::runtime_error(oss.str());
 }
@@ -101,34 +101,46 @@ inline void fail_test(const char* condition, const char* func, int line)
 
 #define VX_STATIC_CHECK(...) static_assert((__VA_ARGS__), "Static check failed: " #__VA_ARGS__)
 
-#define VX_EXPECT_ERROR(condition) \
+#define VX_CHECK_ERROR(cond, e) \
+    do \
+    { \
+        VX_CHECK(cond == e); \
+    } while (VX_NULL_WHILE_LOOP_CONDITION)
+
+#define VX_CHECK_EXPECTED_ERROR(cond, e) \
+    do \
+    { \
+        VX_CHECK(cond.error() == e); \
+    } while (VX_NULL_WHILE_LOOP_CONDITION)
+
+#define VX_EXPECT_ERROR(cond) \
     do \
     { \
         ::vx::err::clear(); \
-        condition; \
+        cond; \
         VX_CHECK(::vx::err::is_set()); \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
-#define VX_EXPECT_ERROR_CODE(condition, e) \
+#define VX_EXPECT_ERROR_CODE(cond, e) \
     do \
     { \
         ::vx::err::clear(); \
-        condition; \
+        cond; \
         VX_CHECK(::vx::err::is_set()); \
         VX_CHECK(::vx::err::get_code() == e); \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
-#define VX_EXPECT_NO_ERROR(condition) \
+#define VX_EXPECT_NO_ERROR(cond) \
     do \
     { \
         ::vx::err::clear(); \
-        condition; \
+        cond; \
         VX_CHECK(!::vx::err::is_set()); \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
-#define VX_CHECK_AND_EXPECT_ERROR(condition)         VX_EXPECT_ERROR(VX_CHECK(condition))
-#define VX_CHECK_AND_EXPECT_ERROR_CODE(condition, e) VX_EXPECT_ERROR_CODE(VX_CHECK(condition), e)
-#define VX_CHECK_AND_EXPECT_NO_ERROR(condition)      VX_EXPECT_NO_ERROR(VX_CHECK(condition))
+#define VX_CHECK_AND_EXPECT_ERROR(cond)         VX_EXPECT_ERROR(VX_CHECK(cond))
+#define VX_CHECK_AND_EXPECT_ERROR_CODE(cond, e) VX_EXPECT_ERROR_CODE(VX_CHECK(cond), e)
+#define VX_CHECK_AND_EXPECT_NO_ERROR(cond)      VX_EXPECT_NO_ERROR(VX_CHECK(cond))
 
 #define VX_RUN_TESTS() ::vx::test::test_runner::instance().run()
 

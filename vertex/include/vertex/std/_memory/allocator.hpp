@@ -79,11 +79,7 @@ public:
 
     VX_ALLOCATOR static VX_NO_DISCARD pointer_type allocate(const size_t count) noexcept
     {
-        VX_UNLIKELY_COLD_PATH(count == 0,
-            {
-                return nullptr;
-            });
-
+        VX_RET_IF_UL(count == 0, nullptr);
         const size_t bytes = count * sizeof(value_type);
 
         VX_IF_CONSTEXPR (policy == alignment_policy::at_least && alignment <= max_align)

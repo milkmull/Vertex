@@ -64,7 +64,7 @@ public:
 
     ~profile_timer()
     {
-        stop();
+        //stop();
     }
 
     void stop()
