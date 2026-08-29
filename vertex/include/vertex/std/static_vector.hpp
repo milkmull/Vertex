@@ -15,6 +15,42 @@
 
 namespace vx {
 
+//=========================================================================
+// storage
+//=========================================================================
+
+namespace _static_vector_priv {
+
+template <size_t N, typename T>
+struct static_vector_storage_trivial
+{
+    T ptr[N];
+    size_t size = 0;
+};
+
+template <size_t N, typename T>
+struct static_vector_storage_nontrivial
+{
+    T ptr[N];
+    size_t size = 0;
+
+    ~static_vector_storage_nontrivial()
+    {
+        if (size)
+        {
+            mem::destroy_range(ptr, size);
+        }
+    }
+};
+
+template <size_t N, typename T>
+using static_vector_storage = typename std::conditional<
+    std::is_trivially_destructible<T>::value,
+      static_vector_storage_trivial<N, T>,
+      static_vector_storage_nontrivial<N, T>>::type;
+
+} // namespace _static_vector_priv
+
 template <size_t N, typename T>
 class static_vector
 {
@@ -49,15 +85,8 @@ private:
         iterator_range // construct from iterator range
     };
 
-    struct data_type
-    {
-        T ptr[N];
-        size_type size;
-    };
-
-    // fixed-capacity storage; unlike vector there is no allocator or
-    // pointer to own, so size is the only thing that ever changes here
-    data_type m_data = {};
+    using data_type = _static_vector_priv::static_vector_storage<N, T>;
+    data_type m_data;
 
     //=========================================================================
     // range verification (debug builds only)
@@ -342,10 +371,7 @@ public:
     // destructor
     //=========================================================================
 
-    ~static_vector()
-    {
-        destroy_range();
-    }
+    ~static_vector() = default;
 
 private:
 
