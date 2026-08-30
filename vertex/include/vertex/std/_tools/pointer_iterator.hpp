@@ -30,7 +30,7 @@ struct is_pointer_iterator_impl<reverse_pointer_iterator<IT>> : std::true_type
 {};
 
 template <typename IT>
-struct is_pointer_iterator : is_pointer_iterator_impl<typename type_traits::remove_cvref<IT>::type>
+struct is_pointer_iterator : is_pointer_iterator_impl<VX_STRIP_T(IT)>
 {};
 
 //==============================================================================
@@ -44,7 +44,7 @@ struct is_forward_pointer_iterator_impl<pointer_iterator<Owner, T>> : std::true_
 {};
 
 template <typename IT>
-struct is_forward_pointer_iterator : is_forward_pointer_iterator_impl<typename type_traits::remove_cvref<IT>::type>
+struct is_forward_pointer_iterator : is_forward_pointer_iterator_impl<VX_STRIP_T(IT)>
 {};
 
 //==============================================================================
@@ -58,7 +58,7 @@ struct is_reverse_pointer_iterator_impl<reverse_pointer_iterator<IT>> : std::tru
 {};
 
 template <typename IT>
-struct is_reverse_pointer_iterator : is_reverse_pointer_iterator_impl<typename type_traits::remove_cvref<IT>::type>
+struct is_reverse_pointer_iterator : is_reverse_pointer_iterator_impl<VX_STRIP_T(IT)>
 {};
 
 //==============================================================================
@@ -72,7 +72,7 @@ struct is_my_pointer_iterator_impl<pointer_iterator<Owner1, T>, Owner2> : std::i
 {};
 
 template <typename IT, typename Owner>
-struct is_my_pointer_iterator : is_my_pointer_iterator_impl<typename type_traits::remove_cvref<IT>::type, Owner>
+struct is_my_pointer_iterator : is_my_pointer_iterator_impl<VX_STRIP_T(IT), Owner>
 {};
 
 //==============================================================================
@@ -87,8 +87,8 @@ struct is_forward_pointer_iterator_of_impl<pointer_iterator<Owner, T>, U> : std:
 
 template <typename IT, typename T>
 struct is_forward_pointer_iterator_of : is_forward_pointer_iterator_of_impl<
-    typename type_traits::remove_cvref<IT>::type,
-    typename type_traits::remove_cvref<T>::type>
+    VX_STRIP_T(IT),
+    VX_STRIP_T(T)>
 {};
 
 //==============================================================================

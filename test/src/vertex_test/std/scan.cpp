@@ -155,7 +155,7 @@ fmt::scan_result call_scan(
 template <typename T>
 constexpr bool values_equal(const T& a, const T& b)
 {
-    if constexpr (std::is_floating_point<typename type_traits::remove_cvref<T>::type>::value)
+    if constexpr (std::is_floating_point<VX_STRIP_T(T)>::value)
     {
         return (std::isnan(a) && std::isnan(b)) || (a == b);
     }

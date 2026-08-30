@@ -210,7 +210,7 @@ public:
         }
         else
         {
-            ok = construct_n<construct_method::iterator_range, false>(count, std::move(first), std::move(last));
+            ok = construct_n<construct_method::iterator_range, false>(count, first, last);
         }
 
         VX_VERIFY(ok);
@@ -298,7 +298,7 @@ public:
         }
         else
         {
-            ok = v.template construct_n<construct_method::iterator_range, false>(count, std::move(first), std::move(last));
+            ok = v.template construct_n<construct_method::iterator_range, false>(count, first, last);
         }
 
         VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
@@ -520,7 +520,7 @@ public:
         }
         else
         {
-            return assign_from<construct_method::iterator_range, false>(count, std::move(first), std::move(last));
+            return assign_from<construct_method::iterator_range, false>(count, first, last);
         }
     }
 

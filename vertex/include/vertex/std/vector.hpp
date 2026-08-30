@@ -30,9 +30,6 @@ private:
 
     using data_type = _dynamic_array_base_priv::dynamic_array_data<T>;
 
-    template <typename IT>
-    using is_my_iterator = _priv::is_my_pointer_iterator<IT, vector>;
-
 public:
 
     using allocator_type = Allocator;
@@ -235,7 +232,7 @@ public:
         }
         else
         {
-            ok = construct_n<construct_method::iterator_range>(count, std::move(first), std::move(last));
+            ok = construct_n<construct_method::iterator_range>(count, first, last);
         }
 
         VX_VERIFY(ok);
@@ -318,7 +315,7 @@ public:
         }
         else
         {
-            ok = v.template construct_n<construct_method::iterator_range>(count, std::move(first), std::move(last));
+            ok = v.template construct_n<construct_method::iterator_range>(count, first, last);
         }
 
         VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
@@ -600,7 +597,7 @@ public:
         }
         else
         {
-            return assign_from<construct_method::iterator_range>(count, std::move(first), std::move(last));
+            return assign_from<construct_method::iterator_range>(count, first, last);
         }
     }
 
@@ -1343,7 +1340,7 @@ public:
 
     expected<pointer, error> erase(size_type off)
     {
-        VX_RET_UNEXPECTED_ERR_IF(off >= size(), err::out_of_range);
+        VX_RET_UNEXPECTED_ERR_IF(off > size(), err::out_of_range);
         auto ptr = m_data().ptr + off;
         return erase_n(ptr, 1);
     }

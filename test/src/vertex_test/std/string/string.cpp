@@ -183,23 +183,23 @@ static void test_container()
 
         string v5(20, T('x'));
         string v6(std::move(v5));
-        VX_CHECK(!v5.is_valid());
+        VX_CHECK(v5.empty());
         VX_CHECK(v6.size() == 20);
 
         VX_DISABLE_WARNING_POP();
 
         string v7;
         v7.assign(std::move(v6));
-        VX_CHECK(!v5.is_valid());
+        VX_CHECK(v5.empty());
         VX_CHECK(v7.size() == 20);
 
         string v8;
         v8 = std::move(v7);
-        VX_CHECK(!v5.is_valid());
+        VX_CHECK(v5.empty());
         VX_CHECK(v8.size() == 20);
 
         string v8a(std::move(v8));
-        VX_CHECK(!v5.is_valid());
+        VX_CHECK(v5.empty());
         VX_CHECK(v8a.size() == 20);
     }
 
@@ -582,6 +582,489 @@ VX_TEST_CASE(basics)
 
     VX_MESSAGE("  char32_t");
     test_basics<char32_t>();
+}
+
+//=========================================================================
+// element access errors: front / back / at
+//=========================================================================
+
+static void test_element_access_errors()
+{
+    using string = vx::string;
+
+    string empty_s;
+    VX_CHECK_EXPECTED_ERROR(empty_s.front(), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(empty_s.back(), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(empty_s.at(0), vx::err::out_of_range);
+
+    const string const_empty_s;
+    VX_CHECK_EXPECTED_ERROR(const_empty_s.front(), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(const_empty_s.back(), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(const_empty_s.at(0), vx::err::out_of_range);
+
+    string s("abc");
+    VX_CHECK(s.front().value() == 'a');
+    VX_CHECK(s.back().value() == 'c');
+    VX_CHECK(s.at(1).value() == 'b');
+    VX_CHECK_EXPECTED_ERROR(s.at(3), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(s.at(1000), vx::err::out_of_range);
+
+    const string cs("def");
+    VX_CHECK(cs.front().value() == 'd');
+    VX_CHECK(cs.back().value() == 'f');
+    VX_CHECK(cs.at(2).value() == 'f');
+    VX_CHECK_EXPECTED_ERROR(cs.at(3), vx::err::out_of_range);
+
+    // clearing empties it back out again
+    s.clear();
+    VX_CHECK_EXPECTED_ERROR(s.front(), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(s.back(), vx::err::out_of_range);
+}
+
+VX_TEST_CASE(element_access_errors)
+{
+    test_element_access_errors();
+}
+
+//=========================================================================
+// erase() offset-based error handling
+//=========================================================================
+
+static void test_erase_errors()
+{
+    using string = vx::string;
+
+    string s("abcde");
+
+    // off is the only thing that's ever an error: off == size() and
+    // off > size() are both invalid, regardless of overload
+    VX_CHECK_EXPECTED_ERROR(s.erase(s.size() + 1), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(s.erase(1000), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(s.erase(s.size() + 1, 1), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(s.erase(1000, 1), vx::err::out_of_range);
+
+    // string must be untouched by all the failed calls above
+    VX_CHECK(s.size() == 5);
+    VX_CHECK(s[0] == 'a');
+    VX_CHECK(s[4] == 'e');
+
+    // count running past the end is defined behavior, not an error:
+    // it clamps to "erase through the end of the string" (mirrors npos)
+    auto e1 = s.erase(3, 5);
+    VX_CHECK(e1);
+    VX_CHECK(s.size() == 3);
+    VX_CHECK(s == "abc");
+
+    auto e2 = s.erase(0, s.size() + 1);
+    VX_CHECK(e2);
+    VX_CHECK(s.empty());
+
+    // sanity: valid single erase still succeeds
+    s = "abcde";
+    auto e3 = s.erase(1, 1);
+    VX_CHECK(e3);
+    VX_CHECK(s.size() == 4);
+    VX_CHECK(s[1] == 'c'); // 'b' was removed
+
+    // sanity: valid range erase still succeeds
+    auto e4 = s.erase(0, 2);
+    VX_CHECK(e4);
+    VX_CHECK(s.size() == 2);
+
+    // erase(off, 0) at a valid offset is a legal no-op, not an error
+    auto e5 = s.erase(0, 0);
+    VX_CHECK(e5);
+    VX_CHECK(s.size() == 2);
+
+    // default erase() (off=0, count=npos) erases everything
+    auto e6 = s.erase();
+    VX_CHECK(e6);
+    VX_CHECK(s.empty());
+
+    // erasing the empty string with default args is still valid
+    auto e7 = s.erase();
+    VX_CHECK(e7);
+    VX_CHECK(s.empty());
+
+    // an explicit count larger than what's left clamps rather than errors,
+    // same as the npos default above but with a concrete finite value
+    string s2("abcdef");
+    auto e8 = s2.erase(4, 100);
+    VX_CHECK(e8);
+    VX_CHECK(s2 == "abcd");
+
+    // off == size() (one-past-the-end) is valid: erasing "nothing left"
+    string s3("abc");
+    auto e9 = s3.erase(s3.size(), 5);
+    VX_CHECK(e9);
+    VX_CHECK(s3 == "abc");
+}
+
+VX_TEST_CASE(erase_errors)
+{
+    test_erase_errors();
+}
+
+//=========================================================================
+// offset-based insert() error handling
+//=========================================================================
+
+static void test_offset_insert_errors()
+{
+    using string = vx::string;
+
+    string s("abc");
+    const string::size_type bad_off = s.size() + 1;
+
+    VX_CHECK_EXPECTED_ERROR(s.insert(bad_off, 'x'), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(s.insert(bad_off, 3, 'x'), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(s.insert(bad_off, "xyz"), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(s.insert(bad_off, "xyz", 2), vx::err::out_of_range);
+
+    std::initializer_list<char> init{ 'x', 'y', 'z' };
+    VX_CHECK_EXPECTED_ERROR(s.insert(bad_off, init), vx::err::out_of_range);
+
+    char carr[] = { 'p', 'q', 'r' };
+    VX_CHECK_EXPECTED_ERROR(s.insert(bad_off, carr, carr + 3), vx::err::out_of_range);
+
+    string other("QQ");
+    VX_CHECK_EXPECTED_ERROR(s.insert(bad_off, other), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(s.insert(bad_off, other, 0), vx::err::out_of_range);
+
+    // string must be untouched by all the failed calls above
+    VX_CHECK(s.size() == 3);
+    VX_CHECK(s[0] == 'a');
+    VX_CHECK(s[2] == 'c');
+
+    // off == size() is one-past-the-end and IS valid (append)
+    auto ok_append = s.insert(s.size(), 'z');
+    VX_CHECK(ok_append);
+    VX_CHECK(s.back().value() == 'z');
+
+    // an invalid *source* offset on the other-string overload is not an
+    // error as long as our own offset is valid: it's a documented no-op
+    string s2("abc");
+    auto noop = s2.insert(1, other, other.size() + 1);
+    VX_CHECK(noop);
+    VX_CHECK(s2.size() == 3); // untouched
+
+    // sanity: valid offset insert still succeeds for every overload
+    string v2("abc");
+    auto i1 = v2.insert(0, 'A');
+    VX_CHECK(i1);
+    VX_CHECK(v2.front().value() == 'A');
+
+    auto i2 = v2.insert(0, 2, 'B');
+    VX_CHECK(i2);
+    VX_CHECK(v2[0] == 'B');
+    VX_CHECK(v2[1] == 'B');
+
+    auto i3 = v2.insert(0, init);
+    VX_CHECK(i3);
+    VX_CHECK(v2[0] == 'x');
+
+    auto i4 = v2.insert(0, carr, carr + 3);
+    VX_CHECK(i4);
+    VX_CHECK(v2[0] == 'p');
+
+    auto i5 = v2.insert(0, other);
+    VX_CHECK(i5);
+    VX_CHECK(v2[0] == 'Q');
+}
+
+VX_TEST_CASE(offset_insert_errors)
+{
+    test_offset_insert_errors();
+}
+
+//=========================================================================
+// replace() offset-based error handling
+//=========================================================================
+
+static void test_replace_errors()
+{
+    using string = vx::string;
+
+    string s("abcdef");
+    const string::size_type bad_off = s.size() + 1;
+
+    string other("XY");
+    VX_CHECK_ERROR(s.replace(bad_off, 2, other), vx::err::out_of_range);
+    VX_CHECK_ERROR(s.replace(bad_off, 2, "xy"), vx::err::out_of_range);
+    VX_CHECK_ERROR(s.replace(bad_off, 2, "xy", 2), vx::err::out_of_range);
+    VX_CHECK_ERROR(s.replace(bad_off, 2, 2, 'x'), vx::err::out_of_range);
+
+    std::initializer_list<char> init{ 'x', 'y' };
+    VX_CHECK_ERROR(s.replace(bad_off, 2, init), vx::err::out_of_range);
+
+    // valid target offset, but source offset (on the other-string overload)
+    // is out of range
+    VX_CHECK_ERROR(s.replace(0, 1, other, other.size() + 1), vx::err::out_of_range);
+
+    // string must be untouched by all the failed calls above
+    VX_CHECK(s.size() == 6);
+    VX_CHECK(s == "abcdef");
+
+    // sanity: valid replace calls still succeed
+    VX_CHECK(s.replace(0, 2, "AB"));
+    VX_CHECK(s == "ABcdef");
+
+    VX_CHECK(s.replace(2, 2, 3, 'z'));
+    VX_CHECK(s == "ABzzzef");
+
+    VX_CHECK(s.replace(0, 2, other));
+    VX_CHECK(s.compare(0, 2, "XY") == 0);
+}
+
+VX_TEST_CASE(replace_errors)
+{
+    test_replace_errors();
+}
+
+//=========================================================================
+// capacity / size_error handling: reserve, resize, insert, replace overflow
+//=========================================================================
+
+static void test_size_error_handling()
+{
+    using string = vx::string;
+
+    string s("abc");
+    const string::size_type too_big = static_cast<string::size_type>(-1);
+
+    VX_CHECK_ERROR(s.reserve(too_big), vx::err::size_error);
+    VX_CHECK_ERROR(s.resize(too_big), vx::err::size_error);
+    VX_CHECK_ERROR(s.resize(too_big, 'z'), vx::err::size_error);
+
+    // string must be untouched by all the failed calls above
+    VX_CHECK(s.size() == 3);
+    VX_CHECK(s[0] == 'a');
+
+    // insert_reallocate's own size_error check
+    VX_CHECK_EXPECTED_ERROR(s.insert(0, too_big, 'x'), vx::err::size_error);
+
+    // replace_n's own size_error check (huge insert side)
+    VX_CHECK_ERROR(s.replace(0, 1, too_big, 'x'), vx::err::size_error);
+
+    // sanity: reasonable reserve/resize calls still succeed
+    VX_CHECK(s.reserve(100));
+    VX_CHECK(s.capacity() >= 100);
+
+    VX_CHECK(s.resize(10));
+    VX_CHECK(s.size() == 10);
+
+    VX_CHECK(s.resize(2));
+    VX_CHECK(s.size() == 2);
+
+    VX_CHECK(s.resize(5, 'q'));
+    VX_CHECK(s.size() == 5);
+    VX_CHECK(s.back().value() == 'q');
+}
+
+VX_TEST_CASE(size_error_handling)
+{
+    test_size_error_handling();
+}
+
+//=========================================================================
+// assign() error handling
+//=========================================================================
+
+static void test_assign_errors()
+{
+    using string = vx::string;
+
+    string s("abc");
+    const string::size_type too_big = static_cast<string::size_type>(-1);
+
+    // count > max_size() is checked before the source is ever touched,
+    // so it's safe to pass small/short-lived sources here
+    VX_CHECK_ERROR(s.assign(too_big, 'x'), vx::err::size_error);
+
+    char carr[] = { 'p', 'q', 'r' };
+    VX_CHECK_ERROR(s.assign(carr, too_big), vx::err::size_error);
+
+    // string must be untouched by all the failed calls above
+    VX_CHECK(s.size() == 3);
+    VX_CHECK(s[0] == 'a');
+
+    // sanity: valid assigns still succeed, growing, shrinking, and
+    // exactly-matching-size cases (each takes a different internal branch)
+    VX_CHECK(s.assign(5, 'w')); // grow: count > size
+    VX_CHECK(s.size() == 5);
+    VX_CHECK(s[0] == 'w');
+
+    VX_CHECK(s.assign(5, 'w')); // exact match: count == size
+    VX_CHECK(s.size() == 5);
+
+    VX_CHECK(s.assign(2, 'w')); // shrink: count < size
+    VX_CHECK(s.size() == 2);
+
+    VX_CHECK(s.assign(carr, 3)); // pointer overload, grows via realloc
+    VX_CHECK(s.size() == 3);
+    VX_CHECK(s[0] == 'p');
+
+    // count == 0 is a documented clear(), not an error
+    VX_CHECK(s.assign(0, 'z'));
+    VX_CHECK(s.empty());
+
+    std::initializer_list<char> init{ 'd', 'e', 'f' };
+    VX_CHECK(s.assign(init));
+    VX_CHECK(s.size() == 3);
+
+    string other("gh");
+    VX_CHECK(s.assign(other));
+    VX_CHECK(s.size() == 2);
+    VX_CHECK(s[0] == 'g');
+
+    // self-assign is a documented no-op / early-return success, not an error
+    VX_CHECK(s.assign(s));
+    VX_CHECK(s.size() == 2);
+}
+
+VX_TEST_CASE(assign_errors)
+{
+    test_assign_errors();
+}
+
+//=========================================================================
+// fallible construction via basic_string::create()
+//=========================================================================
+
+static void test_fallible_construction()
+{
+    using string = vx::string;
+    using alloc = vx::mem::default_allocator<char>;
+
+    auto c0 = string::create();
+    VX_CHECK(c0);
+    VX_CHECK(c0.value().empty());
+
+    alloc al;
+    auto c0a = string::create(al);
+    VX_CHECK(c0a);
+    VX_CHECK(c0a.value().get_allocator() == al);
+
+    auto c1 = string::create(5, 'x');
+    VX_CHECK(c1);
+    VX_CHECK(c1.value().size() == 5);
+    VX_CHECK(c1.value().back().value() == 'x');
+
+    auto c2 = string::create("hello");
+    VX_CHECK(c2);
+    VX_CHECK(c2.value().size() == 5);
+    VX_CHECK(c2.value()[0] == 'h');
+
+    auto c2a = string::create("hello world", 5);
+    VX_CHECK(c2a);
+    VX_CHECK(c2a.value().size() == 5);
+    VX_CHECK(c2a.value() == "hello");
+
+    std::initializer_list<char> init{ 'a', 'b', 'c' };
+    auto c3 = string::create(init);
+    VX_CHECK(c3);
+    VX_CHECK(c3.value().size() == 3);
+    VX_CHECK(c3.value()[2] == 'c');
+
+    string src_copy("copy me");
+    auto c4 = string::create(src_copy);
+    VX_CHECK(c4);
+    VX_CHECK(c4.value().size() == src_copy.size());
+    VX_CHECK(c4.value()[0] == 'c');
+    VX_CHECK(src_copy.size() == 7); // source untouched by a copy-create
+
+    // sub-range creates
+    auto c5 = string::create(src_copy, 5);
+    VX_CHECK(c5);
+    VX_CHECK(c5.value() == "me");
+
+    auto c6 = string::create(src_copy, 0, 4);
+    VX_CHECK(c6);
+    VX_CHECK(c6.value() == "copy");
+
+    string src_move("move me");
+    auto c7 = string::create(std::move(src_move));
+    VX_CHECK(c7);
+    VX_CHECK(c7.value() == "move me");
+
+    // pointer-forward iterator path (vx::string::iterator)
+    string src_iter("abcd");
+    auto c8 = string::create(src_iter.begin(), src_iter.end());
+    VX_CHECK(c8);
+    VX_CHECK(c8.value().size() == 4);
+    VX_CHECK(c8.value()[3] == 'd');
+
+    // generic (non-vx-pointer) iterator path, e.g. raw pointers / std types
+    char carr[] = { 'e', 'f', 'g' };
+    auto c9 = string::create(carr, carr + 3);
+    VX_CHECK(c9);
+    VX_CHECK(c9.value().size() == 3);
+    VX_CHECK(c9.value()[0] == 'e');
+
+    std::string std_src("std source");
+    auto c10 = string::create(std_src.begin(), std_src.end());
+    VX_CHECK(c10);
+    VX_CHECK(c10.value().size() == std_src.size());
+    VX_CHECK(c10.value()[0] == 's');
+
+    // error paths: requesting more than max_size()
+    const string::size_type too_big = static_cast<string::size_type>(-1);
+
+    auto ce1 = string::create(too_big, 'x');
+    VX_CHECK_EXPECTED_ERROR(ce1, vx::err::size_error);
+
+    auto ce2 = string::create(carr, too_big);
+    VX_CHECK_EXPECTED_ERROR(ce2, vx::err::size_error);
+}
+
+VX_TEST_CASE(fallible_construction)
+{
+    test_fallible_construction();
+}
+
+//=========================================================================
+// empty-input edge cases (0-sized ranges shouldn't error or misbehave)
+//=========================================================================
+
+static void test_zero_sized_operations()
+{
+    using string = vx::string;
+
+    // 0-count constructors/creates should succeed as empty strings
+    string s0(0, 'x');
+    VX_CHECK(s0.empty());
+
+    auto c0 = string::create(0, 'x');
+    VX_CHECK(c0);
+    VX_CHECK(c0.value().empty());
+
+    std::initializer_list<char> empty_init{};
+    string s1(empty_init);
+    VX_CHECK(s1.empty());
+
+    // 0-count insert/replace/erase at valid offsets are no-ops, not errors
+    string s("abc");
+    auto ins0 = s.insert(1, 0, 'x');
+    VX_CHECK(ins0);
+    VX_CHECK(s.size() == 3);
+
+    auto rep0 = s.replace(1, 0, 0, 'x');
+    VX_CHECK(rep0);
+    VX_CHECK(s.size() == 3);
+
+    // assign(0, c) clears the string rather than erroring
+    VX_CHECK(s.assign(0, 'x'));
+    VX_CHECK(s.empty());
+
+    // erasing an already-empty string with a 0-count range is a no-op
+    auto e0 = s.erase(0, 0);
+    VX_CHECK(e0);
+    VX_CHECK(s.empty());
+}
+
+VX_TEST_CASE(zero_sized_operations)
+{
+    test_zero_sized_operations();
 }
 
 //=============================================================================
