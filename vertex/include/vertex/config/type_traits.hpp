@@ -186,6 +186,8 @@ struct iter_reference<T, void_t<decltype(*std::declval<T&>())>>
 template <typename T>
 using remove_cvref = std::remove_cv<typename std::remove_reference<T>::type>;
 
+#define VX_STRIP_T(T) typename ::vx::type_traits::remove_cvref<T>::type
+
 //==============================================================================
 // pointers
 //==============================================================================

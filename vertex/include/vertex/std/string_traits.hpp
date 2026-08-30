@@ -46,130 +46,182 @@ class basic_static_string;
 
 //=========================================================================
 
-template <typename T>
-struct is_string_like : std::false_type
+namespace _string_traits_priv {
+
+template <typename>
+struct is_string_like_impl : std::false_type
 {};
 
 template <typename T>
-struct is_string_like<basic_string_view<T>> : std::true_type
+struct is_string_like_impl<basic_string_view<T>> : std::true_type
 {};
 
 template <typename T>
-struct is_string_like<basic_cstring_view<T>> : std::true_type
+struct is_string_like_impl<basic_cstring_view<T>> : std::true_type
 {};
 
 template <typename T, typename Allocator, typename Growth>
-struct is_string_like<basic_string<T, Allocator, Growth>> : std::true_type
+struct is_string_like_impl<basic_string<T, Allocator, Growth>> : std::true_type
 {};
 
 template <size_t N, typename T>
-struct is_string_like<basic_static_string<N, T>> : std::true_type
+struct is_string_like_impl<basic_static_string<N, T>> : std::true_type
 {};
 
 #if VX_HAVE_STD_STRING_VIEW
 
 template <typename T, typename Traits>
-struct is_string_like<std::basic_string_view<T, Traits>> : std::true_type
+struct is_string_like_impl<std::basic_string_view<T, Traits>> : std::true_type
 {};
 
 #endif // VX_HAVE_STD_STRING_VIEW
 
 template <typename T, typename Traits, typename Alloc>
-struct is_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
+struct is_string_like_impl<std::basic_string<T, Traits, Alloc>> : std::true_type
 {};
 
-//=========================================================================
+} // namespace _string_traits_priv
 
 template <typename T>
-struct is_string_view : std::false_type
-{};
-
-template <typename T>
-struct is_string_view<basic_string_view<T>> : std::true_type
-{};
-
-template <typename T>
-struct is_string_view<basic_cstring_view<T>> : std::true_type
-{};
-
-#if VX_HAVE_STD_STRING_VIEW
-
-template <typename T, typename Traits>
-struct is_string_view<std::basic_string_view<T, Traits>> : std::true_type
-{};
-
-#endif // VX_HAVE_STD_STRING_VIEW
-
-//=========================================================================
-
-template <typename T>
-struct is_null_terminated_string_like : std::false_type
-{};
-
-template <typename T>
-struct is_null_terminated_string_like<basic_cstring_view<T>> : std::true_type
-{};
-
-template <typename T, typename Allocator, typename Growth>
-struct is_null_terminated_string_like<basic_string<T, Allocator, Growth>> : std::true_type
-{};
-
-template <size_t N, typename T>
-struct is_null_terminated_string_like<basic_static_string<N, T>> : std::true_type
-{};
-
-template <typename T, typename Traits, typename Alloc>
-struct is_null_terminated_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
-{};
-
-//=========================================================================
-
-template <typename T>
-struct is_mutable_string_like : std::false_type
-{};
-
-template <typename T, typename Allocator, typename Growth>
-struct is_mutable_string_like<basic_string<T, Allocator, Growth>> : std::true_type
-{};
-
-template <size_t N, typename T>
-struct is_mutable_string_like<basic_static_string<N, T>> : std::true_type
-{};
-
-template <typename T, typename Traits, typename Alloc>
-struct is_mutable_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
-{};
-
-//=========================================================================
-
-template <typename S, typename T, typename = void>
-struct is_string_of : std::false_type
-{};
-
-template <typename S, typename T>
-struct is_string_of<S, T, type_traits::void_t<typename S::value_type>> : std::bool_constant<is_string_like<S>::value && std::is_same<typename S::value_type, T>::value>
-{};
-
-//=========================================================================
-
-template <typename S1, typename S2, typename = void>
-struct is_string_compatible : std::false_type
-{};
-
-template <typename S1, typename S2>
-struct is_string_compatible<S1, S2, type_traits::void_t<typename S1::value_type, typename S2::value_type>> : std::bool_constant<is_string_like<S1>::value && is_string_like<S2>::value && std::is_same<typename S1::value_type, typename S2::value_type>::value>
+struct is_string_like : _string_traits_priv::is_string_like_impl<VX_STRIP_T(T)>
 {};
 
 //=========================================================================
 
 namespace _string_traits_priv {
 
-template <typename S1, typename S2, typename = void>
-struct is_string_compatible_operator : std::false_type
+template <typename>
+struct is_string_view_impl : std::false_type
+{};
+
+template <typename T>
+struct is_string_view_impl<basic_string_view<T>> : std::true_type
+{};
+
+template <typename T>
+struct is_string_view_impl<basic_cstring_view<T>> : std::true_type
+{};
+
+#if VX_HAVE_STD_STRING_VIEW
+
+template <typename T, typename Traits>
+struct is_string_view_impl<std::basic_string_view<T, Traits>> : std::true_type
+{};
+
+#endif // VX_HAVE_STD_STRING_VIEW
+
+} // namespace _string_traits_priv
+
+template <typename T>
+struct is_string_view : _string_traits_priv::is_string_view_impl<VX_STRIP_T(T)>
+{};
+
+//=========================================================================
+
+namespace _string_traits_priv {
+
+template <typename>
+struct is_null_terminated_string_like_impl : std::false_type
+{};
+
+template <typename T>
+struct is_null_terminated_string_like_impl<basic_cstring_view<T>> : std::true_type
+{};
+
+template <typename T, typename Allocator, typename Growth>
+struct is_null_terminated_string_like_impl<basic_string<T, Allocator, Growth>> : std::true_type
+{};
+
+template <size_t N, typename T>
+struct is_null_terminated_string_like_impl<basic_static_string<N, T>> : std::true_type
+{};
+
+template <typename T, typename Traits, typename Alloc>
+struct is_null_terminated_string_like_impl<std::basic_string<T, Traits, Alloc>> : std::true_type
+{};
+
+} // namespace _string_traits_priv
+
+template <typename T>
+struct is_null_terminated_string_like : _string_traits_priv::is_null_terminated_string_like_impl<VX_STRIP_T(T)>
+{};
+
+//=========================================================================
+
+namespace _string_traits_priv {
+
+template <typename>
+struct is_mutable_string_like_impl : std::false_type
+{};
+
+template <typename T, typename Allocator, typename Growth>
+struct is_mutable_string_like_impl<basic_string<T, Allocator, Growth>> : std::true_type
+{};
+
+template <size_t N, typename T>
+struct is_mutable_string_like_impl<basic_static_string<N, T>> : std::true_type
+{};
+
+template <typename T, typename Traits, typename Alloc>
+struct is_mutable_string_like_impl<std::basic_string<T, Traits, Alloc>> : std::true_type
+{};
+
+} // namespace _string_traits_priv
+
+template <typename T>
+struct is_mutable_string_like : _string_traits_priv::is_mutable_string_like_impl<VX_STRIP_T(T)>
+{};
+
+//=========================================================================
+
+namespace _string_traits_priv {
+
+template <typename, typename, typename = void>
+struct is_string_of_impl : std::false_type
+{};
+
+template <typename S, typename T>
+struct is_string_of_impl<S, T, type_traits::void_t<typename S::value_type>> : std::bool_constant<is_string_like<S>::value && std::is_same<typename S::value_type, T>::value>
+{};
+
+} // namespace _string_traits_priv
+
+template <typename S, typename T>
+struct is_string_of : _string_traits_priv::is_string_of_impl<VX_STRIP_T(S), T>
+{};
+
+//=========================================================================
+
+namespace _string_traits_priv {
+
+template <typename, typename, typename = void>
+struct is_string_compatible_impl : std::false_type
 {};
 
 template <typename S1, typename S2>
-struct is_string_compatible_operator<S1, S2, type_traits::void_t<typename S1::value_type, typename S2::value_type>> : std::bool_constant<is_string_like<S1>::value && is_string_like<S2>::value && std::is_same<typename S1::value_type, typename S2::value_type>::value && !std::is_same<typename type_traits::remove_cvref<S1>::type, typename type_traits::remove_cvref<S2>::type>::value>
+struct is_string_compatible_impl<S1, S2, type_traits::void_t<typename S1::value_type, typename S2::value_type>> : std::bool_constant<is_string_like<S1>::value && is_string_like<S2>::value && std::is_same<typename S1::value_type, typename S2::value_type>::value>
+{};
+
+} // namespace _string_traits_priv
+
+template <typename S1, typename S2>
+struct is_string_compatible : _string_traits_priv::is_string_compatible_impl<VX_STRIP_T(S1), VX_STRIP_T(S2)>
+{};
+
+//=========================================================================
+
+namespace _string_traits_priv {
+
+template <typename, typename, typename = void>
+struct is_string_compatible_operator_impl : std::false_type
+{};
+
+template <typename S1, typename S2>
+struct is_string_compatible_operator_impl<S1, S2, type_traits::void_t<typename S1::value_type, typename S2::value_type>> : std::bool_constant<is_string_like<S1>::value && is_string_like<S2>::value && std::is_same<typename S1::value_type, typename S2::value_type>::value && !std::is_same<typename type_traits::remove_cvref<S1>::type, typename type_traits::remove_cvref<S2>::type>::value>
+{};
+
+template <typename S1, typename S2>
+struct is_string_compatible_operator : _string_traits_priv::is_string_compatible_operator_impl<VX_STRIP_T(S1), VX_STRIP_T(S2)>
 {};
 
 } // namespace _string_traits_priv

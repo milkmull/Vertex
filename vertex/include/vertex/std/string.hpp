@@ -330,7 +330,7 @@ public:
         const size_type count = static_cast<size_type>(std::distance(first, last));
         success ok;
 
-        VX_IF_CONSTEXPR (vx::_priv::is_forward_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
             ok = construct_n<construct_method::from_pointer>(count, first.ptr());
         }
@@ -358,8 +358,8 @@ public:
 
     //=========================================================================
 
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_string(const S& other, const allocator_type& alloc = allocator_type())
+    template <typename SV, VX_REQUIRES(is_string_view<SV>::value)>
+    basic_string(const SV& other, const allocator_type& alloc = allocator_type())
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         const size_type count = static_cast<size_type>(other.size());
@@ -367,8 +367,8 @@ public:
         VX_VERIFY(ok);
     }
 
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_string(const S& other, size_type off, size_type count = npos, const allocator_type& alloc = allocator_type())
+    template <typename SV, VX_REQUIRES(is_string_view<SV>::value)>
+    basic_string(const SV& other, size_type off, size_type count = npos, const allocator_type& alloc = allocator_type())
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         if (!_char_traits_priv::check_offset(other.size(), off))
@@ -399,10 +399,7 @@ public:
     {
         basic_string s(uninitialized_tag{}, alloc);
         const auto ok = s.template construct_n<construct_method::from_string>(other.size(), other.data());
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return s;
     }
 
@@ -416,10 +413,7 @@ public:
         }
 
         const auto ok = s.construct_n<construct_method::from_pointer>(other.size(), other.data());
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return s;
     }
 
@@ -436,10 +430,7 @@ public:
         }
 
         const auto ok = s.template construct_n<construct_method::from_pointer>(other.size() - off, other.data() + off);
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return s;
     }
 
@@ -455,10 +446,7 @@ public:
 
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
         const auto ok = s.template construct_n<construct_method::from_pointer>(count, other.data() + off);
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return s;
     }
 
@@ -468,10 +456,7 @@ public:
     {
         basic_string s(uninitialized_tag{}, alloc);
         const auto ok = s.template construct_n<construct_method::from_char_count>(count, value);
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return s;
     }
 
@@ -483,10 +468,7 @@ public:
 
         const size_type count = static_cast<size_type>(traits_type::length(ptr));
         const auto ok = s.template construct_n<construct_method::from_pointer>(count, ptr);
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return s;
     }
 
@@ -494,10 +476,7 @@ public:
     {
         basic_string s(uninitialized_tag{}, alloc);
         const auto ok = s.template construct_n<construct_method::from_pointer>(count, ptr);
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return s;
     }
 
@@ -510,19 +489,20 @@ public:
         const size_type count = static_cast<size_type>(std::distance(first, last));
         success ok;
 
-        VX_IF_CONSTEXPR (vx::_priv::is_forward_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
             ok = s.template construct_n<construct_method::from_pointer>(count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            ok = s.template construct_n<construct_method::from_pointer>(count, first);
         }
         else
         {
             ok = s.template construct_n<construct_method::from_iterator_range>(count, first, last);
         }
 
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return s;
     }
 
@@ -533,30 +513,24 @@ public:
         basic_string s(uninitialized_tag{}, alloc);
         const size_type count = static_cast<size_type>(init.size());
         const auto ok = s.template construct_n<construct_method::from_pointer>(count, init.begin());
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return s;
     }
 
     //=========================================================================
 
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    static expected<basic_string, error> create(const S& other, const allocator_type& alloc = allocator_type())
+    template <typename SV, VX_REQUIRES(is_string_view<SV>::value)>
+    static expected<basic_string, error> create(const SV& other, const allocator_type& alloc = allocator_type())
     {
         basic_string s(uninitialized_tag{}, alloc);
         const size_type count = static_cast<size_type>(other.size());
         const auto ok = s.template construct_n<construct_method::from_pointer>(count, other.data());
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return s;
     }
 
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    static expected<basic_string, error> create(const S& other, size_type off, size_type count = npos, const allocator_type& alloc = allocator_type())
+    template <typename SV, VX_REQUIRES(is_string_view<SV>::value)>
+    static expected<basic_string, error> create(const SV& other, size_type off, size_type count = npos, const allocator_type& alloc = allocator_type())
     {
         basic_string s(uninitialized_tag{}, alloc);
         if (!_char_traits_priv::check_offset(other.size(), off))
@@ -567,18 +541,8 @@ public:
 
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
         const auto ok = s.template construct_n<construct_method::from_pointer>(count, other.data() + off);
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return s;
-    }
-
-    //=========================================================================
-
-    constexpr bool is_valid() const noexcept
-    {
-        return m_data().ptr != nullptr;
     }
 
 public:
@@ -615,18 +579,12 @@ public:
         return basic_cstring_view<T>(*this);
     }
 
-    template <typename Traits2, typename Allocator2>
-    operator std::basic_string<T, Traits2, Allocator2>() const
-    {
-        return std::basic_string<T, Traits2, Allocator2>(data(), size());
-    }
-
 #if VX_HAVE_STD_STRING_VIEW
 
-    template <typename Traits2>
-    operator std::basic_string_view<T, Traits2>() const noexcept
+    template <typename Traits>
+    operator std::basic_string_view<T, Traits>() const noexcept
     {
-        return std::basic_string_view<T, Traits2>(data(), size());
+        return std::basic_string_view<T, Traits>(data(), size());
     }
 
 #endif // VX_HAVE_STD_STRING_VIEW
@@ -710,22 +668,27 @@ public:
 
     basic_string& operator=(const basic_string& other)
     {
-        if (this != &other)
+        if (this == &other)
         {
-            const auto ok = assign_from<construct_method::from_string>(other.size(), other.data());
-            VX_VERIFY(ok);
+            return *this;
         }
+
+        const auto ok = assign_from<construct_method::from_string>(other.size(), other.data());
+        VX_VERIFY(ok);
         return *this;
     }
 
     basic_string& operator=(basic_string&& other) noexcept
     {
-        if (this != &other)
+        if (this == &other)
         {
-            destroy_range();
-            m_allocator() = std::move(other.m_allocator());
-            m_data().acquire(other.m_data());
+            return *this;
         }
+
+        destroy_range();
+        m_allocator() = std::move(other.m_allocator());
+        m_data().acquire(other.m_data());
+
         return *this;
     }
 
@@ -752,8 +715,8 @@ public:
         return *this;
     }
 
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_string& operator=(const S& other)
+    template <typename SV, VX_REQUIRES(is_string_view<SV>::value)>
+    basic_string& operator=(const SV& other)
     {
         const size_type count = static_cast<size_type>(other.size());
         const auto ok = assign_from<construct_method::from_pointer>(count, other.data());

@@ -254,10 +254,7 @@ public:
     {
         vector v(uninitialized_tag{}, alloc);
         const auto ok = v.template construct_n<construct_method::default_range>(count);
-        if (!ok)
-        {
-            return make_unexpected(error{ ok });
-        }
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return v;
     }
 
@@ -526,11 +523,8 @@ public:
             return *this;
         }
 
-        const auto ok = assign_from<construct_method::copy_range>(
-            other.m_data().size,
-            other.m_data().ptr);
+        const auto ok = assign_from<construct_method::copy_range>(other.m_data().size, other.m_data().ptr);
         VX_VERIFY(ok);
-
         return *this;
     }
 
