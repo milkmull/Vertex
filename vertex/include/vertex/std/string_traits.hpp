@@ -38,7 +38,7 @@ class basic_string_view;
 template <typename T>
 class basic_cstring_view;
 
-template <typename T, typename Allocator>
+template <typename T, typename Allocator, typename Growth>
 class basic_string;
 
 template <size_t N, typename T>
@@ -58,8 +58,8 @@ template <typename T>
 struct is_string_like<basic_cstring_view<T>> : std::true_type
 {};
 
-template <typename T, typename Allocator>
-struct is_string_like<basic_string<T, Allocator>> : std::true_type
+template <typename T, typename Allocator, typename Growth>
+struct is_string_like<basic_string<T, Allocator, Growth>> : std::true_type
 {};
 
 template <size_t N, typename T>
@@ -110,8 +110,8 @@ template <typename T>
 struct is_null_terminated_string_like<basic_cstring_view<T>> : std::true_type
 {};
 
-template <typename T, typename Allocator>
-struct is_null_terminated_string_like<basic_string<T, Allocator>> : std::true_type
+template <typename T, typename Allocator, typename Growth>
+struct is_null_terminated_string_like<basic_string<T, Allocator, Growth>> : std::true_type
 {};
 
 template <size_t N, typename T>
@@ -128,8 +128,8 @@ template <typename T>
 struct is_mutable_string_like : std::false_type
 {};
 
-template <typename T, typename Allocator>
-struct is_mutable_string_like<basic_string<T, Allocator>> : std::true_type
+template <typename T, typename Allocator, typename Growth>
+struct is_mutable_string_like<basic_string<T, Allocator, Growth>> : std::true_type
 {};
 
 template <size_t N, typename T>

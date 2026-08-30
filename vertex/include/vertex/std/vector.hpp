@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <initializer_list>
 #include <memory>
-#include <ratio>
 #include <utility>
 
 #include "vertex/config/language_config.hpp"
@@ -226,7 +225,7 @@ public:
         const size_type count = static_cast<size_type>(std::distance(first, last));
         success ok;
 
-        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
             ok = construct_n<construct_method::copy_range>(count, first.ptr());
         }
@@ -312,7 +311,7 @@ public:
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
         success ok;
-        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
             ok = v.template construct_n<construct_method::copy_range>(count, first.ptr());
         }
@@ -597,7 +596,7 @@ public:
         VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
             return assign_from<construct_method::copy_range>(count, first.ptr());
         }
@@ -1199,7 +1198,7 @@ public:
         VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
             return insert_checked<op_growth_policy, construct_method::copy_range>(off, count, first.ptr());
         }
@@ -1248,7 +1247,7 @@ public:
         VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
             return insert_unchecked<op_growth_policy, construct_method::copy_range>(pos, count, first.ptr());
         }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ratio>
 #include <sstream>
 
 #include "vertex/std/_tools/compressed_pair.hpp"
@@ -9,12 +8,13 @@
 #include "vertex/std/cstring_view.hpp"
 #include "vertex/std/expected.hpp"
 #include "vertex/std/growth_policy.hpp"
+#include "vertex/std/iterator.hpp"
 #include "vertex/std/string_view.hpp"
 
 namespace vx {
 namespace str {
 
-template <typename T, typename Allocator = mem::default_allocator<T>>
+template <typename T, typename Allocator = mem::default_allocator<T>, typename Growth = ratio_growth_policy<2>>
 class basic_string
 {
     //=========================================================================
@@ -33,6 +33,9 @@ private:
     {};
 
     using data_type = _dynamic_array_base_priv::dynamic_array_data<T>;
+
+    template <typename IT>
+    using is_my_iterator = _priv::is_my_pointer_iterator<IT, basic_string>;
 
 public:
 
@@ -322,12 +325,18 @@ public:
     basic_string(IT first, IT last, const allocator_type& alloc = allocator_type())
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
         const size_type count = static_cast<size_type>(std::distance(first, last));
         success ok;
 
         VX_IF_CONSTEXPR (vx::_priv::is_forward_pointer_iterator<IT>::value)
         {
             ok = construct_n<construct_method::from_pointer>(count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            ok = construct_n<construct_method::from_pointer>(count, first);
         }
         else
         {

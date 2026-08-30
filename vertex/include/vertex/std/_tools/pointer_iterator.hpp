@@ -63,7 +63,7 @@ struct is_reverse_pointer_iterator : is_reverse_pointer_iterator_impl<typename t
 
 //==============================================================================
 
-template <typename IT, typename Owner>
+template <typename, typename>
 struct is_my_pointer_iterator_impl : std::false_type
 {};
 
@@ -73,6 +73,22 @@ struct is_my_pointer_iterator_impl<pointer_iterator<Owner1, T>, Owner2> : std::i
 
 template <typename IT, typename Owner>
 struct is_my_pointer_iterator : is_my_pointer_iterator_impl<typename type_traits::remove_cvref<IT>::type, Owner>
+{};
+
+//==============================================================================
+
+template <typename, typename>
+struct is_forward_pointer_iterator_of_impl : std::false_type
+{};
+
+template <typename Owner, typename T, typename U>
+struct is_forward_pointer_iterator_of_impl<pointer_iterator<Owner, T>, U> : std::is_same<T, U>
+{};
+
+template <typename IT, typename T>
+struct is_forward_pointer_iterator_of : is_forward_pointer_iterator_of_impl<
+    typename type_traits::remove_cvref<IT>::type,
+    typename type_traits::remove_cvref<T>::type>
 {};
 
 //==============================================================================
