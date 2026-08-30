@@ -18,35 +18,61 @@ class reverse_pointer_iterator;
 //==============================================================================
 
 template <typename>
-struct is_pointer_iterator : std::false_type
+struct is_pointer_iterator_impl : std::false_type
 {};
 
 template <typename Owner, typename T>
-struct is_pointer_iterator<pointer_iterator<Owner, T>> : std::true_type
+struct is_pointer_iterator_impl<pointer_iterator<Owner, T>> : std::true_type
 {};
 
 template <typename IT>
-struct is_pointer_iterator<reverse_pointer_iterator<IT>> : std::true_type
+struct is_pointer_iterator_impl<reverse_pointer_iterator<IT>> : std::true_type
+{};
+
+template <typename IT>
+struct is_pointer_iterator : is_pointer_iterator_impl<typename type_traits::remove_cvref<IT>::type>
 {};
 
 //==============================================================================
 
 template <typename>
-struct is_forward_pointer_iterator : std::false_type
+struct is_forward_pointer_iterator_impl : std::false_type
 {};
 
 template <typename Owner, typename T>
-struct is_forward_pointer_iterator<pointer_iterator<Owner, T>> : std::true_type
+struct is_forward_pointer_iterator_impl<pointer_iterator<Owner, T>> : std::true_type
+{};
+
+template <typename IT>
+struct is_forward_pointer_iterator : is_forward_pointer_iterator_impl<typename type_traits::remove_cvref<IT>::type>
 {};
 
 //==============================================================================
 
 template <typename>
-struct is_reverse_pointer_iterator : std::false_type
+struct is_reverse_pointer_iterator_impl : std::false_type
 {};
 
 template <typename IT>
-struct is_reverse_pointer_iterator<reverse_pointer_iterator<IT>> : std::true_type
+struct is_reverse_pointer_iterator_impl<reverse_pointer_iterator<IT>> : std::true_type
+{};
+
+template <typename IT>
+struct is_reverse_pointer_iterator : is_reverse_pointer_iterator_impl<typename type_traits::remove_cvref<IT>::type>
+{};
+
+//==============================================================================
+
+template <typename IT, typename Owner>
+struct is_my_pointer_iterator_impl : std::false_type
+{};
+
+template <typename Owner1, typename T, typename Owner2>
+struct is_my_pointer_iterator_impl<pointer_iterator<Owner1, T>, Owner2> : std::is_same<Owner1, Owner2>
+{};
+
+template <typename IT, typename Owner>
+struct is_my_pointer_iterator : is_my_pointer_iterator_impl<typename type_traits::remove_cvref<IT>::type, Owner>
 {};
 
 //==============================================================================

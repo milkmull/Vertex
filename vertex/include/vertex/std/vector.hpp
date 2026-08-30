@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <initializer_list>
+#include <memory>
 #include <ratio>
 #include <utility>
 
@@ -9,15 +10,13 @@
 #include "vertex/std/_memory/allocator.hpp"
 #include "vertex/std/_tools/compressed_pair.hpp"
 #include "vertex/std/_tools/dynamic_array_base.hpp"
-#include "vertex/std/_tools/pointer_iterator.hpp"
 #include "vertex/std/expected.hpp"
 #include "vertex/std/growth_policy.hpp"
 #include "vertex/std/iterator.hpp"
-#include "vertex/std/vector_traits.hpp"
 
 namespace vx {
 
-template <typename T, typename Allocator = mem::default_allocator<T>, typename Growth = ratio_growth_policy<3, 2>>
+template <typename T, typename Allocator = mem::default_allocator<T>, typename Growth = ratio_growth_policy<2>>
 class vector
 {
     //=========================================================================
@@ -33,7 +32,7 @@ private:
     using data_type = _dynamic_array_base_priv::dynamic_array_data<T>;
 
     template <typename IT>
-    using is_my_iterator = is_my_pointer_iterator<IT, vector>;
+    using is_my_iterator = _priv::is_my_pointer_iterator<IT, vector>;
 
 public:
 
@@ -85,78 +84,6 @@ private:
     const data_type& m_data() const noexcept
     {
         return m_storage.second;
-    }
-
-    //=========================================================================
-    // range verification (debug builds only)
-    //=========================================================================
-
-    template <typename IT1, typename IT2>
-    constexpr bool assert_self_range(const IT1& first, const IT2& last) const
-    {
-#if defined(VX_DEBUG)
-
-        // Raw pointers into T / const T.
-        VX_IF_CONSTEXPR (
-            type_traits::is_pointer_to<IT1, T>::value &&
-            type_traits::is_pointer_to<IT2, T>::value)
-        {
-            const auto begin = cbegin().ptr();
-            const auto end = cend().ptr();
-
-            return first < end && last > begin;
-        }
-        // Our pointer iterators over T / const T.
-        else VX_IF_CONSTEXPR (
-            is_my_iterator<IT1>::value &&
-            is_my_iterator<IT2>::value)
-        {
-            const auto begin = cbegin().ptr();
-            const auto end = cend().ptr();
-
-            return first.ptr() < end && last.ptr() > begin;
-        }
-
-#else
-
-        VX_UNUSED(first);
-        VX_UNUSED(last);
-
-#endif
-
-        return false;
-    }
-
-    template <typename IT>
-    constexpr bool assert_valid_position(const IT& pos) const
-    {
-        constexpr auto x = type_traits::is_pointer_to<IT, T>::value;
-        constexpr auto y = is_my_iterator<IT>::value;
-
-#if defined(VX_DEBUG)
-
-        VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
-        {
-            const auto begin = cbegin().ptr();
-            const auto end = cend().ptr();
-
-            return pos >= begin && pos <= end;
-        }
-        else VX_IF_CONSTEXPR (is_my_iterator<IT>::value)
-        {
-            const auto begin = cbegin().ptr();
-            const auto end = cend().ptr();
-
-            return pos.ptr() >= begin && pos.ptr() <= end;
-        }
-
-#else
-
-        VX_UNUSED(pos);
-
-#endif
-
-        return true;
     }
 
     //=========================================================================
@@ -294,7 +221,7 @@ public:
     vector(IT first, IT last, const allocator_type& alloc = allocator_type()) noexcept
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
 
         const size_type count = static_cast<size_type>(std::distance(first, last));
         success ok;
@@ -302,6 +229,10 @@ public:
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             ok = construct_n<construct_method::copy_range>(count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            ok = construct_n<construct_method::copy_range>(count, first);
         }
         else
         {
@@ -377,13 +308,17 @@ public:
     {
         vector v(uninitialized_tag{}, alloc);
 
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
         success ok;
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             ok = v.template construct_n<construct_method::copy_range>(count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            ok = v.template construct_n<construct_method::copy_range>(count, first);
         }
         else
         {
@@ -498,7 +433,7 @@ private:
             else // VX_IF_CONSTEXPR (M == construct_method::copy_range)
             {
                 auto mid = mem::copy_range(ptr, arg, size);
-                mem::copy_uninitialized_range(mid, arg, tail_count);
+                mem::copy_uninitialized_range(mid, arg + size, tail_count);
             }
         }
         else
@@ -629,7 +564,7 @@ public:
     {
         if (this == &other)
         {
-            return true;
+            return success{};
         }
         return assign_from<construct_method::copy_range>(other.m_data().size, other.m_data().ptr);
     }
@@ -658,13 +593,17 @@ public:
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     success assign(IT first, IT last)
     {
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
-        VX_ASSERT(!assert_self_range(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             return assign_from<construct_method::copy_range>(count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            return assign_from<construct_method::copy_range>(count, first);
         }
         else
         {
@@ -823,7 +762,7 @@ public:
 
         if (size == capacity)
         {
-            return true;
+            return success{};
         }
 
         return reallocate<true>(size);
@@ -1210,7 +1149,7 @@ private:
     template <typename op_growth_policy, construct_method M, typename... Args>
     iterator insert_unchecked(const_iterator pos, size_type count, Args&&... args)
     {
-        VX_ASSERT(assert_valid_position(pos));
+        VX_PRIV_ASSERT_CONTIG_INSERTABLE_POSITION(pos);
         auto ptr = const_cast<pointer>(pos.ptr());
 
         const size_type available = m_data().capacity - m_data().size;
@@ -1256,13 +1195,17 @@ public:
     template <typename op_growth_policy = growth_policy, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     expected<iterator, error> insert(size_type off, IT first, IT last)
     {
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
-        VX_ASSERT(!assert_self_range(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             return insert_checked<op_growth_policy, construct_method::copy_range>(off, count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            return insert_checked<op_growth_policy, construct_method::copy_range>(off, count, first);
         }
         else
         {
@@ -1301,13 +1244,17 @@ public:
     template <typename op_growth_policy = growth_policy, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     iterator insert(const_iterator pos, IT first, IT last)
     {
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
-        VX_ASSERT(!assert_self_range(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             return insert_unchecked<op_growth_policy, construct_method::copy_range>(pos, count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            return insert_unchecked<op_growth_policy, construct_method::copy_range>(pos, count, first);
         }
         else
         {
@@ -1417,7 +1364,7 @@ public:
 
     iterator erase(const_iterator pos)
     {
-        VX_ASSERT(assert_valid_position(pos));
+        VX_PRIV_ASSERT_CONTIG_ERASABLE_POSITION(pos);
         auto ptr = const_cast<pointer>(pos.ptr());
         ptr = erase_n(ptr, 1);
         return iterator(ptr);
@@ -1425,8 +1372,8 @@ public:
 
     iterator erase(const_iterator first, const_iterator last)
     {
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
-        VX_ASSERT(assert_self_range(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_CONTIG_SELF_RANGE(first, last);
 
         auto ptr = const_cast<pointer>(first.ptr());
         const size_type count = static_cast<size_type>(last.ptr() - first.ptr());
@@ -1488,9 +1435,5 @@ bool operator>=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs
 {
     return !(lhs < rhs);
 }
-
-using vec = vector<int>;
-static constexpr auto y = _iterator_priv::is_my_pointer_iterator_impl<typename vec::iterator, vec>::value;
-
 
 } // namespace vx

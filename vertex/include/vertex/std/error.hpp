@@ -144,7 +144,7 @@ public:
 
     constexpr error_code_base() noexcept : m_code(err::none)
     {}
-    constexpr error_code_base(error_type c) noexcept : m_code(c)
+    constexpr explicit error_code_base(error_type c) noexcept : m_code(c)
     {}
     constexpr error_code_base(code c) noexcept : m_code(static_cast<error_type>(c))
     {}

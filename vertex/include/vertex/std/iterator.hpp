@@ -2,386 +2,9 @@
 
 #include <iterator>
 
-#include "vertex/config/assert.hpp"
-#include "vertex/config/type_traits.hpp"
+#include "vertex/std/_tools/pointer_iterator.hpp"
 
 namespace vx {
-
-//==============================================================================
-
-template <typename Owner, typename T>
-class pointer_iterator;
-
-template <typename IT>
-class reverse_pointer_iterator;
-
-//==============================================================================
-
-namespace _iterator_priv {
-
-template <typename T>
-struct is_pointer_iterator_impl : std::false_type
-{};
-
-template <typename Owner, typename T>
-struct is_pointer_iterator_impl<pointer_iterator<Owner, T>> : std::true_type
-{};
-
-template <typename IT>
-struct is_pointer_iterator_impl<reverse_pointer_iterator<IT>> : std::true_type
-{};
-
-template <typename IT, typename Owner>
-struct is_my_pointer_iterator_impl : std::false_type
-{};
-
-template <typename Owner1, typename T, typename Owner2>
-struct is_my_pointer_iterator_impl<pointer_iterator<Owner1, T>, Owner2> : std::is_same<Owner1, Owner2>
-{};
-
-} // namespace _iterator_priv
-
-template <typename T>
-struct is_pointer_iterator : _iterator_priv::is_pointer_iterator_impl<typename type_traits::remove_cvref<T>::type>
-{};
-
-template <typename IT, typename Owner>
-struct is_my_pointer_iterator : _iterator_priv::is_my_pointer_iterator_impl<typename type_traits::remove_cvref<IT>::type, Owner>
-{};
-
-//==============================================================================
-
-template <typename>
-struct is_forward_pointer_iterator : std::false_type
-{};
-
-template <typename Owner, typename T>
-struct is_forward_pointer_iterator<pointer_iterator<Owner, T>> : std::true_type
-{};
-
-//==============================================================================
-
-template <typename>
-struct is_reverse_pointer_iterator : std::false_type
-{};
-
-template <typename IT>
-struct is_reverse_pointer_iterator<reverse_pointer_iterator<IT>> : std::true_type
-{};
-
-//==============================================================================
-
-template <typename IT1, typename IT2>
-struct is_compatible_pointer_iterator : std::false_type
-{};
-
-template <typename Owner, typename T1, typename T2>
-struct is_compatible_pointer_iterator<pointer_iterator<Owner, T1>, pointer_iterator<Owner, T2>> :
-    std::is_convertible<typename std::remove_cv<T1>::type (*)[], typename std::remove_cv<T2>::type (*)[]>
-{};
-
-template <typename IT1, typename IT2>
-struct is_compatible_pointer_iterator<reverse_pointer_iterator<IT1>, reverse_pointer_iterator<IT2>> : is_compatible_pointer_iterator<IT1, IT2>
-{};
-
-//==============================================================================
-
-template <typename Owner, typename T>
-class pointer_iterator
-{
-public:
-
-    using iterator_category = std::random_access_iterator_tag;
-    using value_type = T;
-    using difference_type = ptrdiff_t;
-    using pointer = value_type*;
-    using reference = value_type&;
-
-    pointer_iterator() = default;
-
-    explicit pointer_iterator(pointer p) noexcept
-        : m_ptr(p)
-    {}
-
-    template <typename, typename>
-    friend class pointer_iterator;
-
-    template <typename U, VX_REQUIRES((std::is_convertible<U, T>::value))>
-    pointer_iterator(const pointer_iterator<Owner, U>& other) noexcept
-        : m_ptr(other.m_ptr)
-    {}
-
-    reference operator*() const noexcept
-    {
-        return *m_ptr;
-    }
-
-    pointer operator->() const noexcept
-    {
-        return m_ptr;
-    }
-
-    pointer_iterator& operator++() noexcept
-    {
-        ++m_ptr;
-        return *this;
-    }
-
-    pointer_iterator operator++(int) noexcept
-    {
-        auto tmp = *this;
-        ++(*this);
-        return tmp;
-    }
-
-    pointer_iterator& operator--() noexcept
-    {
-        --m_ptr;
-        return *this;
-    }
-
-    pointer_iterator operator--(int) noexcept
-    {
-        auto tmp = *this;
-        --(*this);
-        return tmp;
-    }
-
-    pointer_iterator& operator+=(difference_type n) noexcept
-    {
-        m_ptr += n;
-        return *this;
-    }
-
-    pointer_iterator& operator-=(difference_type n) noexcept
-    {
-        m_ptr -= n;
-        return *this;
-    }
-
-    reference operator[](difference_type n) const noexcept
-    {
-        return *(m_ptr + n);
-    }
-
-    pointer ptr() const noexcept
-    {
-        return m_ptr;
-    }
-
-    explicit operator bool() const noexcept
-    {
-        return m_ptr != nullptr;
-    }
-
-private:
-
-    pointer m_ptr = nullptr;
-};
-
-//==============================================================================
-
-template <typename Owner, typename T>
-constexpr pointer_iterator<Owner, T> operator+(
-    pointer_iterator<Owner, T> it,
-    typename pointer_iterator<Owner, T>::difference_type n) noexcept
-{
-    return pointer_iterator<Owner, T>(it.ptr() + n);
-}
-
-template <typename Owner, typename T>
-constexpr pointer_iterator<Owner, T> operator+(
-    typename pointer_iterator<Owner, T>::difference_type n,
-    pointer_iterator<Owner, T> it) noexcept
-{
-    return pointer_iterator<Owner, T>(it.ptr() + n);
-}
-
-template <typename Owner, typename T>
-constexpr pointer_iterator<Owner, T> operator-(
-    pointer_iterator<Owner, T> it,
-    typename pointer_iterator<Owner, T>::difference_type n) noexcept
-{
-    return pointer_iterator<Owner, T>(it.ptr() - n);
-}
-
-//==============================================================================
-
-template <typename IT>
-class reverse_pointer_iterator
-{
-public:
-
-    using iterator_category = std::random_access_iterator_tag;
-    using value_type = typename IT::value_type;
-    using difference_type = typename IT::difference_type;
-    using pointer = typename IT::pointer;
-    using reference = typename IT::reference;
-
-    reverse_pointer_iterator() = default;
-
-    explicit reverse_pointer_iterator(IT it) noexcept
-        : m_it(it)
-    {}
-
-    template <typename>
-    friend class reverse_pointer_iterator;
-
-    template <typename IT2, VX_REQUIRES((std::is_convertible<IT2, IT>::value))>
-    reverse_pointer_iterator(const reverse_pointer_iterator<IT2>& other) noexcept
-        : m_it(other.m_it)
-    {}
-
-    reference operator*() const noexcept
-    {
-        IT tmp = m_it;
-        return *--tmp;
-    }
-
-    pointer operator->() const noexcept
-    {
-        return std::addressof(operator*());
-    }
-
-    reverse_pointer_iterator& operator++() noexcept
-    {
-        --m_it;
-        return *this;
-    }
-
-    reverse_pointer_iterator operator++(int) noexcept
-    {
-        auto tmp = *this;
-        --m_it;
-        return tmp;
-    }
-
-    reverse_pointer_iterator& operator--() noexcept
-    {
-        ++m_it;
-        return *this;
-    }
-
-    reverse_pointer_iterator operator--(int) noexcept
-    {
-        auto tmp = *this;
-        ++m_it;
-        return tmp;
-    }
-
-    reverse_pointer_iterator& operator+=(difference_type n) noexcept
-    {
-        m_it -= n;
-        return *this;
-    }
-
-    reverse_pointer_iterator& operator-=(difference_type n) noexcept
-    {
-        m_it += n;
-        return *this;
-    }
-
-    reverse_pointer_iterator operator+(difference_type n) const noexcept
-    {
-        return reverse_pointer_iterator(m_it - n);
-    }
-
-    reverse_pointer_iterator operator-(difference_type n) const noexcept
-    {
-        return reverse_pointer_iterator(m_it + n);
-    }
-
-    reference operator[](difference_type n) const noexcept
-    {
-        return *(*this + n);
-    }
-
-    pointer ptr() const noexcept
-    {
-        return m_it.ptr();
-    }
-
-    explicit operator bool() const noexcept
-    {
-        return static_cast<bool>(m_it);
-    }
-
-private:
-
-    IT m_it;
-};
-
-//==============================================================================
-
-template <typename IT>
-constexpr reverse_pointer_iterator<IT> operator+(
-    typename reverse_pointer_iterator<IT>::difference_type n,
-    reverse_pointer_iterator<IT> it) noexcept
-{
-    return reverse_pointer_iterator<IT>(it.m_it - n);
-}
-
-template <typename IT>
-constexpr reverse_pointer_iterator<IT> operator+(
-    reverse_pointer_iterator<IT> it,
-    typename reverse_pointer_iterator<IT>::difference_type n) noexcept
-{
-    return reverse_pointer_iterator<IT>(it.m_it - n);
-}
-
-template <typename IT>
-constexpr reverse_pointer_iterator<IT> operator-(
-    reverse_pointer_iterator<IT> it,
-    typename reverse_pointer_iterator<IT>::difference_type n) noexcept
-{
-    return reverse_pointer_iterator<IT>(it.m_it + n);
-}
-
-//==============================================================================
-// general operators
-//==============================================================================
-
-template <typename IT1, typename IT2, VX_REQUIRES(is_compatible_pointer_iterator<IT1, IT2>::value)>
-constexpr typename IT1::difference_type operator-(IT1 a, IT2 b) noexcept
-{
-    return static_cast<typename IT1::difference_type>(a.ptr() - b.ptr());
-}
-
-template <typename IT1, typename IT2, VX_REQUIRES(is_compatible_pointer_iterator<IT1, IT2>::value)>
-constexpr bool operator==(IT1 a, IT2 b) noexcept
-{
-    return a.ptr() == b.ptr();
-}
-
-template <typename IT1, typename IT2, VX_REQUIRES(is_compatible_pointer_iterator<IT1, IT2>::value)>
-constexpr bool operator!=(IT1 a, IT2 b) noexcept
-{
-    return a.ptr() != b.ptr();
-}
-
-template <typename IT1, typename IT2, VX_REQUIRES(is_compatible_pointer_iterator<IT1, IT2>::value)>
-constexpr bool operator<(IT1 a, IT2 b) noexcept
-{
-    return a.ptr() < b.ptr();
-}
-
-template <typename IT1, typename IT2, VX_REQUIRES(is_compatible_pointer_iterator<IT1, IT2>::value)>
-constexpr bool operator>(IT1 a, IT2 b) noexcept
-{
-    return a.ptr() > b.ptr();
-}
-
-template <typename IT1, typename IT2, VX_REQUIRES(is_compatible_pointer_iterator<IT1, IT2>::value)>
-constexpr bool operator<=(IT1 a, IT2 b) noexcept
-{
-    return a.ptr() <= b.ptr();
-}
-
-template <typename IT1, typename IT2, VX_REQUIRES(is_compatible_pointer_iterator<IT1, IT2>::value)>
-constexpr bool operator>=(IT1 a, IT2 b) noexcept
-{
-    return a.ptr() >= b.ptr();
-}
 
 //==============================================================================
 // back inserter
@@ -603,13 +226,15 @@ constexpr move_iterator<IT> make_move_iterator(IT it) noexcept
     return move_iterator<IT>(it);
 }
 
+//==============================================================================
+// helpers
+//==============================================================================
+
 namespace _priv {
 
-template <typename IT1, typename IT2, VX_REQUIRES(type_traits::is_iterator<IT1>::value&& type_traits::is_iterator<IT2>::value)>
+template <typename IT1, typename IT2>
 constexpr bool assert_valid_iterator_range(const IT1& first, const IT2& last)
 {
-#if VX_DEBUG
-
     VX_IF_CONSTEXPR (
         (std::is_pointer<IT1>::value && std::is_pointer<IT2>::value) ||
         (is_pointer_iterator<IT1>::value && is_pointer_iterator<IT2>::value))
@@ -617,18 +242,160 @@ constexpr bool assert_valid_iterator_range(const IT1& first, const IT2& last)
         // transposed pointer range
         return (first <= last);
     }
-
-#else
-
-    VX_UNUSED(first);
-    VX_UNUSED(last);
-
-#endif
-
-    return true;
+    else
+    {
+        return true;
+    }
 }
 
-#define VX_PRIV_ASSERT_ITER_RANGE(first, last) ::vx::_priv::assert_valid_iterator_range(first, last)
+//==============================================================================
+
+template <typename P1, typename P2, typename P3, typename P4>
+constexpr bool contig_range_overlaps(P1 first, P2 last, P3 begin, P4 end) noexcept
+{
+    // Empty range can't alias anything.
+    return first != last && first < end && last > begin;
+}
+
+template <typename P1, typename P2, typename P3, typename P4>
+constexpr bool contig_range_contained(P1 first, P2 last, P3 begin, P4 end) noexcept
+{
+    return first >= begin && first <= end && last >= begin && last <= end && first <= last;
+}
+
+template <typename P1, typename P2, typename P3>
+constexpr bool contig_position_insertable(P1 pos, P2 begin, P3 end) noexcept
+{
+    return pos >= begin && pos <= end;
+}
+
+template <typename P1, typename P2, typename P3>
+constexpr bool contig_position_erasable(P1 pos, P2 begin, P3 end) noexcept
+{
+    return pos >= begin && pos < end;
+}
+
+// Used by insert/assign: true if [first,last) could alias *this.
+template <typename C, typename IT1, typename IT2>
+constexpr bool assert_contig_self_range(const C& container, const IT1& first, const IT2& last)
+{
+    using T = typename C::value_type;
+
+    VX_IF_CONSTEXPR (
+        type_traits::is_pointer_to<IT1, T>::value &&
+        type_traits::is_pointer_to<IT2, T>::value)
+    {
+        const auto begin = container.cbegin().ptr();
+        const auto end = container.cend().ptr();
+        return contig_range_overlaps(first, last, begin, end);
+    }
+    else VX_IF_CONSTEXPR (
+        is_my_pointer_iterator<IT1, C>::value &&
+        is_my_pointer_iterator<IT2, C>::value)
+    {
+        const auto begin = container.cbegin().ptr();
+        const auto end = container.cend().ptr();
+        return contig_range_overlaps(first.ptr(), last.ptr(), begin, end);
+    }
+    else
+    {
+        return false;
+    }
+}
+
+// Used by erase: true if [first,last) is a valid sub-range of *this.
+template <typename C, typename IT1, typename IT2>
+constexpr bool assert_contig_contained_range(const C& container, const IT1& first, const IT2& last)
+{
+    using T = typename C::value_type;
+
+    VX_IF_CONSTEXPR (
+        type_traits::is_pointer_to<IT1, T>::value &&
+        type_traits::is_pointer_to<IT2, T>::value)
+    {
+        const auto begin = container.cbegin().ptr();
+        const auto end = container.cend().ptr();
+        return contig_range_contained(first, last, begin, end);
+    }
+    else VX_IF_CONSTEXPR (
+        is_my_pointer_iterator<IT1, C>::value &&
+        is_my_pointer_iterator<IT2, C>::value)
+    {
+        const auto begin = container.cbegin().ptr();
+        const auto end = container.cend().ptr();
+        return contig_range_contained(first.ptr(), last.ptr(), begin, end);
+    }
+    else
+    {
+        return true;
+    }
+}
+
+template <typename C, typename IT>
+constexpr bool assert_contig_insertable_position(const C& container, const IT& pos)
+{
+    using T = typename C::value_type;
+
+    VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+    {
+        const auto begin = container.cbegin().ptr();
+        const auto end = container.cend().ptr();
+        return contig_position_insertable(pos, begin, end);
+    }
+    else VX_IF_CONSTEXPR (is_my_pointer_iterator<IT, C>::value)
+    {
+        const auto begin = container.cbegin().ptr();
+        const auto end = container.cend().ptr();
+        return contig_position_insertable(pos.ptr(), begin, end);
+    }
+    else
+    {
+        return true;
+    }
+}
+
+template <typename C, typename IT>
+constexpr bool assert_contig_erasable_position(const C& container, const IT& pos)
+{
+    using T = typename C::value_type;
+
+    VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+    {
+        const auto begin = container.cbegin().ptr();
+        const auto end = container.cend().ptr();
+        return contig_position_erasable(pos, begin, end);
+    }
+    else VX_IF_CONSTEXPR (is_my_pointer_iterator<IT, C>::value)
+    {
+        const auto begin = container.cbegin().ptr();
+        const auto end = container.cend().ptr();
+        return contig_position_erasable(pos.ptr(), begin, end);
+    }
+    else
+    {
+        return true;
+    }
+}
+
+//==============================================================================
+
+#define VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last) \
+    VX_ASSERT(::vx::_priv::assert_valid_iterator_range((first), (last)))
+
+#define VX_PRIV_ASSERT_CONTIG_SELF_RANGE(first, last) \
+    VX_ASSERT(::vx::_priv::assert_contig_self_range(*this, (first), (last)))
+
+#define VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last) \
+    VX_ASSERT(!::vx::_priv::assert_contig_self_range(*this, (first), (last)))
+
+#define VX_PRIV_ASSERT_CONTIG_CONTAINED_RANGE(first, last) \
+    VX_ASSERT(::vx::_priv::assert_contig_contained_range(*this, (first), (last)))
+
+#define VX_PRIV_ASSERT_CONTIG_INSERTABLE_POSITION(pos) \
+    VX_ASSERT(::vx::_priv::assert_contig_insertable_position(*this, (pos)))
+
+#define VX_PRIV_ASSERT_CONTIG_ERASABLE_POSITION(pos) \
+    VX_ASSERT(::vx::_priv::assert_contig_erasable_position(*this, (pos)))
 
 } // namespace _priv
 

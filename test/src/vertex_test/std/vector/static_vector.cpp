@@ -259,31 +259,512 @@ VX_TEST_CASE(container)
 }
 
 //=============================================================================
+// failure / fixed-capacity behavior
+//=============================================================================
 
 static void test_failure()
 {
     using vec = vx::static_vector<5, char>;
-    using big_vec = vx::static_vector<vec::capacity() + 1, char>;
-    using small_vec = vx::static_vector<vec::capacity() - 1, char>;
+    using big_vec = vx::static_vector<6, char>;
+    using small_vec = vx::static_vector<4, char>;
 
     VX_CHECK_EXPECTED_ERROR(vec::create(6, 'x'), vx::err::size_error);
 
     vec s;
+
     const big_vec big = { '1', '2', '3', '4', '5', '6' };
-    const big_vec small = { '1', '2', '3', '4' };
+    const small_vec small = { '1', '2', '3', '4' };
 
     VX_CHECK_ERROR(s.assign(big.begin(), big.end()), vx::err::size_error);
     VX_CHECK_EXPECTED_ERROR(s.insert(0, big.begin(), big.end()), vx::err::size_error);
 
     VX_CHECK(s.assign(small.begin(), small.end()));
+    VX_CHECK(s.size() == 4);
+
     s.clear();
+
     VX_CHECK(s.insert(0, small.begin(), small.end()));
-    s.clear();
+    VX_CHECK(s.size() == 4);
 }
 
 VX_TEST_CASE(failure)
 {
     test_failure();
+}
+
+//=========================================================================
+// element access errors: front / back / at
+//=========================================================================
+
+static void test_element_access_errors()
+{
+    using vec = vx::static_vector<8, int>;
+
+    vec empty_v;
+
+    VX_CHECK_EXPECTED_ERROR(empty_v.front(), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(empty_v.back(), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(empty_v.at(0), vx::err::out_of_range);
+
+    const vec const_empty_v;
+
+    VX_CHECK_EXPECTED_ERROR(const_empty_v.front(), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(const_empty_v.back(), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(const_empty_v.at(0), vx::err::out_of_range);
+
+    vec v{ 1, 2, 3 };
+
+    VX_CHECK(v.front().value() == 1);
+    VX_CHECK(v.back().value() == 3);
+    VX_CHECK(v.at(1).value() == 2);
+
+    VX_CHECK_EXPECTED_ERROR(v.at(3), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(v.at(1000), vx::err::out_of_range);
+
+    const vec cv{ 4, 5, 6 };
+
+    VX_CHECK(cv.front().value() == 4);
+    VX_CHECK(cv.back().value() == 6);
+    VX_CHECK(cv.at(2).value() == 6);
+
+    VX_CHECK_EXPECTED_ERROR(cv.at(3), vx::err::out_of_range);
+
+    v.clear();
+
+    VX_CHECK_EXPECTED_ERROR(v.front(), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(v.back(), vx::err::out_of_range);
+}
+
+VX_TEST_CASE(element_access_errors)
+{
+    test_element_access_errors();
+}
+
+//=========================================================================
+// erase() offset-based error handling
+//=========================================================================
+
+static void test_erase_errors()
+{
+    using vec = vx::static_vector<8, int>;
+
+    vec v{ 1, 2, 3, 4, 5 };
+
+    // off == size is invalid for single-element erase.
+    VX_CHECK_EXPECTED_ERROR(v.erase(v.size()), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(v.erase(v.size() + 1), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(v.erase(1000), vx::err::out_of_range);
+
+    // Range erase allows off == size with count == 0.
+    VX_CHECK_EXPECTED_ERROR(v.erase(v.size() + 1, 1), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(v.erase(3, 5), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(v.erase(0, v.size() + 1), vx::err::out_of_range);
+
+    // Failed operations must leave the vector untouched.
+    VX_CHECK(v.size() == 5);
+    VX_CHECK(v[0] == 1);
+    VX_CHECK(v[4] == 5);
+
+    auto e1 = v.erase(1);
+    VX_CHECK(e1);
+    VX_CHECK(v.size() == 4);
+    VX_CHECK(v[1] == 3);
+
+    auto e2 = v.erase(0, 2);
+    VX_CHECK(e2);
+    VX_CHECK(v.size() == 2);
+
+    auto e3 = v.erase(0, 0);
+    VX_CHECK(e3);
+    VX_CHECK(v.size() == 2);
+
+    auto e4 = v.erase(0, v.size());
+    VX_CHECK(e4);
+    VX_CHECK(v.empty());
+}
+
+VX_TEST_CASE(erase_errors)
+{
+    test_erase_errors();
+}
+
+//=========================================================================
+// offset-based insert() / emplace() error handling
+//=========================================================================
+
+static void test_offset_insert_errors()
+{
+    using vec = vx::static_vector<16, int>;
+
+    vec v{ 1, 2, 3 };
+
+    const vec::size_type bad_off = v.size() + 1;
+
+    VX_CHECK_EXPECTED_ERROR(v.insert(bad_off, 99), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(v.emplace(bad_off, 99), vx::err::out_of_range);
+    VX_CHECK_EXPECTED_ERROR(v.insert(bad_off, 3, 99), vx::err::out_of_range);
+
+    std::initializer_list<int> init{ 7, 8, 9 };
+
+    VX_CHECK_EXPECTED_ERROR(v.insert(bad_off, init), vx::err::out_of_range);
+
+    int carr[] = { 10, 11, 12 };
+
+    VX_CHECK_EXPECTED_ERROR(
+        v.insert(bad_off, carr, carr + 3),
+        vx::err::out_of_range);
+
+    // Failed calls must leave the vector untouched.
+    VX_CHECK(v.size() == 3);
+    VX_CHECK(v[0] == 1);
+    VX_CHECK(v[2] == 3);
+
+    // off == size() is valid and means append.
+    auto ok_append = v.insert(v.size(), 42);
+
+    VX_CHECK(ok_append);
+    VX_CHECK(v.back().value() == 42);
+
+    vec v2{ 1, 2, 3 };
+
+    auto i1 = v2.insert(0, 100);
+    VX_CHECK(i1);
+    VX_CHECK(v2.front().value() == 100);
+
+    auto i2 = v2.emplace(1, 200);
+    VX_CHECK(i2);
+    VX_CHECK(v2[1] == 200);
+
+    auto i3 = v2.insert(0, 2, 300);
+    VX_CHECK(i3);
+    VX_CHECK(v2[0] == 300);
+    VX_CHECK(v2[1] == 300);
+
+    auto i4 = v2.insert(0, init);
+    VX_CHECK(i4);
+    VX_CHECK(v2[0] == 7);
+
+    auto i5 = v2.insert(0, carr, carr + 3);
+    VX_CHECK(i5);
+    VX_CHECK(v2[0] == 10);
+}
+
+VX_TEST_CASE(offset_insert_errors)
+{
+    test_offset_insert_errors();
+}
+
+//=========================================================================
+// capacity / size_error handling
+//=========================================================================
+
+static void test_size_error_handling()
+{
+    using vec = vx::static_vector<10, int>;
+
+    vec v{ 1, 2, 3 };
+
+    // The implementation uses size_type and checks against max_size().
+    const vec::size_type too_big =
+        static_cast<vec::size_type>(-1);
+
+    VX_CHECK_ERROR(v.reserve(too_big), vx::err::size_error);
+    VX_CHECK_ERROR(v.resize(too_big), vx::err::size_error);
+    VX_CHECK_ERROR(v.resize(too_big, 42), vx::err::size_error);
+
+    VX_CHECK(v.size() == 3);
+    VX_CHECK(v[0] == 1);
+
+    VX_CHECK_EXPECTED_ERROR(
+        v.insert(0, too_big, 99),
+        vx::err::size_error);
+
+    // Unlike std::vector, reserve cannot grow the capacity.
+    VX_CHECK(v.reserve(10));
+    VX_CHECK(v.capacity() == 10);
+    VX_CHECK(v.max_size() == 10);
+
+    VX_CHECK(v.resize(10));
+    VX_CHECK(v.size() == 10);
+    VX_CHECK(v.full());
+
+    VX_CHECK_EXPECTED_ERROR(v.emplace_back(123), vx::err::size_error);
+
+    VX_CHECK(v.resize(2));
+    VX_CHECK(v.size() == 2);
+    VX_CHECK(!v.full());
+
+    VX_CHECK(v.resize(5, 7));
+    VX_CHECK(v.size() == 5);
+    VX_CHECK(v.back().value() == 7);
+}
+
+VX_TEST_CASE(size_error_handling)
+{
+    test_size_error_handling();
+}
+
+//=========================================================================
+// assign() error handling
+//=========================================================================
+
+static void test_assign_errors()
+{
+    using vec = vx::static_vector<8, int>;
+
+    vec v{ 1, 2, 3 };
+
+    const vec::size_type too_big =
+        static_cast<vec::size_type>(-1);
+
+    VX_CHECK_ERROR(v.assign(too_big, 42), vx::err::size_error);
+
+    int carr[] = { 1, 2, 3 };
+
+    VX_CHECK_ERROR(
+        v.assign(carr, too_big),
+        vx::err::size_error);
+
+    // Failed calls must leave the vector untouched.
+    VX_CHECK(v.size() == 3);
+    VX_CHECK(v[0] == 1);
+
+    // Grow.
+    VX_CHECK(v.assign(5, 9));
+    VX_CHECK(v.size() == 5);
+    VX_CHECK(v[0] == 9);
+    VX_CHECK(v[4] == 9);
+
+    // Exact match.
+    VX_CHECK(v.assign(5, 9));
+    VX_CHECK(v.size() == 5);
+
+    // Shrink.
+    VX_CHECK(v.assign(2, 9));
+    VX_CHECK(v.size() == 2);
+
+    // Pointer overload.
+    VX_CHECK(v.assign(carr, 3));
+    VX_CHECK(v.size() == 3);
+    VX_CHECK(v[0] == 1);
+
+    std::initializer_list<int> init{ 4, 5, 6, 7 };
+
+    VX_CHECK(v.assign(init));
+    VX_CHECK(v.size() == 4);
+    VX_CHECK(v[3] == 7);
+
+    vec other{ 8, 9 };
+
+    VX_CHECK(v.assign(other));
+    VX_CHECK(v.size() == 2);
+    VX_CHECK(v[0] == 8);
+
+    // Self assignment is explicitly handled.
+    VX_CHECK(v.assign(v));
+    VX_CHECK(v.size() == 2);
+    VX_CHECK(v[0] == 8);
+}
+
+VX_TEST_CASE(assign_errors)
+{
+    test_assign_errors();
+}
+
+//=========================================================================
+// fallible construction via static_vector::create()
+//=========================================================================
+
+static void test_fallible_construction()
+{
+    using vec = vx::static_vector<10, int>;
+
+    auto c0 = vec::create();
+
+    VX_CHECK(c0);
+    VX_CHECK(c0.value().empty());
+
+    auto c1 = vec::create(5);
+
+    VX_CHECK(c1);
+    VX_CHECK(c1.value().size() == 5);
+
+    auto c1a = vec::create(6, 7);
+
+    VX_CHECK(c1a);
+    VX_CHECK(c1a.value().size() == 6);
+    VX_CHECK(c1a.value().back().value() == 7);
+
+    std::initializer_list<int> init{ 1, 2, 3 };
+
+    auto c2 = vec::create(init);
+
+    VX_CHECK(c2);
+    VX_CHECK(c2.value().size() == 3);
+    VX_CHECK(c2.value()[2] == 3);
+
+    vec src_copy{ 10, 20, 30 };
+
+    auto c3 = vec::create(src_copy);
+
+    VX_CHECK(c3);
+    VX_CHECK(c3.value().size() == 3);
+    VX_CHECK(c3.value()[0] == 10);
+    VX_CHECK(src_copy.size() == 3);
+
+    vec src_move{ 100, 200 };
+
+    auto c4 = vec::create(std::move(src_move));
+
+    VX_CHECK(c4);
+    VX_CHECK(c4.value().size() == 2);
+    VX_CHECK(c4.value()[0] == 100);
+
+    VX_DISABLE_USE_AFTER_MOVE_WARNING();
+
+    VX_CHECK(src_move.empty());
+
+    VX_DISABLE_WARNING_POP();
+
+    // static_vector iterator path.
+    vec src_iter{ 1, 2, 3, 4 };
+
+    auto c5 = vec::create(src_iter.begin(), src_iter.end());
+
+    VX_CHECK(c5);
+    VX_CHECK(c5.value().size() == 4);
+    VX_CHECK(c5.value()[3] == 4);
+
+    // Raw pointer iterator path.
+    int carr[] = { 5, 6, 7 };
+
+    auto c6 = vec::create(carr, carr + 3);
+
+    VX_CHECK(c6);
+    VX_CHECK(c6.value().size() == 3);
+    VX_CHECK(c6.value()[0] == 5);
+
+    // Generic standard iterator path.
+    std::vector<int> std_src{ 9, 8, 7 };
+
+    auto c7 = vec::create(std_src.begin(), std_src.end());
+
+    VX_CHECK(c7);
+    VX_CHECK(c7.value().size() == 3);
+    VX_CHECK(c7.value()[1] == 8);
+
+    // Capacity overflow.
+    const vec::size_type too_big =
+        static_cast<vec::size_type>(-1);
+
+    auto ce1 = vec::create(too_big);
+    VX_CHECK_EXPECTED_ERROR(ce1, vx::err::size_error);
+
+    auto ce2 = vec::create(too_big, 5);
+    VX_CHECK_EXPECTED_ERROR(ce2, vx::err::size_error);
+}
+
+VX_TEST_CASE(fallible_construction)
+{
+    test_fallible_construction();
+}
+
+//=========================================================================
+// zero-sized operations
+//=========================================================================
+
+static void test_zero_sized_operations()
+{
+    using vec = vx::static_vector<8, int>;
+
+    // Zero-count construction.
+    vec v0(0, 5);
+
+    VX_CHECK(v0.empty());
+
+    auto c0 = vec::create(0, 5);
+
+    VX_CHECK(c0);
+    VX_CHECK(c0.value().empty());
+
+    std::initializer_list<int> empty_init{};
+
+    vec v1(empty_init);
+
+    VX_CHECK(v1.empty());
+
+    // Zero-count insert at a valid offset.
+    vec v{ 1, 2, 3 };
+
+    auto ins0 = v.insert(1, 0, 42);
+
+    VX_CHECK(ins0);
+    VX_CHECK(v.size() == 3);
+    VX_CHECK(v[0] == 1);
+    VX_CHECK(v[1] == 2);
+    VX_CHECK(v[2] == 3);
+
+    // Zero-count assign.
+    VX_CHECK(v.assign(0, 42));
+    VX_CHECK(v.empty());
+
+    // Zero-count range erase at the end is valid.
+    VX_CHECK(v.erase(0, 0));
+    VX_CHECK(v.empty());
+
+    // Zero-count resize is a no-op.
+    VX_CHECK(v.resize(0));
+    VX_CHECK(v.empty());
+}
+
+VX_TEST_CASE(zero_sized_operations)
+{
+    test_zero_sized_operations();
+}
+
+//=========================================================================
+// full-capacity operations
+//=========================================================================
+
+static void test_full_capacity()
+{
+    using vec = vx::static_vector<4, int>;
+
+    vec v;
+
+    VX_CHECK(v.push_back(1));
+    VX_CHECK(v.push_back(2));
+    VX_CHECK(v.push_back(3));
+    VX_CHECK(v.push_back(4));
+
+    VX_CHECK(v.size() == 4);
+    VX_CHECK(v.capacity() == 4);
+    VX_CHECK(v.max_size() == 4);
+    VX_CHECK(v.full());
+
+    // All operations that need an additional element must fail.
+    VX_CHECK_EXPECTED_ERROR(v.push_back(5), vx::err::size_error);
+    VX_CHECK_EXPECTED_ERROR(v.emplace_back(5), vx::err::size_error);
+    VX_CHECK_EXPECTED_ERROR(v.insert(0, 5), vx::err::size_error);
+    VX_CHECK_EXPECTED_ERROR(v.insert(2, 2, 5), vx::err::size_error);
+
+    VX_CHECK(v.size() == 4);
+    VX_CHECK(v[0] == 1);
+    VX_CHECK(v[3] == 4);
+
+    // Removing an element frees one slot.
+    VX_CHECK(v.erase(1));
+    VX_CHECK(v.size() == 3);
+    VX_CHECK(!v.full());
+
+    VX_CHECK(v.push_back(5));
+    VX_CHECK(v.size() == 4);
+    VX_CHECK(v.full());
+}
+
+VX_TEST_CASE(full_capacity)
+{
+    test_full_capacity();
 }
 
 //=========================================================================

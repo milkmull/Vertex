@@ -46,8 +46,8 @@ struct static_vector_storage_nontrivial
 template <size_t N, typename T>
 using static_vector_storage = typename std::conditional<
     std::is_trivially_destructible<T>::value,
-      static_vector_storage_trivial<N, T>,
-      static_vector_storage_nontrivial<N, T>>::type;
+    static_vector_storage_trivial<N, T>,
+    static_vector_storage_nontrivial<N, T>>::type;
 
 } // namespace _static_vector_priv
 
@@ -57,6 +57,15 @@ class static_vector
     //=========================================================================
     // member types
     //=========================================================================
+
+private:
+
+    VX_STATIC_ASSERT_MSG(N > 0, "N must not be 0");
+
+    using data_type = _static_vector_priv::static_vector_storage<N, T>;
+
+    template <typename IT>
+    using is_my_iterator = _priv::is_my_pointer_iterator<IT, static_vector>;
 
 public:
 
@@ -85,58 +94,7 @@ private:
         iterator_range // construct from iterator range
     };
 
-    using data_type = _static_vector_priv::static_vector_storage<N, T>;
     data_type m_data;
-
-    //=========================================================================
-    // range verification (debug builds only)
-    //=========================================================================
-
-    template <typename IT>
-    struct is_my_iterator
-    {
-    private:
-
-        using ITB = typename type_traits::remove_cvref<IT>::type;
-
-    public:
-
-        static constexpr bool value = (std::is_same<ITB, iterator>::value ||
-            std::is_same<ITB, const_iterator>::value ||
-            std::is_same<ITB, reverse_iterator>::value ||
-            std::is_same<ITB, const_reverse_iterator>::value);
-    };
-
-    template <typename IT1, typename IT2>
-    constexpr bool assert_self_range(const IT1& first, const IT2& last) const
-    {
-#if defined(VX_DEBUG)
-
-        // verify that the pointers or iterators are not self owned (if possible)
-        VX_IF_CONSTEXPR (std::is_pointer<IT1>::value && std::is_pointer<IT2>::value)
-        {
-            return (first < cend().ptr() && last > cbegin().ptr());
-        }
-        else VX_IF_CONSTEXPR (is_pointer_iterator<IT1>::value && is_pointer_iterator<IT2>::value)
-        {
-            return (first.ptr() < cend().ptr() && last.ptr() > cbegin().ptr());
-        }
-
-#else
-
-        VX_UNUSED(first);
-        VX_UNUSED(last);
-
-#endif
-
-        return false;
-    }
-
-    template <typename IT1>
-    constexpr bool assert_self_range(const IT1& first) const
-    {
-        return assert_self_range(first, first);
-    }
 
     //=========================================================================
     // construction helpers
@@ -236,7 +194,7 @@ public:
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     constexpr static_vector(IT first, IT last) noexcept
     {
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
 
         const size_type count = static_cast<size_type>(std::distance(first, last));
         success ok;
@@ -245,6 +203,10 @@ public:
         {
             constexpr bool fits = is_my_iterator<IT>::value;
             ok = construct_n<construct_method::copy_range, fits>(count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            ok = construct_n<construct_method::copy_range, false>(count, first);
         }
         else
         {
@@ -321,14 +283,18 @@ public:
     {
         static_vector v(uninitialized_tag{});
 
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
         success ok;
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             constexpr bool fits = is_my_iterator<IT>::value;
-            ok = v.template construct_n<construct_method::copy_range, false>(count, first.ptr());
+            ok = v.template construct_n<construct_method::copy_range, fits>(count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            ok = v.template construct_n<construct_method::copy_range, false>(count, first);
         }
         else
         {
@@ -404,12 +370,12 @@ private:
                 // This function should never be called with any self referential
                 // data so it should be fine to copy trivial types on move.
                 auto mid = mem::copy_or_move_range(ptr, arg, size);
-                mem::copy_or_move_uninitialized_range(mid, arg, tail_count);
+                mem::copy_or_move_uninitialized_range(mid, arg + size, tail_count);
             }
             else // VX_IF_CONSTEXPR (M == construct_method::copy_range)
             {
                 auto mid = mem::copy_range(ptr, arg, size);
-                mem::copy_uninitialized_range(mid, arg, tail_count);
+                mem::copy_uninitialized_range(mid, arg + size, tail_count);
             }
         }
         else
@@ -510,7 +476,7 @@ public:
     {
         if (this == &other)
         {
-            return true;
+            return success{};
         }
         return assign_from<construct_method::copy_range, true>(other.m_data.size, other.m_data.ptr);
     }
@@ -539,14 +505,18 @@ public:
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     constexpr success assign(IT first, IT last)
     {
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
-        VX_ASSERT(!assert_self_range(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             constexpr bool fits = is_my_iterator<IT>::value;
             return assign_from<construct_method::copy_range, fits>(count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            return assign_from<construct_method::copy_range, false>(count, first);
         }
         else
         {
@@ -934,7 +904,7 @@ private:
     template <construct_method M, typename... Args>
     constexpr iterator insert_unchecked(const_iterator pos, size_type count, Args&&... args)
     {
-        VX_ASSERT(assert_self_range(pos));
+        VX_PRIV_ASSERT_CONTIG_INSERTABLE_POSITION(pos);
         auto ptr = const_cast<pointer>(pos.ptr());
 
         const auto ok = insert_n<M>(ptr, count, std::forward<Args>(args)...);
@@ -967,13 +937,17 @@ public:
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     constexpr expected<iterator, error> insert(size_type off, IT first, IT last)
     {
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
-        VX_ASSERT(!assert_self_range(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             return insert_checked<construct_method::copy_range>(off, count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            return insert_checked<construct_method::copy_range>(off, count, first);
         }
         else
         {
@@ -1008,13 +982,17 @@ public:
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     constexpr iterator insert(const_iterator pos, IT first, IT last)
     {
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
-        VX_ASSERT(!assert_self_range(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             return insert_unchecked<construct_method::copy_range>(pos, count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            return insert_unchecked<construct_method::copy_range>(pos, count, first);
         }
         else
         {
@@ -1112,7 +1090,7 @@ public:
 
     constexpr iterator erase(const_iterator pos)
     {
-        VX_ASSERT(assert_self_range(pos));
+        VX_PRIV_ASSERT_CONTIG_ERASABLE_POSITION(pos);
         auto ptr = const_cast<pointer>(pos.ptr());
         ptr = erase_n(ptr, 1);
         return iterator(ptr);
@@ -1120,8 +1098,8 @@ public:
 
     constexpr iterator erase(const_iterator first, const_iterator last)
     {
-        VX_PRIV_ASSERT_ITER_RANGE(first, last);
-        VX_ASSERT(assert_self_range(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_CONTIG_SELF_RANGE(first, last);
 
         auto ptr = const_cast<pointer>(first.ptr());
         const size_type count = static_cast<size_type>(last.ptr() - first.ptr());
