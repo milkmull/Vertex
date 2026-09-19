@@ -3,8 +3,9 @@
 #include "vertex/config/assert.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/type_traits.hpp"
-#include "vertex/std/math/float_traits.hpp"
+#include "vertex/std/algorithm.hpp"
 #include "vertex/std/hex.hpp"
+#include "vertex/std/math/float_traits.hpp"
 #include "vertex/std/string_utils.hpp"
 #include "vertex/util/bit.hpp"
 
@@ -250,7 +251,7 @@ constexpr int large_integer_pow10(const int e2) noexcept
 template <typename C>
 constexpr void fill_n_zeros(C* buf, size_t n) noexcept
 {
-    mem::fill_range(buf, n, C('0'));
+    range::fill(buf, n, C('0'));
 }
 
 template <typename F>
@@ -483,7 +484,7 @@ struct big_int
 
         if (bitshift == 0)
         {
-            mem::move_range(bits + limbshift, bits, limb_count - limbshift);
+            range::move(bits + limbshift, bits, limb_count - limbshift);
         }
         else
         {

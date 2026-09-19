@@ -55,3 +55,32 @@
 #else
     #define VX_HAVE_STD_INVOKE 0
 #endif
+
+// std::move / std::forward / std::swap
+//
+// These are C++11 <utility> facilities and do not have individual
+// library feature-test macros.
+#if VX_CPP_STANDARD >= 11
+    #define VX_HAVE_STD_MOVE    1
+    #define VX_HAVE_STD_FORWARD 1
+    #define VX_HAVE_STD_SWAP    1
+#else
+    #define VX_HAVE_STD_MOVE    0
+    #define VX_HAVE_STD_FORWARD 0
+    #define VX_HAVE_STD_SWAP    0
+#endif
+
+// std::exchange
+#if defined(__cpp_lib_exchange_function) && \
+    __cpp_lib_exchange_function >= 201304L
+    #define VX_HAVE_STD_EXCHANGE 1
+#else
+    #define VX_HAVE_STD_EXCHANGE 0
+#endif
+
+// std::clamp
+#if VX_CPP_STANDARD >= 17
+    #define VX_HAVE_STD_CLAMP 1
+#else
+    #define VX_HAVE_STD_CLAMP 0
+#endif

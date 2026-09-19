@@ -82,7 +82,7 @@ struct is_forward_pointer_iterator_of_impl : std::false_type
 {};
 
 template <typename Owner, typename T, typename U>
-struct is_forward_pointer_iterator_of_impl<pointer_iterator<Owner, T>, U> : std::is_same<T, U>
+struct is_forward_pointer_iterator_of_impl<pointer_iterator<Owner, T>, U> : std::is_same<typename std::remove_cv<T>::type, U>
 {};
 
 template <typename IT, typename T>

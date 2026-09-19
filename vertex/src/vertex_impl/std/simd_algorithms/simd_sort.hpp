@@ -3,7 +3,7 @@
 #include "vertex/std/_simd/min_max.hpp"
 #include "vertex_impl/std/simd_algorithms/simd_common.hpp"
 
-#if defined(VX_STD_USE_SIMD_ALGORITHMS)
+#if VX_STD_USE_SIMD_ALGORITHMS
 
 namespace vx {
 namespace _simd {

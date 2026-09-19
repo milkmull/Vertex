@@ -263,16 +263,28 @@ constexpr bool contig_range_contained(P1 first, P2 last, P3 begin, P4 end) noexc
     return first >= begin && first <= end && last >= begin && last <= end && first <= last;
 }
 
+template <bool include_end, typename P1, typename P2, typename P3>
+constexpr bool contig_position_valid(P1 pos, P2 begin, P3 end) noexcept
+{
+    return pos >= begin && (include_end ? pos <= end : pos < end);
+}
+
 template <typename P1, typename P2, typename P3>
 constexpr bool contig_position_insertable(P1 pos, P2 begin, P3 end) noexcept
 {
-    return pos >= begin && pos <= end;
+    return contig_position_valid<true>(pos, begin, end);
 }
 
 template <typename P1, typename P2, typename P3>
 constexpr bool contig_position_erasable(P1 pos, P2 begin, P3 end) noexcept
 {
-    return pos >= begin && pos < end;
+    return contig_position_valid<false>(pos, begin, end);
+}
+
+template <typename P1, typename P2, typename P3>
+constexpr bool contig_ptr_outside_range(P1 addr, P2 begin, P3 end) noexcept
+{
+    return addr < begin || addr >= end;
 }
 
 // Used by insert/assign: true if [first,last) could alias *this.
@@ -331,8 +343,8 @@ constexpr bool assert_contig_contained_range(const C& container, const IT1& firs
     }
 }
 
-template <typename C, typename IT>
-constexpr bool assert_contig_insertable_position(const C& container, const IT& pos)
+template <bool include_end, typename C, typename IT>
+constexpr bool assert_contig_valid_position(const C& container, const IT& pos)
 {
     using T = typename C::value_type;
 
@@ -340,13 +352,13 @@ constexpr bool assert_contig_insertable_position(const C& container, const IT& p
     {
         const auto begin = container.cbegin().ptr();
         const auto end = container.cend().ptr();
-        return contig_position_insertable(pos, begin, end);
+        return contig_position_valid<include_end>(pos, begin, end);
     }
     else VX_IF_CONSTEXPR (is_my_pointer_iterator<IT, C>::value)
     {
         const auto begin = container.cbegin().ptr();
         const auto end = container.cend().ptr();
-        return contig_position_insertable(pos.ptr(), begin, end);
+        return contig_position_valid<include_end>(pos.ptr(), begin, end);
     }
     else
     {
@@ -354,27 +366,32 @@ constexpr bool assert_contig_insertable_position(const C& container, const IT& p
     }
 }
 
-template <typename C, typename IT>
-constexpr bool assert_contig_erasable_position(const C& container, const IT& pos)
+template <typename C, typename T>
+constexpr bool assert_not_aliasing_element(const C& container, const T& value) noexcept
 {
-    using T = typename C::value_type;
-
-    VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
-    {
-        const auto begin = container.cbegin().ptr();
-        const auto end = container.cend().ptr();
-        return contig_position_erasable(pos, begin, end);
-    }
-    else VX_IF_CONSTEXPR (is_my_pointer_iterator<IT, C>::value)
-    {
-        const auto begin = container.cbegin().ptr();
-        const auto end = container.cend().ptr();
-        return contig_position_erasable(pos.ptr(), begin, end);
-    }
-    else
+    VX_IF_CONSTEXPR (!std::is_same<typename std::decay<T>::type, typename C::value_type>::value)
     {
         return true;
     }
+    else
+    {
+        const T* addr = std::addressof(value);
+        const T* begin = container.data();
+        const T* end = begin + container.size();
+        return contig_ptr_outside_range(addr, begin, end);
+    }
+}
+
+template <typename C, typename... Args>
+constexpr bool assert_not_aliasing_element_pack(const C&, const Args&...) noexcept
+{
+    return true;
+}
+
+template <typename C, typename Arg>
+constexpr bool assert_not_aliasing_element_pack(const C& container, const Arg& value) noexcept
+{
+    return assert_not_aliasing_element(container, value);
 }
 
 //==============================================================================
@@ -392,10 +409,22 @@ constexpr bool assert_contig_erasable_position(const C& container, const IT& pos
     VX_ASSERT(::vx::_priv::assert_contig_contained_range(*this, (first), (last)))
 
 #define VX_PRIV_ASSERT_CONTIG_INSERTABLE_POSITION(pos) \
-    VX_ASSERT(::vx::_priv::assert_contig_insertable_position(*this, (pos)))
+    VX_ASSERT(::vx::_priv::assert_contig_valid_position<true>(*this, (pos)))
 
 #define VX_PRIV_ASSERT_CONTIG_ERASABLE_POSITION(pos) \
-    VX_ASSERT(::vx::_priv::assert_contig_erasable_position(*this, (pos)))
+    VX_ASSERT(::vx::_priv::assert_contig_valid_position<false>(*this, (pos)))
+
+#define VX_PRIV_ASSERT_CONTIG_VALID_POSITION(pos) \
+    VX_ASSERT(::vx::_priv::assert_contig_valid_position<false>(*this, (pos)))
+
+#define VX_PRIV_ASSERT_CONTIG_INVALID_POSITION(pos) \
+    VX_ASSERT(!::vx::_priv::assert_contig_valid_position<false>(*this, (pos)))
+
+#define VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT(value) \
+    VX_ASSERT(::vx::_priv::assert_not_aliasing_element(*this, (value)))
+
+#define VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT_PACK(...) \
+    VX_ASSERT(::vx::_priv::assert_not_aliasing_element_pack(*this, ##__VA_ARGS__))
 
 } // namespace _priv
 

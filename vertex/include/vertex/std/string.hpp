@@ -4,6 +4,7 @@
 
 #include "vertex/std/_tools/compressed_pair.hpp"
 #include "vertex/std/_tools/dynamic_array_base.hpp"
+#include "vertex/std/algorithm.hpp"
 #include "vertex/std/char_traits.hpp"
 #include "vertex/std/cstring_view.hpp"
 #include "vertex/std/expected.hpp"
@@ -97,7 +98,7 @@ private:
 
     static void destroy_size(T* ptr, size_type size)
     {
-        mem::destroy_range(ptr, size + 1);
+        range::destroy(ptr, size + 1);
     }
 
     // no longer static: freeing memory requires the instance's allocator
@@ -124,7 +125,7 @@ private:
 
         if (!is_static_buffer())
         {
-            mem::destroy_range(ptr, size);
+            range::destroy(ptr, size + 1);
             m_allocator().deallocate(ptr, capacity + 1); // +1 for null terminator slot
         }
 
@@ -179,7 +180,7 @@ private:
         size = count;
         capacity = count;
 
-        mem::construct_range_maybe_trivial(ptr, alloc_count);
+        range::construct_maybe_trivial(ptr, alloc_count);
 
         VX_IF_CONSTEXPR (M == construct_method::from_char_count)
         {
@@ -620,7 +621,7 @@ private:
             pointer new_ptr = m_allocator().allocate(count + 1);
             VX_RET_ERR_IF(!new_ptr, err::out_of_memory);
 
-            mem::construct_range_maybe_trivial(new_ptr, count + 1);
+            range::construct_maybe_trivial(new_ptr, count + 1);
             destroy_and_deallocate(ptr, size, capacity);
 
             ptr = new_ptr;
@@ -628,11 +629,11 @@ private:
         }
         else if (count > size)
         {
-            mem::construct_range_maybe_trivial(ptr + size + 1, count - size);
+            range::construct_maybe_trivial(ptr + size + 1, count - size);
         }
         else // if (count < size)
         {
-            mem::destroy_range(ptr + count + 1, size - count);
+            range::destroy(ptr + count + 1, size - count);
         }
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
@@ -988,7 +989,7 @@ private:
 
         // we increase the size early so we can easily assign the null terminator at the end
         size += count;
-        mem::construct_range_maybe_trivial(dst + 1, count);
+        range::construct_maybe_trivial(dst + 1, count);
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
         {
@@ -1026,7 +1027,7 @@ private:
         pointer new_ptr = m_allocator().allocate(new_capacity + 1);
         VX_RET_ERR_IF(!new_ptr, err::out_of_memory);
 
-        mem::construct_range_maybe_trivial(new_ptr, new_size + 1);
+        range::construct_maybe_trivial(new_ptr, new_size + 1);
 
         // copy prefix [ptr, ptr + size) to [new_ptr, ...), then construct suffix [ptr + size, ...)
         traits_type::copy(new_ptr, ptr, size);
@@ -1223,7 +1224,7 @@ private:
 
         // initialize the new elements that will be moved into uninitialized memory
         const pointer back = ptr + size;
-        mem::construct_range_maybe_trivial(back + 1, count);
+        range::construct_maybe_trivial(back + 1, count);
 
         // move the tail backward to make room for the new elements
         const size_type tail_count = static_cast<size_type>(back - pos) + 1;
@@ -1268,7 +1269,7 @@ private:
 
         const size_type off = static_cast<size_type>(pos - ptr);
 
-        mem::construct_range_maybe_trivial(new_ptr, new_size + 1);
+        range::construct_maybe_trivial(new_ptr, new_size + 1);
         // copy first range
         traits_type::copy(new_ptr, ptr, off);
 
@@ -1356,12 +1357,14 @@ public:
     template <typename op_growth_policy = growth_policy>
     expected<iterator, error> insert(size_type off, const basic_string& other)
     {
+        VX_ASSERT(this != &other);
         return insert<op_growth_policy>(off, other.data(), other.size());
     }
 
     template <typename op_growth_policy = growth_policy>
     expected<iterator, error> insert(size_type off, const basic_string& other, size_type other_off, size_type count = npos)
     {
+        VX_ASSERT(this != &other);
         if (!_char_traits_priv::check_offset(other.size(), other_off))
         {
             VX_RET_UNEXPECTED_ERR_IF(off > m_data().size, err::out_of_range);
@@ -1459,12 +1462,14 @@ public:
     template <typename op_growth_policy = growth_policy>
     iterator insert(const_iterator pos, const basic_string& other)
     {
-        return insert_unchecked<op_growth_policy>(pos, other.data(), other.size());
+        VX_ASSERT(this != &other);
+        return insert<op_growth_policy>(pos, other.data(), other.size());
     }
 
     template <typename op_growth_policy = growth_policy>
     iterator insert(const_iterator pos, const basic_string& other, size_type other_off, size_type count = npos)
     {
+        VX_ASSERT(this != &other);
         if (!_char_traits_priv::check_offset(other.size(), other_off))
         {
             return iterator(pos);
@@ -1567,7 +1572,7 @@ public:
             auto& ptr = m_data().ptr;
             auto& size = m_data().size;
 
-            mem::destroy_range(ptr, size);
+            range::destroy(ptr, size);
             size = 0;
             traits_type::assign(*ptr, T());
         }
@@ -1597,7 +1602,7 @@ public:
             VX_RET_ERR_IF(!new_ptr, err::out_of_memory);
 
             VX_ASSERT(size > 0);
-            mem::construct_range_maybe_trivial(new_ptr, size + 1);
+            range::construct_maybe_trivial(new_ptr, size + 1);
             traits_type::copy(new_ptr, ptr, size + 1);
             destroy_and_deallocate(ptr, size, capacity);
 
@@ -1642,7 +1647,7 @@ public:
     // each buffer_type must stay paired with the allocator that produced it
     void swap(basic_string& other) noexcept
     {
-        mem::swap(m_storage, other.m_storage);
+        vx::swap(m_storage, other.m_storage);
     }
 
     //=========================================================================
@@ -1713,7 +1718,7 @@ public:
         pointer new_ptr = m_allocator().allocate(alloc_capacity);
         VX_RET_ERR_IF(!new_ptr, err::out_of_memory);
 
-        mem::construct_range_maybe_trivial(new_ptr, alloc_capacity);
+        range::construct_maybe_trivial(new_ptr, alloc_capacity);
         traits_type::copy(new_ptr, ptr, size + 1);
         destroy_and_deallocate(ptr, size, capacity);
 
@@ -1742,7 +1747,7 @@ public:
         {
             const size_type shrink_count = size - new_size;
             pointer end_ptr = ptr + new_size;
-            mem::destroy_range(end_ptr + 1, shrink_count);
+            range::destroy(end_ptr + 1, shrink_count);
             traits_type::assign(*end_ptr, T());
             m_data().size = new_size;
             return success{};
@@ -1802,7 +1807,7 @@ private:
         _char_traits_priv::move_batch(ptr + off, ptr + off + count, tail_count + 1);
 
         // Destroy removed objects
-        mem::destroy_range(ptr + new_size, count);
+        range::destroy(ptr + new_size, count);
 
         size = new_size;
         return pos;
@@ -1903,7 +1908,7 @@ private:
         {
             const size_type diff = in_count - out_count;
             const pointer back = ptr + size + 1;
-            mem::construct_range_maybe_trivial(back, diff);
+            range::construct_maybe_trivial(back, diff);
 
             const size_type tail_count = static_cast<size_type>(back - (pos + out_count));
             _char_traits_priv::move_batch(pos + in_count, pos + out_count, tail_count);
@@ -1918,7 +1923,7 @@ private:
             const size_type tail_count = static_cast<size_type>(back - (pos + out_count));
             _char_traits_priv::move_batch(pos + in_count, pos + out_count, tail_count);
 
-            mem::destroy_range(back - diff, diff);
+            range::destroy(back - diff, diff);
 
             size -= diff;
         }
@@ -1938,7 +1943,7 @@ private:
         }
     }
 
-    template <typename op_growth_policy, construct_method M, typename... Args>
+    template <construct_method M, typename... Args>
     success replace_reallocate(T* pos, size_type in_count, size_type out_count, size_type new_capacity, Args&&... args)
     {
         auto& ptr = m_data().ptr;
@@ -1952,7 +1957,7 @@ private:
         pointer dst = new_ptr + off;
 
         // copy prefix [ptr, ptr + size) to [new_ptr, ...), then construct suffix [ptr + size, ...)
-        mem::construct_range_maybe_trivial(new_ptr, new_capacity + 1);
+        range::construct_maybe_trivial(new_ptr, new_capacity + 1);
         traits_type::copy(new_ptr, ptr, off);
 
         VX_IF_CONSTEXPR (M == construct_method::from_char_count)
@@ -1982,7 +1987,7 @@ private:
         return success{};
     }
 
-    template <typename op_growth_policy, construct_method M, typename... Args>
+    template <construct_method M, typename... Args>
     success replace_n(const T* pos, size_type in_count, size_type out_count, Args&&... args)
     {
         auto& size = m_data().size;
@@ -2008,73 +2013,69 @@ private:
             return success{};
         }
 
-        return replace_reallocate<op_growth_policy, M>(ptr, in_count, out_count, new_size, std::forward<Args>(args)...);
+        return replace_reallocate<M>(ptr, in_count, out_count, new_size, std::forward<Args>(args)...);
     }
 
 public:
 
-    template <typename op_growth_policy = growth_policy>
     success replace(size_type off, size_type count, const basic_string& other)
     {
+        VX_ASSERT(&other != this);
         VX_RET_ERR_IF(!_char_traits_priv::check_offset(size(), off), err::out_of_range);
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
-        return replace_n<op_growth_policy, construct_method::from_pointer>(m_data().ptr + off, other.size(), count, other.data());
+        return replace_n<construct_method::from_pointer>(m_data().ptr + off, other.size(), count, other.data());
     }
 
-    template <typename op_growth_policy = growth_policy>
     success replace(size_type off, size_type count, const basic_string& other, size_type other_off, size_type count2 = npos)
     {
+        VX_ASSERT(&other != this);
         VX_RET_ERR_IF(!_char_traits_priv::check_offset(size(), off), err::out_of_range);
         VX_RET_ERR_IF(!_char_traits_priv::check_offset(other.size(), other_off), err::out_of_range);
 
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
         count2 = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), other_off, count2));
-        return replace_n<op_growth_policy, construct_method::from_pointer>(m_data().ptr + off, count2, count, other.data() + other_off);
+        return replace_n<construct_method::from_pointer>(m_data().ptr + off, count2, count, other.data() + other_off);
     }
 
     //=========================================================================
 
-    template <typename op_growth_policy = growth_policy>
     success replace(size_type off, size_type count, size_type count2, const T c)
     {
         VX_RET_ERR_IF(!_char_traits_priv::check_offset(size(), off), err::out_of_range);
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
-        return replace_n<op_growth_policy, construct_method::from_char_count>(m_data().ptr + off, count2, count, c);
+        return replace_n<construct_method::from_char_count>(m_data().ptr + off, count2, count, c);
     }
 
     //=========================================================================
 
-    template <typename op_growth_policy = growth_policy>
     success replace(size_type off, size_type count, const T* const s)
     {
         VX_RET_ERR_IF(!_char_traits_priv::check_offset(size(), off), err::out_of_range);
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
         const size_type count2 = static_cast<size_type>(traits_type::length(s));
-        return replace_n<op_growth_policy, construct_method::from_pointer>(m_data().ptr + off, count2, count, s);
+        return replace_n<construct_method::from_pointer>(m_data().ptr + off, count2, count, s);
     }
 
-    template <typename op_growth_policy = growth_policy>
     success replace(size_type off, size_type count, const T* const s, size_type count2)
     {
         VX_RET_ERR_IF(!_char_traits_priv::check_offset(size(), off), err::out_of_range);
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
-        return replace_n<op_growth_policy, construct_method::from_pointer>(m_data().ptr + off, count2, count, s);
+        return replace_n<construct_method::from_pointer>(m_data().ptr + off, count2, count, s);
     }
 
     //=========================================================================
 
-    template <typename op_growth_policy = growth_policy>
     success replace(size_type off, size_type count, std::initializer_list<T> init)
     {
         VX_RET_ERR_IF(!_char_traits_priv::check_offset(size(), off), err::out_of_range);
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
         const size_type count2 = static_cast<size_type>(init.size());
-        return replace_n<op_growth_policy, construct_method::from_pointer>(m_data().ptr + off, count2, count, init.begin());
+        return replace_n<construct_method::from_pointer>(m_data().ptr + off, count2, count, init.begin());
     }
 
     //=========================================================================
 
-    template <typename op_growth_policy = growth_policy, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     success replace(size_type off, size_type count, IT first, IT last)
     {
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
@@ -2083,21 +2084,21 @@ public:
 
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
         const size_type count2 = static_cast<size_type>(std::distance(first, last));
-        return replace_n<op_growth_policy, construct_method::from_iterator_range>(m_data().ptr + off, count2, count, first, last);
+        return replace_n<construct_method::from_iterator_range>(m_data().ptr + off, count2, count, first, last);
     }
 
     //=========================================================================
 
-    template <typename S, typename op_growth_policy = growth_policy, VX_REQUIRES(is_compatible_string<S>::value)>
+    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
     success replace(size_type off, size_type count, const S& other)
     {
         VX_RET_ERR_IF(!_char_traits_priv::check_offset(size(), off), err::out_of_range);
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
         const size_type count2 = static_cast<size_type>(other.size());
-        return replace_n<op_growth_policy, construct_method::from_pointer>(m_data().ptr + off, count2, count, other.data());
+        return replace_n<construct_method::from_pointer>(m_data().ptr + off, count2, count, other.data());
     }
 
-    template <typename S, typename op_growth_policy = growth_policy, VX_REQUIRES(is_compatible_string<S>::value)>
+    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
     success replace(size_type off, size_type count, const S& other, size_type other_off, size_type count2 = npos)
     {
         VX_RET_ERR_IF(!_char_traits_priv::check_offset(size(), off), err::out_of_range);
@@ -2105,25 +2106,25 @@ public:
 
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
         count2 = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), other_off, count2));
-        return replace_n<op_growth_policy, construct_method::from_pointer>(m_data().ptr + off, count2, count, other.data() + other_off);
+        return replace_n<construct_method::from_pointer>(m_data().ptr + off, count2, count, other.data() + other_off);
     }
 
     //=========================================================================
     //=========================================================================
 
-    template <typename op_growth_policy = growth_policy>
     success replace(const_iterator first, const_iterator last, const basic_string& other)
     {
+        VX_ASSERT(&other != this);
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
         VX_PRIV_ASSERT_CONTIG_SELF_RANGE(first, last);
 
         const size_type count = static_cast<size_type>(std::distance(first, last));
-        return replace_n<op_growth_policy, construct_method::from_pointer>(first.ptr(), other.size(), count, other.data());
+        return replace_n<construct_method::from_pointer>(first.ptr(), other.size(), count, other.data());
     }
 
-    template <typename op_growth_policy = growth_policy>
     success replace(const_iterator first, const_iterator last, const basic_string& other, size_type other_off, size_type count2 = npos)
     {
+        VX_ASSERT(&other != this);
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
         VX_PRIV_ASSERT_CONTIG_SELF_RANGE(first, last);
 
@@ -2134,24 +2135,22 @@ public:
 
         const size_type count = static_cast<size_type>(std::distance(first, last));
         count2 = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), other_off, count2));
-        return replace_n<op_growth_policy, construct_method::from_pointer>(first.ptr(), count2, count, other.data() + other_off);
+        return replace_n<construct_method::from_pointer>(first.ptr(), count2, count, other.data() + other_off);
     }
 
     //=========================================================================
 
-    template <typename op_growth_policy = growth_policy>
     success replace(const_iterator first, const_iterator last, size_type count2, const T c)
     {
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
         VX_PRIV_ASSERT_CONTIG_SELF_RANGE(first, last);
 
         const size_type count = static_cast<size_type>(std::distance(first, last));
-        return replace_n<op_growth_policy, construct_method::from_char_count>(first.ptr(), count2, count, c);
+        return replace_n<construct_method::from_char_count>(first.ptr(), count2, count, c);
     }
 
     //=========================================================================
 
-    template <typename op_growth_policy = growth_policy>
     success replace(const_iterator first, const_iterator last, const T* const s)
     {
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
@@ -2159,22 +2158,20 @@ public:
 
         const size_type count = static_cast<size_type>(std::distance(first, last));
         const size_type count2 = static_cast<size_type>(traits_type::length(s));
-        return replace_n<op_growth_policy, construct_method::from_pointer>(first.ptr(), count2, count, s);
+        return replace_n<construct_method::from_pointer>(first.ptr(), count2, count, s);
     }
 
-    template <typename op_growth_policy = growth_policy>
     success replace(const_iterator first, const_iterator last, const T* const s, size_type count2)
     {
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
         VX_PRIV_ASSERT_CONTIG_SELF_RANGE(first, last);
 
         const size_type count = static_cast<size_type>(std::distance(first, last));
-        return replace_n<op_growth_policy, construct_method::from_pointer>(first.ptr(), count2, count, s);
+        return replace_n<construct_method::from_pointer>(first.ptr(), count2, count, s);
     }
 
     //=========================================================================
 
-    template <typename op_growth_policy = growth_policy>
     success replace(const_iterator first, const_iterator last, std::initializer_list<T> init)
     {
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
@@ -2182,12 +2179,12 @@ public:
 
         const size_type count = static_cast<size_type>(std::distance(first, last));
         const size_type count2 = static_cast<size_type>(init.size());
-        return replace_n<op_growth_policy, construct_method::from_pointer>(first.ptr(), count2, count, init.begin());
+        return replace_n<construct_method::from_pointer>(first.ptr(), count2, count, init.begin());
     }
 
     //=========================================================================
 
-    template <typename op_growth_policy = growth_policy, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     success replace(const_iterator first, const_iterator last, IT first2, IT last2)
     {
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
@@ -2197,12 +2194,12 @@ public:
 
         const size_type count = static_cast<size_type>(std::distance(first, last));
         const size_type count2 = static_cast<size_type>(std::distance(first2, last2));
-        return replace_n<op_growth_policy, construct_method::from_iterator_range>(first.ptr(), count2, count, first2, last2);
+        return replace_n<construct_method::from_iterator_range>(first.ptr(), count2, count, first2, last2);
     }
 
     //=========================================================================
 
-    template <typename S, typename op_growth_policy = growth_policy, VX_REQUIRES(is_compatible_string<S>::value)>
+    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
     success replace(const_iterator first, const_iterator last, const S& other)
     {
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
@@ -2210,10 +2207,10 @@ public:
 
         const size_type count = static_cast<size_type>(std::distance(first, last));
         const size_type count2 = static_cast<size_type>(other.size());
-        return replace_n<op_growth_policy, construct_method::from_pointer>(first.ptr(), count2, count, other.data());
+        return replace_n<construct_method::from_pointer>(first.ptr(), count2, count, other.data());
     }
 
-    template <typename S, typename op_growth_policy = growth_policy, VX_REQUIRES(is_compatible_string<S>::value)>
+    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
     success replace(const_iterator first, const_iterator last, const S& other, size_type other_off, size_type count2 = npos)
     {
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
@@ -2226,7 +2223,7 @@ public:
 
         const size_type count = static_cast<size_type>(std::distance(first, last));
         count2 = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), other_off, count2));
-        return replace_n<op_growth_policy, construct_method::from_pointer>(first.ptr(), count2, count, other.data() + other_off);
+        return replace_n<construct_method::from_pointer>(first.ptr(), count2, count, other.data() + other_off);
     }
 
     //=========================================================================

@@ -96,6 +96,20 @@ struct is_any_of : disjunction<std::is_same<T, Types>...>
 {};
 
 //==============================================================================
+// iterator category
+//==============================================================================
+
+template <typename T, typename = void>
+struct iterator_cat
+{};
+
+template <typename T>
+struct iterator_cat<T, void_t<typename std::iterator_traits<T>::iterator_category>>
+{
+    using type = typename std::iterator_traits<T>::iterator_category;
+};
+
+//==============================================================================
 // is iterator
 //==============================================================================
 
@@ -104,7 +118,37 @@ struct is_iterator : std::false_type
 {};
 
 template <typename T>
-struct is_iterator<T, void_t<typename std::iterator_traits<T>::iterator_category>> : std::true_type
+struct is_iterator<T, void_t<typename iterator_cat<T>::type>> : std::true_type
+{};
+
+//==============================================================================
+// is forward iterator
+//==============================================================================
+
+template <typename T, typename = void>
+struct is_forward_iterator : std::false_type
+{};
+
+template <typename T>
+struct is_forward_iterator<T, void_t<typename iterator_cat<T>::type>>
+    : std::is_base_of<
+        std::forward_iterator_tag,
+        typename iterator_cat<T>::type>
+{};
+
+//==============================================================================
+// is random access iterator
+//==============================================================================
+
+template <typename T, typename = void>
+struct is_random_access_iterator : std::false_type
+{};
+
+template <typename T>
+struct is_random_access_iterator<T, void_t<typename iterator_cat<T>::type>>
+    : std::is_base_of<
+        std::random_access_iterator_tag,
+        typename iterator_cat<T>::type>
 {};
 
 //==============================================================================

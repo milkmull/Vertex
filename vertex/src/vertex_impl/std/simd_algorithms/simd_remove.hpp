@@ -2,7 +2,7 @@
 
 #include "vertex_impl/std/simd_algorithms/simd_find.hpp"
 
-#if defined(VX_STD_USE_SIMD_ALGORITHMS)
+#if VX_STD_USE_SIMD_ALGORITHMS
 
 namespace vx {
 namespace _simd {

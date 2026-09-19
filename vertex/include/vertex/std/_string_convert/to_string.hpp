@@ -940,7 +940,7 @@ constexpr size_t write_fixed_large(
         }
 
         const auto digit = ext.extract_last_digit();
-        mem::move_range(buf + 1, buf, int_digit_count);
+        range::move(buf + 1, buf, int_digit_count);
         buf[0] = static_cast<C>(hex::digits[digit]);
         ++int_digit_count;
     }
@@ -1022,7 +1022,7 @@ constexpr size_t write_fixed_mixed(
                 return 0;
             }
 
-            mem::move_range(buf + 1, buf, needed - 1);
+            range::move(buf + 1, buf, needed - 1);
             buf[0] = static_cast<C>('1');
         }
     }
@@ -1144,7 +1144,7 @@ constexpr bool scientific_carry_round(C* ptr, size_t leading_char_count) noexcep
     // If we reach here, a number like "9.99" is now "0.00"
     // Move ONLY the fractional zeros right by 1 (skipping the decimal point)
     // The very last character gets safely dropped off the end.
-    mem::move_range(ptr + 3, ptr + 2, leading_char_count - 3);
+    range::move(ptr + 3, ptr + 2, leading_char_count - 3);
 
     // Fix the prefix directly
     ptr[0] = static_cast<C>('1');
@@ -1412,8 +1412,8 @@ constexpr size_t write_scientific_large(
         if (precision > 0)
         {
             // swap the first digit with the decimal and shift back
-            mem::swap(*back_ptr, *(back_ptr + 1));
-            mem::move_range(back_ptr + 1, back_ptr, digits_needed); // use digits needed because it includes the decimal
+            vx::swap(*back_ptr, *(back_ptr + 1));
+            range::move(back_ptr + 1, back_ptr, digits_needed); // use digits needed because it includes the decimal
         }
 
         const auto digit = ext.extract_last_digit();

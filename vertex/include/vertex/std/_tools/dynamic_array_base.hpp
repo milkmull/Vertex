@@ -30,7 +30,7 @@ struct dynamic_array_data
 
     dynamic_array_data release() noexcept
     {
-        dynamic_array_data old = mem::move(*this);
+        dynamic_array_data old = std::move(*this);
 
         ptr = nullptr;
         size = 0;

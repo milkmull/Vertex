@@ -3,61 +3,80 @@
 #include "vertex/config/feature_detection.hpp"
 #include "vertex/config/type_traits.hpp"
 
+#if VX_HAVE_STD_MOVE || VX_HAVE_STD_FORWARD || \
+    VX_HAVE_STD_SWAP || VX_HAVE_STD_EXCHANGE
+    #include <utility>
+#endif
+
 #if VX_HAVE_STD_LAUNDER
     #include <new>
 #else
     #include "vertex/os/compiler.hpp"
 #endif
 
-
 namespace vx {
-namespace mem {
 
 //=========================================================================
-// helpers
+// swap
 //=========================================================================
-
-template <typename T>
-constexpr VX_NO_DISCARD typename std::remove_reference<T>::type&& move(T&& a) noexcept
-{
-    return static_cast<typename std::remove_reference<T>::type&&>(a);
-}
-
-template <typename T>
-constexpr VX_NO_DISCARD T&& forward(
-    typename std::remove_reference<T>::type& a) noexcept
-{
-    return static_cast<T&&>(a);
-}
-
-template <typename T>
-constexpr VX_NO_DISCARD T&& forward(
-    typename std::remove_reference<T>::type&& a) noexcept
-{
-    static_assert(!std::is_lvalue_reference<T>::value,
-        "cannot forward an rvalue as an lvalue");
-    return static_cast<T&&>(a);
-}
 
 template <typename T>
 constexpr void swap(T& a, T& b) noexcept(
-    noexcept(T(move(a))) &&
-    noexcept(a = move(b)) &&
-    noexcept(b = move(a)))
+#if VX_HAVE_STD_SWAP
+
+    noexcept(std::swap(a, b))
+
+#else
+
+    noexcept(T(std::move(a))) &&
+    noexcept(a = std::move(b)) &&
+    noexcept(b = std::move(a))
+
+#endif
+)
 {
-    T tmp = move(a);
-    a = move(b);
-    b = move(tmp);
+#if VX_HAVE_STD_SWAP
+
+    std::swap(a, b);
+
+#else
+
+    T tmp = std::move(a);
+    a = std::move(b);
+    b = std::move(tmp);
+
+#endif
 }
+
+//=========================================================================
+// exchange
+//=========================================================================
 
 template <typename T, typename U = T>
 constexpr VX_NO_DISCARD T exchange(T& obj, U&& new_value) noexcept(
-    noexcept(T(move(obj))) &&
-    noexcept(obj = forward<U>(new_value)))
+#if VX_HAVE_STD_EXCHANGE
+
+    noexcept(std::exchange(obj, std::forward<U>(new_value)))
+
+#else
+
+    noexcept(T(std::move(obj))) &&
+    noexcept(obj = std::forward<U>(new_value))
+
+#endif
+)
 {
-    T old_value = move(obj);
-    obj = forward<U>(new_value);
+#if VX_HAVE_STD_EXCHANGE
+
+    return std::exchange(obj, std::forward<U>(new_value));
+
+#else
+
+    T old_value = std::move(obj);
+    obj = std::forward<U>(new_value);
     return old_value;
+
+#endif
 }
 
 //=========================================================================
@@ -91,5 +110,4 @@ VX_FORCE_INLINE constexpr const T* launder(const T* p) noexcept
     return const_cast<const T*>(launder(const_cast<T*>(p)));
 }
 
-} // namespace mem
 } // namespace vx

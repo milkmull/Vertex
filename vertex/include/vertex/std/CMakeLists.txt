@@ -4,12 +4,13 @@ file(GLOB VX_STD_HEADER_FILES
     # Memory
     "${CMAKE_CURRENT_SOURCE_DIR}/_memory/memory_base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_memory/memory_core.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_memory/memory_util.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_memory/allocator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"
 
     # Core
     "${CMAKE_CURRENT_SOURCE_DIR}/array.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/util.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/aligned_storage.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/variant_storage.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/error.hpp"
@@ -57,6 +58,7 @@ file(GLOB VX_STD_HEADER_FILES
 
     # Internal
     "${CMAKE_CURRENT_SOURCE_DIR}/_tools/compressed_pair.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_tools/static_array_base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_tools/dynamic_array_base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_tools/pointer_iterator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_tools/invoke.hpp"
