@@ -71,8 +71,9 @@ public:
 
     basic_cstring_view(nullptr_t) = delete;
 
-    template <typename Allocator, typename Growth>
-    constexpr basic_cstring_view(const str::basic_string<T, Allocator, Growth>& s) noexcept
+    template <typename Allocator>
+    constexpr basic_cstring_view(const str::basic_string<T, Allocator>& s) noexcept
+        : m_view(s.c_str(), s.size())
         : m_view(s.c_str(), s.size())
     {}
 
@@ -97,10 +98,10 @@ public:
         return m_view;
     }
 
-    template <typename Allocator, typename Growth>
-    operator str::basic_string<T, Allocator, Growth>() const
+    template <typename Allocator>
+    operator str::basic_string<T, Allocator>() const
     {
-        return std::basic_string<T, Allocator, Growth>(data(), size());
+        return std::basic_string<T, Allocator>(data(), size());
     }
 
     template <typename Traits2, typename Allocator2>

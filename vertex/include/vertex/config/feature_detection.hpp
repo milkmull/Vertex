@@ -84,3 +84,10 @@
 #else
     #define VX_HAVE_STD_CLAMP 0
 #endif
+
+// std::atomic_ref
+#if defined(__cpp_lib_atomic_ref) && __cpp_lib_atomic_ref >= 201806L
+    #define VX_HAVE_STD_ATOMIC_REF 1
+#else
+    #define VX_HAVE_STD_ATOMIC_REF 0
+#endif

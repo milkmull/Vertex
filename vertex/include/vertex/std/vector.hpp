@@ -16,7 +16,7 @@
 
 namespace vx {
 
-template <typename T, typename Allocator = mem::default_allocator<T>, typename Growth = ratio_growth_policy<2>>
+template <typename T, typename Allocator = mem::default_allocator<T>>
 class vector
 {
     //=========================================================================
@@ -34,7 +34,7 @@ private:
 public:
 
     using allocator_type = Allocator;
-    using growth_policy = Growth;
+    using growth_policy = ratio_growth_policy<2>;
 
     using value_type = typename data_type::value_type;
     using pointer = typename data_type::pointer;
@@ -937,7 +937,7 @@ public:
         return resize_impl(count);
     }
 
-    success resize_unchecked(size_type n) noexcept
+    success resize_capacity(size_type n) noexcept
     {
         auto& size = m_data().size;
         VX_ASSERT(size + n <= m_data().capacity);
@@ -1091,7 +1091,7 @@ private:
 
     // Iterator based insertion with no runtime checks (only assert)
     template <typename op_growth_policy, construct_method M, typename... Args>
-    iterator insert_unchecked(const_iterator pos, size_type count, Args&&... args)
+    iterator insert_no_overlap(const_iterator pos, size_type count, Args&&... args)
     {
         VX_PRIV_ASSERT_CONTIG_INSERTABLE_POSITION(pos);
         auto ptr = const_cast<pointer>(pos.ptr());
@@ -1180,7 +1180,7 @@ public:
         }
     }
 
-    iterator insert_unchecked_at(size_type off, const T& value)
+    iterator insert_capacity_at(size_type off, const T& value)
     {
         VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT(value);
         VX_ASSERT(off <= m_data().size);
@@ -1213,13 +1213,13 @@ public:
     iterator insert(const_iterator pos, size_type count, const T& value)
     {
         VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT(value);
-        return insert_unchecked<op_growth_policy, construct_method::fill_range>(pos, count, value);
+        return insert_no_overlap<op_growth_policy, construct_method::fill_range>(pos, count, value);
     }
 
     template <typename op_growth_policy = growth_policy>
     iterator insert(const_iterator pos, std::initializer_list<T> init)
     {
-        return insert_unchecked<op_growth_policy, construct_method::copy_range>(pos, init.size(), init.begin());
+        return insert_no_overlap<op_growth_policy, construct_method::copy_range>(pos, init.size(), init.begin());
     }
 
     template <typename op_growth_policy = growth_policy, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
@@ -1231,12 +1231,12 @@ public:
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
             const size_type count = static_cast<size_type>(std::distance(first, last));
-            return insert_unchecked<op_growth_policy, construct_method::copy_range>(pos, count, first.ptr());
+            return insert_no_overlap<op_growth_policy, construct_method::copy_range>(pos, count, first.ptr());
         }
         else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
         {
             const size_type count = static_cast<size_type>(std::distance(first, last));
-            return insert_unchecked<op_growth_policy, construct_method::copy_range>(pos, count, first);
+            return insert_no_overlap<op_growth_policy, construct_method::copy_range>(pos, count, first);
         }
         else
         {
@@ -1288,11 +1288,11 @@ public:
     iterator emplace(const_iterator pos, Args&&... args)
     {
         VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT_PACK(args...);
-        return insert_unchecked<op_growth_policy, construct_method::single>(pos, 1, std::forward<Args>(args)...);
+        return insert_no_overlap<op_growth_policy, construct_method::single>(pos, 1, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    iterator emplace_back_unchecked(Args&&... args)
+    iterator emplace_back_capacity(Args&&... args)
     {
         VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT_PACK(args...);
 
@@ -1327,16 +1327,16 @@ public:
         return emplace_back<op_growth_policy>(std::move(value));
     }
 
-    iterator push_back_unchecked(const T& value)
+    iterator push_back_capacity(const T& value)
     {
         VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT(value);
-        return emplace_back_unchecked(value);
+        return emplace_back_capacity(value);
     }
 
-    iterator push_back_unchecked(T&& value) noexcept
+    iterator push_back_capacity(T&& value) noexcept
     {
         VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT(value);
-        return emplace_back_unchecked(std::move(value));
+        return emplace_back_capacity(std::move(value));
     }
 
     //=========================================================================
@@ -1416,7 +1416,7 @@ public:
         }
     }
 
-    void pop_back_unchecked() noexcept
+    void pop_back_capacity() noexcept
     {
         auto& size = m_data().size;
         VX_ASSERT(size > 0);

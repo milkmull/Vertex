@@ -3,9 +3,37 @@
 #include <atomic>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/config/feature_detection.hpp"
 
 namespace vx {
 namespace os {
+
+//==============================================================================
+// Memory order
+//==============================================================================
+
+using memory_order = std::memory_order;
+
+inline constexpr memory_order memory_order_relaxed = std::memory_order_relaxed;
+inline constexpr memory_order memory_order_consume = std::memory_order_consume;
+inline constexpr memory_order memory_order_acquire = std::memory_order_acquire;
+inline constexpr memory_order memory_order_release = std::memory_order_release;
+inline constexpr memory_order memory_order_acq_rel = std::memory_order_acq_rel;
+inline constexpr memory_order memory_order_seq_cst = std::memory_order_seq_cst;
+
+//==============================================================================
+// Fences
+//==============================================================================
+
+inline void atomic_thread_fence(memory_order order) noexcept
+{
+    std::atomic_thread_fence(order);
+}
+
+inline void atomic_signal_fence(memory_order order) noexcept
+{
+    std::atomic_signal_fence(order);
+}
 
 //==============================================================================
 // Atomic
@@ -13,6 +41,13 @@ namespace os {
 
 template <typename T>
 using atomic = std::atomic<T>;
+
+using atomic_flag = std::atomic_flag;
+
+#if VX_HAVE_STD_ATOMIC_REF
+template <typename T>
+using atomic_ref = std::atomic_ref<T>;
+#endif
 
 //==============================================================================
 // helpers
