@@ -5,6 +5,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_memory/memory_base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_memory/memory_core.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_memory/allocator.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_memory/deleter.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"
 
     # Core
@@ -21,6 +22,8 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/iterator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/span.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/unique_ptr.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/weak_ptr.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shared_ptr.hpp"
 
     # Containers
     "${CMAKE_CURRENT_SOURCE_DIR}/growth_policy.hpp"

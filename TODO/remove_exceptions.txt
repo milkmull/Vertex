@@ -11,7 +11,7 @@ x string view
 x static string
 x string
 
-x packed string array
+- packed string array
 - single link list
 - double link list
 - hash
@@ -20,9 +20,8 @@ x packed string array
 - bitfield
 - type_traits
 - locale
-- locale
 
 x unique_ptr
-- shared_ptr
+x shared_ptr
 x thread
 x mutex
