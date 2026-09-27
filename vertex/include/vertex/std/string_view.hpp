@@ -74,26 +74,6 @@ public:
     {}
 
     //=========================================================================
-    // operators
-    //=========================================================================
-
-    template <typename Traits2, typename Allocator2>
-    operator std::basic_string<T, Traits2, Allocator2>() const
-    {
-        return std::basic_string<T, Traits2, Allocator2>(data(), size());
-    }
-
-#if VX_HAVE_STD_STRING_VIEW
-
-    template <typename Traits2>
-    operator std::basic_string_view<T, Traits2>() const noexcept
-    {
-        return std::basic_string_view<T, Traits2>(data(), size());
-    }
-
-#endif // VX_HAVE_STD_STRING_VIEW
-
-    //=========================================================================
     // assign
     //=========================================================================
 
@@ -165,6 +145,12 @@ public:
     {
         VX_ASSERT(i < m_size);
         return m_data[i];
+    }
+
+    expected<const T&, error> at(size_type i) const noexcept
+    {
+        VX_RET_UNEXPECTED_ERR_IF(i >= m_view.size(), err::out_of_range);
+        return operator[](i);
     }
 
     //=========================================================================

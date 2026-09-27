@@ -769,7 +769,7 @@ public:
 
     constexpr size_type max_size() const noexcept
     {
-        return static_cast<size_type>(std::allocator_traits<allocator_type>::max_size(m_allocator()));
+        return static_cast<size_type>(mem::allocator_traits<allocator_type>::max_size(m_allocator()));
     }
 
     //=========================================================================

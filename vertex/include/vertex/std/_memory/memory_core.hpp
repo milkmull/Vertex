@@ -449,7 +449,11 @@ VX_ALLOCATOR VX_NO_DISCARD T* construct_array(const size_t count)
     VX_RET_IF_UL(!raw_ptr, nullptr);
 
     T* ptr = static_cast<T*>(raw_ptr);
-    construct_range(static_cast<T*>(ptr), count);
+    for (size_t i = 0; i < count; ++i)
+    {
+        mem::construct_in_place(ptr[i]);
+    }
+
     return static_cast<T*>(ptr);
 }
 
@@ -474,14 +478,22 @@ VX_ALLOCATOR VX_NO_DISCARD T* construct_array(const size_t count, const T& value
     VX_RET_IF_UL(!raw_ptr, nullptr);
 
     T* ptr = static_cast<T*>(raw_ptr);
-    fill_uninitialized_range(ptr, count, value);
+    for (size_t i = 0; i < count; ++i)
+    {
+        mem::construct_in_place(ptr[i], value);
+    }
+
     return ptr;
 }
 
 template <typename T>
 void destroy_array(T* ptr, const size_t count)
 {
-    destroy_range(ptr, count);
+    for (size_t i = 0; i < count; ++i)
+    {
+        mem::destroy_in_place(&ptr[i]);
+    }
+
     const size_t size = sizeof(T) * count;
 
     VX_IF_CONSTEXPR (alignof(T) <= mem::max_align)

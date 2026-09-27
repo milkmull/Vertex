@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include <cstdint>
 #include <initializer_list>
 
@@ -955,7 +956,7 @@ public:
 
     constexpr size_type max_size() const noexcept
     {
-        return static_cast<size_type>(std::allocator_traits<node_allocator>::max_size(m_allocator()));
+        return static_cast<size_type>(mem::allocator_traits<node_allocator>::max_size(m_allocator()));
     }
 
     //=========================================================================

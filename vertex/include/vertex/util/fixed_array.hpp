@@ -59,7 +59,7 @@ private:
 
             if (new_ptr)
             {
-                const size_type n = std::min(old_count, new_count);
+                const size_type n = vx::min(old_count, new_count);
                 std::move(old_ptr, old_ptr + n, new_ptr);
                 delete[] old_ptr;
             }
@@ -289,7 +289,7 @@ public:
             return;
         }
 
-        const size_type n = std::min(m_size, new_size);
+        const size_type n = vx::min(m_size, new_size);
 
         if constexpr (std::is_trivially_copyable_v<T>)
         {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <forward_list>
 #include <initializer_list>
 
 #include "vertex/config/language_config.hpp"
@@ -241,12 +242,11 @@ private:
     pointer m_tail; // Points to the most recently constructed node. If pointer{}, the value of head is indeterminate.
                     // m_tail->next is not constructed.
     pointer m_head; // Points at the first constructed node.
-    success m_ok;
 
 public:
 
     explicit insert_after_op(allocator_type& allocator)
-        : m_allocator(allocator), m_tail(), m_head(), m_ok(true)
+        : m_allocator(allocator), m_tail(), m_head()
     {}
 
     insert_after_op(const insert_after_op&) = delete;
@@ -255,6 +255,11 @@ public:
     template <typename... Args>
     success append_n(size_t count, const Args&... args)
     {
+        if (count == 0)
+        {
+            return success{};
+        }
+
         if (m_tail == nullptr)
         {
             pointer ptr = m_allocator.allocate(1);
@@ -263,6 +268,7 @@ public:
             mem::construct_in_place(std::addressof(ptr->value), args...);
             m_head = ptr;
             m_tail = ptr;
+            --count;
         }
 
         for (; count > 0; --count)
@@ -274,19 +280,17 @@ public:
             mem::construct_in_place(m_tail->next, ptr);
             m_tail = ptr;
         }
+
+        return success{};
     }
 
     template <typename IT1, typename IT2>
-    void append_range(IT1 first, IT2 last)
+    success append_range(IT1 first, IT2 last)
     {
         for (; first != last; ++first)
         {
             pointer n = m_allocator.allocate(1);
-            if (!n)
-            {
-                m_ok = err::out_of_memory;
-                return;
-            }
+            VX_RET_ERR_IF(!n, err::out_of_memory);
 
             mem::construct_in_place(std::addressof(n->value), *first);
             n->next = nullptr;
@@ -301,20 +305,12 @@ public:
                 m_tail = n;
             }
         }
-    }
 
-    success successful() const noexcept
-    {
-        return m_ok;
+        return success{};
     }
 
     pointer attach_after(pointer after) noexcept
     {
-        if (!m_ok)
-        {
-            return nullptr;
-        }
-
         if (!m_tail)
         {
             return after;
@@ -335,7 +331,7 @@ public:
         while (n)
         {
             pointer next = n->next;
-            value_type::template free<allocator_type>(m_allocator, n);
+            value_type::template free_node<allocator_type>(m_allocator, n);
             n = next;
         }
         m_head = m_tail = nullptr;
@@ -550,18 +546,18 @@ public:
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         insert_op op(m_allocator());
-        op.append_n(count);
+        const auto ok =op.append_n(count);
+        VX_VERIFY(ok);
         op.attach_after(m_data().before_head());
-        VX_VERIFY(op.successful());
     }
 
     single_linked_list(size_type count, const T& value, const allocator_type& alloc = allocator_type())
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         insert_op op(m_allocator());
-        op.append_n(count, value);
+        const auto ok = op.append_n(count, value);
+        VX_VERIFY(ok);
         op.attach_after(m_data().before_head());
-        VX_VERIFY(op.successful());
     }
 
     //=========================================================================
@@ -579,18 +575,18 @@ public:
         : m_storage(_priv::one_then_variadic_args_tag{}, other.m_allocator())
     {
         insert_op op(m_allocator());
-        op.append_range(other.begin(), other.end());
+        const auto ok = op.append_range(other.begin(), other.end());
+        VX_VERIFY(ok);
         op.attach_after(m_data().before_head());
-        VX_VERIFY(op.successful());
     }
 
     single_linked_list(const single_linked_list& other, const allocator_type& alloc)
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         insert_op op(m_allocator());
-        op.append_range(other.begin(), other.end());
+        const auto ok = op.append_range(other.begin(), other.end());
+        VX_VERIFY(ok);
         op.attach_after(m_data().before_head());
-        VX_VERIFY(op.successful());
     }
 
     single_linked_list(single_linked_list&& other) noexcept
@@ -599,9 +595,23 @@ public:
         take_head(other);
     }
 
-    single_linked_list(single_linked_list&& other, const allocator_type& alloc) noexcept
+    single_linked_list(single_linked_list&& other, const allocator_type& alloc) noexcept(mem::allocator_traits<allocator_type>::is_always_equal::value)
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
+        VX_IF_CONSTEXPR (!mem::allocator_traits<allocator_type>::is_always_equal::value)
+        {
+            if (m_allocator() != other.m_allocator())
+            {
+                // allocators differ: can't steal other's node chain (it was allocated
+                // with a different allocator instance), so move-construct element-wise
+                insert_op op(m_allocator());
+                const auto ok = op.append_range(vx::make_move_iterator(other.begin()), other.end());
+                VX_VERIFY(ok);
+                op.attach_after(m_data().before_head());
+                return;
+            }
+        }
+
         take_head(other);
     }
 
@@ -614,9 +624,9 @@ public:
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
 
         insert_op op(m_allocator());
-        op.append_range(first, last);
+        const auto ok = op.append_range(first, last);
+        VX_VERIFY(ok);
         op.attach_after(m_data().before_head());
-        VX_VERIFY(op.successful());
     }
 
     //=========================================================================
@@ -633,9 +643,9 @@ public:
         single_linked_list list(uninitialized_tag{}, alloc);
 
         insert_op op(list.m_allocator());
-        op.append_n(count);
+        const auto ok = op.append_n(count);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         op.attach_after(list.m_data().before_head());
-        VX_RET_UNEXPECTED_ERR_IF(!op.successful(), op.successful());
         return list;
     }
 
@@ -643,9 +653,9 @@ public:
     {
         single_linked_list list(uninitialized_tag{}, alloc);
         insert_op op(list.m_allocator());
-        op.append_n(count, value);
+        const auto ok = op.append_n(count, value);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         op.attach_after(list.m_data().before_head());
-        VX_RET_UNEXPECTED_ERR_IF(!op.successful(), op.successful());
         return list;
     }
 
@@ -653,9 +663,9 @@ public:
     {
         single_linked_list list(uninitialized_tag{}, alloc);
         insert_op op(list.m_allocator());
-        op.append_range(init.begin(), init.end());
+        const auto ok = op.append_range(init.begin(), init.end());
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         op.attach_after(list.m_data().before_head());
-        VX_RET_UNEXPECTED_ERR_IF(!op.successful(), op.successful());
         return list;
     }
 
@@ -663,9 +673,9 @@ public:
     {
         single_linked_list list(uninitialized_tag{}, alloc);
         insert_op op(list.m_allocator());
-        op.append_range(other.begin(), other.end());
+        const auto ok = op.append_range(other.begin(), other.end());
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         op.attach_after(list.m_data().before_head());
-        VX_RET_UNEXPECTED_ERR_IF(!op.successful(), op.successful());
         return list;
     }
 
@@ -682,9 +692,9 @@ public:
 
         single_linked_list list(uninitialized_tag{}, alloc);
         insert_op op(list.m_allocator());
-        op.append_range(first, last);
+        const auto ok = op.append_range(first, last);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         op.attach_after(list.m_data().before_head());
-        VX_RET_UNEXPECTED_ERR_IF(!op.successful(), op.successful());
         return list;
     }
 
@@ -723,9 +733,10 @@ private:
             if (!next_node)
             {
                 insert_op op(m_allocator());
-                op.append_range(std::move(first), last);
+                const auto ok = op.append_range(std::move(first), last);
+                VX_RET_ERR_IF(!ok, ok);
                 op.attach_after(head_node);
-                return op.successful();
+                return success{};
             }
 
             next_node->value = *first;
@@ -894,7 +905,7 @@ public:
 
     constexpr size_type max_size() const noexcept
     {
-        return static_cast<size_type>(std::allocator_traits<node_allocator>::max_size(m_allocator()));
+        return static_cast<size_type>(mem::allocator_traits<node_allocator>::max_size(m_allocator()));
     }
 
     //=========================================================================
@@ -979,7 +990,7 @@ public:
 
         insert_op op(m_allocator());
         const auto ok = op.append_range(std::move(first), last);
-        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, err::out_of_memory);
         return iterator(op.attach_after(pos.m_ptr));
     }
 

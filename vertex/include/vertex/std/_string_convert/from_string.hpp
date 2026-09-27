@@ -849,8 +849,8 @@ constexpr from_string_error string_to_float_decimal(float_digit_stream<C>& strea
     // or all present digits if there are fewer digits. If the exponent is zero or negative, then the integer part
     // is empty. In either case, the remaining digits form the fractional part of the mantissa.
     const uint32_t total_digits = stream.total_digits();
-    const uint32_t positive_exponent = static_cast<uint32_t>(std::max(0, exponent));
-    const uint32_t int_digit_count = std::min(positive_exponent, total_digits);
+    const uint32_t positive_exponent = static_cast<uint32_t>(vx::max(0, exponent));
+    const uint32_t int_digit_count = vx::min(positive_exponent, total_digits);
     const uint32_t int_digits_missing = positive_exponent - int_digit_count;
     const uint32_t frac_digit_count = total_digits - int_digit_count;
 

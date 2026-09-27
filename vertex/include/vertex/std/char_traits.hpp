@@ -610,7 +610,7 @@ constexpr int traits_compare(
     const size_t right_size) noexcept
 {
     // compare [left, left + left_size) to [right, right + right_size) using Traits
-    const int res = Traits::compare(left, right, std::min(left_size, right_size));
+    const int res = Traits::compare(left, right, vx::min(left_size, right_size));
 
     if (res != 0)
     {
@@ -895,7 +895,7 @@ constexpr size_t traits_rfind(traits_ptr_t<Traits> haystack, const size_t hay_si
     if (needle_size == 0)
     {
         // empty string always matches
-        return std::min(start_at, hay_size);
+        return vx::min(start_at, hay_size);
     }
 
     if (needle_size > hay_size)
@@ -904,7 +904,7 @@ constexpr size_t traits_rfind(traits_ptr_t<Traits> haystack, const size_t hay_si
         return static_cast<size_t>(-1);
     }
 
-    const size_t actual_start_at = std::min(start_at, hay_size - needle_size);
+    const size_t actual_start_at = vx::min(start_at, hay_size - needle_size);
 
 #if VX_STD_USE_SIMD_ALGORITHMS
 
@@ -961,7 +961,7 @@ constexpr size_t traits_rfind_ch(traits_ptr_t<Traits> haystack, const size_t hay
         return static_cast<size_t>(-1);
     }
 
-    const size_t actual_start_at = std::min(start_at, hay_size - 1);
+    const size_t actual_start_at = vx::min(start_at, hay_size - 1);
 
 #if VX_STD_USE_SIMD_ALGORITHMS
 
@@ -1163,7 +1163,7 @@ constexpr size_t traits_find_last_of(
         return static_cast<size_t>(-1);
     }
 
-    const auto hay_start = std::min(start_at, hay_size - 1);
+    const auto hay_start = vx::min(start_at, hay_size - 1);
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
@@ -1370,7 +1370,7 @@ constexpr size_t traits_find_last_not_of(traits_ptr_t<Traits> haystack,
         return static_cast<size_t>(-1);
     }
 
-    const auto hay_start = std::min(start_at, hay_size - 1);
+    const auto hay_start = vx::min(start_at, hay_size - 1);
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
@@ -1447,7 +1447,7 @@ constexpr size_t traits_rfind_not_ch(traits_ptr_t<Traits> haystack,
         return static_cast<size_t>(-1);
     }
 
-    const size_t actual_start_at = std::min(start_at, hay_size - 1);
+    const size_t actual_start_at = vx::min(start_at, hay_size - 1);
 
 #if VX_STD_USE_SIMD_ALGORITHMS
 
@@ -1540,7 +1540,7 @@ constexpr void move_batch(T* const first1, const U* const first2, const size_t c
 
 constexpr size_t clamp_suffix_size(const size_t size, const size_t off, const size_t count) noexcept
 {
-    return std::min(count, size - off);
+    return vx::min(count, size - off);
 }
 
 constexpr bool check_offset(const size_t size, const size_t off) noexcept

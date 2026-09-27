@@ -74,7 +74,7 @@ public:
         return _m_array[i];
     }
 
-    constexpr expected<T&, err::code> at(size_type i) noexcept
+    constexpr expected<T&, error> at(size_type i) noexcept
     {
         if (i >= N)
         {
@@ -83,7 +83,7 @@ public:
         return _m_array[i];
     }
 
-    constexpr expected<const T&, err::code> at(size_type i) const noexcept
+    constexpr expected<const T&, error> at(size_type i) const noexcept
     {
         if (i >= N)
         {
@@ -340,12 +340,12 @@ public:
         return *data();
     }
 
-    constexpr expected<T&, err::code> at(size_type i) noexcept
+    constexpr expected<T&, error> at(size_type i) noexcept
     {
         return make_unexpected(err::out_of_range);
     }
 
-    constexpr expected<const T&, err::code> at(size_type i) const noexcept
+    constexpr expected<const T&, error> at(size_type i) const noexcept
     {
         return make_unexpected(err::out_of_range);
     }

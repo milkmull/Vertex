@@ -582,7 +582,7 @@ constexpr int case_compare_ascii_unchecked(const C c1, const C c2) noexcept
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr int case_compare(const C* a, const size_t a_size, const C* b, const size_t b_size) noexcept
 {
-    size_t n = std::min(a_size, b_size);
+    size_t n = vx::min(a_size, b_size);
 
     for (; 0 < n; --n, ++a, ++b)
     {

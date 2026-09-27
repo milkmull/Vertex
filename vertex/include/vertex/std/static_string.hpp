@@ -42,7 +42,7 @@ private:
     {};
 
     template <size_t M>
-    struct is_fittable_iterator<_priv::pointer_iterator<T, basic_static_string<M, T>>>
+    struct is_fittable_iterator<_priv::pointer_iterator<basic_static_string<M, T>, T>>
     {
         static constexpr bool value = (M <= N);
     };
@@ -89,7 +89,7 @@ private:
 
     static constexpr void destroy_size(T* ptr, size_type size)
     {
-        mem::destroy_range(ptr, size + 1);
+        range::destroy(ptr, size + 1);
     }
 
     constexpr void destroy_range()
@@ -128,7 +128,7 @@ private:
         auto& size = m_data.size;
 
         // +1 to also construct the null-terminator slot
-        mem::construct_range_maybe_trivial(ptr, count + 1);
+        range::construct_maybe_trivial(ptr, count + 1);
 
         VX_IF_CONSTEXPR (M == construct_method::from_char_count)
         {
@@ -276,6 +276,13 @@ public:
     }
 
     //=========================================================================
+
+    template <size_t M, VX_REQUIRES(M <= N)>
+    constexpr basic_static_string(const basic_static_string<M, T>& other)
+    {
+        const auto ok = construct_n<construct_method::from_string, true>(other.size(), other.data());
+        VX_VERIFY(ok);
+    }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
     constexpr basic_static_string(const S& other)
@@ -431,6 +438,15 @@ public:
 
     //=========================================================================
 
+    template <size_t M, VX_REQUIRES(M <= N)>
+    static constexpr expected<basic_static_string, error> create(const basic_static_string<M, T>& other)
+    {
+        basic_static_string s(uninitialized_tag{});
+        const auto ok = s.template construct_n<construct_method::from_string, true>(other.size(), other.data());
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        return s;
+    }
+
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
     static constexpr expected<basic_static_string, error> create(const S& other)
     {
@@ -480,24 +496,14 @@ public:
         return basic_cstring_view<T>(*this);
     }
 
-#if VX_HAVE_STD_STRING_VIEW
-
-    template <typename Traits2>
-    constexpr operator std::basic_string_view<T, Traits2>() const noexcept
-    {
-        return std::basic_string_view<T, Traits2>(data(), size());
-    }
-
-#endif // VX_HAVE_STD_STRING_VIEW
-
 private:
 
     //=========================================================================
     // assignment helpers
     //=========================================================================
 
-    template <construct_method M, bool Fits, typename... Args>
-    constexpr bool assign_from(const size_type count, Args&&... args)
+    template <construct_method M, bool Fits, bool NoOverlap, typename... Args>
+    constexpr success assign_from(const size_type count, Args&&... args)
     {
         auto& ptr = m_data.ptr;
         auto& size = m_data.size;
@@ -509,11 +515,14 @@ private:
 
         if (count > size)
         {
-            mem::construct_range_maybe_trivial(ptr + size + 1, count - size);
+            range::construct_maybe_trivial(ptr + size + 1, count - size);
         }
-        if (count < size)
+        else VX_IF_CONSTEXPR (NoOverlap)
         {
-            mem::destroy_range(ptr + count + 1, size - count);
+            if (count < size)
+            {
+                range::destroy(ptr + count + 1, size - count);
+            }
         }
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
@@ -528,19 +537,41 @@ private:
         }
         else VX_IF_CONSTEXPR (M == construct_method::from_pointer)
         {
-            _char_traits_priv::copy_batch(ptr, std::forward<Args>(args)..., count);
+            VX_IF_CONSTEXPR (NoOverlap)
+            {
+                _char_traits_priv::copy_batch(ptr, std::forward<Args>(args)..., count);
+            }
+            else
+            {
+                _char_traits_priv::move_batch(ptr, std::forward<Args>(args)..., count);
+            }
             traits_type::assign(ptr[count], T());
         }
         else VX_IF_CONSTEXPR (M == construct_method::from_string)
         {
-            traits_type::copy(ptr, std::forward<Args>(args)..., count + 1);
+            VX_IF_CONSTEXPR (NoOverlap)
+            {
+                traits_type::copy(ptr, std::forward<Args>(args)..., count + 1);
+            }
+            else
+            {
+                _char_traits_priv::move_batch(ptr, std::forward<Args>(args)..., count);
+                traits_type::assign(ptr[count], T());
+            }
         }
-        else // VX_IF_CONSTEXPR (M == construct_method::from_iterator_range)
+        else
         {
             VX_STATIC_ASSERT_MSG(M == construct_method::from_iterator_range, "invalid tag");
-
             traits_type::copy_range(ptr, std::forward<Args>(args)...);
             traits_type::assign(ptr[count], T());
+        }
+
+        VX_IF_CONSTEXPR (!NoOverlap)
+        {
+            if (count < size)
+            {
+                range::destroy(ptr + count + 1, size - count);
+            }
         }
 
         size = count;
@@ -553,37 +584,40 @@ public:
     // assignment operators
     //=========================================================================
 
-    basic_static_string& operator=(const basic_static_string& other)
+    constexpr basic_static_string& operator=(const basic_static_string& other)
     {
         assign_from<construct_method::from_string>(other.size(), other.data());
         return *this;
     }
 
-    basic_static_string& operator=(const T c)
+    constexpr basic_static_string& operator=(const T c)
     {
         assign_from<construct_method::from_char>(1, c);
         return *this;
     }
 
-    basic_static_string& operator=(const T* const ptr)
+    constexpr basic_static_string& operator=(const T* const ptr)
     {
         const size_type count = static_cast<size_type>(traits_type::length(ptr));
-        assign_from<construct_method::from_pointer>(count, ptr);
+        const auto ok = assign_from<construct_method::from_pointer>(count, ptr);
+        VX_VERIFY(ok);
         return *this;
     }
 
-    basic_static_string& operator=(std::initializer_list<T> init)
+    constexpr basic_static_string& operator=(std::initializer_list<T> init)
     {
         const size_type count = static_cast<size_type>(init.size());
-        assign_from<construct_method::from_pointer>(count, init.begin());
+        const auto ok = assign_from<construct_method::from_pointer>(count, init.begin());
+        VX_VERIFY(ok);
         return *this;
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_static_string& operator=(const S& other)
+    constexpr basic_static_string& operator=(const S& other)
     {
         const size_type count = static_cast<size_type>(other.size());
-        assign_from<construct_method::from_pointer>(count, other.data());
+        const auto ok = assign_from<construct_method::from_pointer>(count, other.data());
+        VX_VERIFY(ok);
         return *this;
     }
 
@@ -591,137 +625,246 @@ public:
     // assign
     //=========================================================================
 
-    basic_static_string& assign(const basic_static_string& other)
+    constexpr success assign(const basic_static_string& other)
     {
-        return operator=(other);
+        if (this == &other)
+        {
+            return success{};
+        }
+        return assign_from<construct_method::from_string, true, true>(other.size(), other.data());
+    }
+
+    constexpr success assign(basic_static_string&& other) noexcept
+    {
+        operator=(std::move(other));
+        return success{};
+    }
+
+    template <size_t M, VX_REQUIRES(M <= N)>
+    constexpr success assign(const basic_static_string<M, T>& other)
+    {
+        return assign_from<construct_method::from_string, true, true>(other.size(), other.data());
     }
 
     //=========================================================================
 
-    basic_static_string& assign(const T c)
+    constexpr success assign(const T c)
     {
-        return operator=(c);
+        return assign_from<construct_method::from_char, true, true>(1, c);
     }
 
-    basic_static_string& assign(const size_type count, const T c)
+    constexpr success assign(const size_type count, const T c)
     {
-        assign_from<construct_method::from_char_count>(count, c);
-        return *this;
-    }
-
-    //=========================================================================
-
-    basic_static_string& assign(const T* const ptr)
-    {
-        return operator=(ptr);
-    }
-
-    basic_static_string& assign(const T* const ptr, size_type count)
-    {
-        assign_from<construct_method::from_pointer>(count, ptr);
-        return *this;
+        return assign_from<construct_method::from_char_count, false, true>(count, c);
     }
 
     //=========================================================================
 
-    basic_static_string& assign(std::initializer_list<T> init)
+    constexpr success assign(const T* const ptr)
     {
-        return operator=(init);
+        const size_type count = static_cast<size_type>(traits_type::length(ptr));
+        return assign_from<construct_method::from_pointer, false, false>(count, ptr);
+    }
+
+    constexpr success assign_no_overlap(const T* const ptr)
+    {
+        const size_type count = static_cast<size_type>(traits_type::length(ptr));
+        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(ptr, ptr + count);
+        return assign_from<construct_method::from_pointer, false, true>(count, ptr);
+    }
+
+    //=========================================================================
+
+    constexpr success assign(const T* const ptr, size_type count)
+    {
+        return assign_from<construct_method::from_pointer, false, false>(count, ptr);
+    }
+
+    constexpr success assign_no_overlap(const T* const ptr, size_type count)
+    {
+        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(ptr, ptr + count);
+        return assign_from<construct_method::from_pointer, false, true>(count, ptr);
+    }
+
+    //=========================================================================
+
+    constexpr success assign(std::initializer_list<T> init)
+    {
+        const size_type count = static_cast<size_type>(init.size());
+        return assign_from<construct_method::from_pointer, false, true>(count, init.begin());
     }
 
     //=========================================================================
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    basic_static_string& assign(IT first, IT last)
+    constexpr success assign(IT first, IT last)
     {
-        const size_type count = static_cast<size_type>(std::distance(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
-            assign_from<construct_method::from_pointer>(count, first.ptr());
+            constexpr bool fits = is_fittable_iterator<IT>::value;
+            const size_type count = static_cast<size_type>(std::distance(first, last));
+            return assign_from<construct_method::from_pointer, fits, false>(count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            const size_type count = static_cast<size_type>(std::distance(first, last));
+            return assign_from<construct_method::from_pointer, false, false>(count, first);
         }
         else
         {
-            assign_from<construct_method::from_iterator_range>(count, first, last);
+            const auto tmp = basic_static_string::create(first, last);
+            VX_RET_ERR_IF(!tmp, tmp.error());
+            return assign_from<construct_method::from_pointer, true, true>(tmp.value().size(), tmp.value().data());
         }
+    }
 
-        return *this;
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    constexpr success assign_no_overlap(IT first, IT last)
+    {
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
+        {
+            constexpr bool fits = is_fittable_iterator<IT>::value;
+            const size_type count = static_cast<size_type>(std::distance(first, last));
+            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
+            return assign_from<construct_method::from_pointer, fits, true>(count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            const size_type count = static_cast<size_type>(std::distance(first, last));
+            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
+            return assign_from<construct_method::from_pointer, false, true>(count, first);
+        }
+        else
+        {
+            const auto tmp = basic_static_string::create(first, last);
+            VX_RET_ERR_IF(!tmp, tmp.error());
+            return assign_from<construct_method::from_pointer, true, true>(tmp.value().size(), tmp.value().data());
+        }
     }
 
     //=========================================================================
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_static_string& assign(const S& other)
+    constexpr success assign(const S& other)
     {
-        return operator=(other);
+        const size_type count = static_cast<size_type>(other.size());
+        return assign_from<construct_method::from_pointer, false, false>(count, other.data());
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_static_string& assign(const S& other, size_type off, size_type count = npos)
+    constexpr success assign_no_overlap(const S& other)
     {
-        if (_char_traits_priv::check_offset(other.size(), off))
-        {
-            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
-            assign_from<construct_method::from_pointer>(count, other.data() + off);
-        }
-        else
+        const size_type count = static_cast<size_type>(other.size());
+        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(other.data(), other.data() + count);
+        return assign_from<construct_method::from_pointer, false, true>(count, other.data());
+    }
+
+    //=========================================================================
+
+    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+    constexpr success assign(const S& other, size_type off, size_type count = npos)
+    {
+        if (!_char_traits_priv::check_offset(other.size(), off))
         {
             clear();
+            return success{};
         }
-        return *this;
+        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+        return assign_from<construct_method::from_pointer, false, false>(count, other.data() + off);
+    }
+
+    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+    constexpr success assign_no_overlap(const S& other, size_type off, size_type count = npos)
+    {
+        if (!_char_traits_priv::check_offset(other.size(), off))
+        {
+            clear();
+            return success{};
+        }
+        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(other.data() + off, other.data() + off + count);
+        return assign_from<construct_method::from_pointer, false, true>(count, other.data() + off);
+    }
+
+    template <size_t M, VX_REQUIRES(M <= N)>
+    constexpr success assign(const basic_static_string<M, T>& other, size_type off, size_type count = npos)
+    {
+        if (!_char_traits_priv::check_offset(other.size(), off))
+        {
+            clear();
+            return success{};
+        }
+        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+        return assign_from<construct_method::from_pointer, true, true>(count, other.data() + off);
     }
 
     //=========================================================================
     // element access
     //=========================================================================
 
-    T& front() noexcept
+    constexpr expected<T&, error> front() noexcept
     {
-        VX_ASSERT(m_data.size > 0);
+        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
         return m_data.ptr[0];
     }
 
-    const T& front() const noexcept
+    constexpr expected<const T&, error> front() const noexcept
     {
-        VX_ASSERT(m_data.size > 0);
+        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
         return m_data.ptr[0];
     }
 
-    T& back() noexcept
+    constexpr expected<T&, error> back() noexcept
     {
-        VX_ASSERT(m_data.size > 0);
+        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
         return m_data.ptr[m_data.size - 1];
     }
 
-    const T& back() const noexcept
+    constexpr expected<const T&, error> back() const noexcept
     {
-        VX_ASSERT(m_data.size > 0);
+        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
         return m_data.ptr[m_data.size - 1];
     }
 
-    T* data() noexcept
+    constexpr T* data() noexcept
     {
         return m_data.ptr;
     }
 
-    const T* data() const noexcept
+    constexpr const T* data() const noexcept
     {
         return m_data.ptr;
     }
 
-    T& operator[](size_type i) noexcept
+    constexpr T& operator[](size_type i) noexcept
     {
         VX_ASSERT(i < m_data.size);
         return m_data.ptr[i];
     }
 
-    const T& operator[](size_type i) const noexcept
+    constexpr const T& operator[](size_type i) const noexcept
     {
         VX_ASSERT(i < m_data.size);
         return m_data.ptr[i];
     }
 
-    const T* c_str() const noexcept
+    constexpr expected<T&, error> at(size_type i) noexcept
+    {
+        VX_RET_UNEXPECTED_ERR_IF(i >= m_data.size, err::out_of_range);
+        return operator[](i);
+    }
+
+    constexpr expected<const T&, error> at(size_type i) const noexcept
+    {
+        VX_RET_UNEXPECTED_ERR_IF(i >= m_data.size, err::out_of_range);
+        return operator[](i);
+    }
+
+    constexpr const T* c_str() const noexcept
     {
         return m_data.ptr;
     }
@@ -796,24 +939,22 @@ private:
     // append helpers
     //=========================================================================
 
+private:
+
     template <construct_method M, typename... Args>
-    bool append_n(const size_type count, Args&&... args)
+    constexpr success append_n(const size_type count, Args&&... args)
     {
         auto& ptr = m_data.ptr;
         auto& size = m_data.size;
 
         const size_type available = N - size;
-        if (count > available)
-        {
-            err::set(err::size_error);
-            return false;
-        }
+        VX_RET_ERR_IF(count > available, err::size_error);
 
         T* const dst = ptr + size;
 
-        // we increase the size early so we can easily assign the null terminator at the end
+        // increase size early so the null terminator can be assigned at the end
         size += count;
-        mem::construct_range_maybe_trivial(dst + 1, count);
+        range::construct_maybe_trivial(dst + 1, count);
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
         {
@@ -823,18 +964,14 @@ private:
         {
             traits_type::assign(dst, count, std::forward<Args>(args)...);
         }
-        else VX_IF_CONSTEXPR (M == construct_method::from_pointer)
+        else
         {
+            VX_STATIC_ASSERT_MSG(M == construct_method::from_pointer, "invalid tag");
             _char_traits_priv::copy_batch(dst, std::forward<Args>(args)..., count);
-        }
-        else // VX_IF_CONSTEXPR (M == construct_method::from_iterator_range)
-        {
-            VX_STATIC_ASSERT_MSG(M == construct_method::from_iterator_range, "invalid tag");
-            traits_type::copy_range(dst, std::forward<Args>(args)...);
         }
 
         traits_type::assign(ptr[size], T());
-        return true;
+        return success{};
     }
 
 public:
@@ -843,127 +980,145 @@ public:
     // append
     //=========================================================================
 
-    basic_static_string& append(const basic_static_string& other)
+    constexpr success append(const basic_static_string& other)
     {
-        append_n<construct_method::from_pointer>(other.size(), other.data());
-        return *this;
+        return append_n<construct_method::from_pointer>(other.size(), other.data());
+    }
+
+    template <size_t M, VX_REQUIRES(M <= N)>
+    constexpr success append(const basic_static_string<M, T>& other)
+    {
+        return append_n<construct_method::from_pointer>(other.size(), other.data());
     }
 
     //=========================================================================
 
-    basic_static_string& append(const basic_static_string& other, size_type off, size_type count = npos)
+    constexpr success append(const basic_static_string& other, size_type off, size_type count = npos)
     {
-        if (_char_traits_priv::check_offset(other.size(), off))
-        {
-            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
-            append_n<construct_method::from_pointer>(count, other.data() + off);
-        }
-        return *this;
+        VX_RET_ERR_IF(!_char_traits_priv::check_offset(other.size(), off), err::out_of_range);
+        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+        return append_n<construct_method::from_pointer>(count, other.data() + off);
+    }
+
+    template <size_t M, VX_REQUIRES(M <= N)>
+    constexpr success append(const basic_static_string<M, T>& other, size_type off, size_type count = npos)
+    {
+        VX_RET_ERR_IF(!_char_traits_priv::check_offset(other.size(), off), err::out_of_range);
+        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+        return append_n<construct_method::from_pointer>(count, other.data() + off);
     }
 
     //=========================================================================
 
-    basic_static_string& append(const T c)
+    constexpr success append(const T c)
     {
-        append_n<construct_method::from_char>(1, c);
-        return *this;
+        return append_n<construct_method::from_char>(1, c);
     }
 
-    basic_static_string& append(size_type count, const T c)
+    constexpr success append(size_type count, const T c)
     {
-        append_n<construct_method::from_char_count>(count, c);
-        return *this;
+        return append_n<construct_method::from_char_count>(count, c);
     }
 
     //=========================================================================
 
-    basic_static_string& append(const T* const s)
+    constexpr success append(const T* const s)
     {
         const size_type count = static_cast<size_type>(traits_type::length(s));
-        append_n<construct_method::from_pointer>(count, s);
-        return *this;
+        return append_n<construct_method::from_pointer>(count, s);
     }
 
-    basic_static_string& append(const T* const s, const size_type count)
+    constexpr success append(const T* const s, const size_type count)
     {
-        append_n<construct_method::from_pointer>(count, s);
-        return *this;
+        return append_n<construct_method::from_pointer>(count, s);
     }
 
     //=========================================================================
 
-    basic_static_string& append(std::initializer_list<T> init)
+    constexpr success append(std::initializer_list<T> init)
     {
         const size_type count = static_cast<size_type>(init.size());
-        append_n<construct_method::from_pointer>(count, init.begin());
-        return *this;
+        return append_n<construct_method::from_pointer>(count, init.begin());
     }
 
     //=========================================================================
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    basic_static_string& append(IT first, IT last)
+    constexpr success append(IT first, IT last)
     {
-        const size_type count = static_cast<size_type>(std::distance(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
-            append_n<construct_method::from_pointer>(count, first.ptr());
+            const size_type count = static_cast<size_type>(std::distance(first, last));
+            return append_n<construct_method::from_pointer>(count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            const size_type count = static_cast<size_type>(std::distance(first, last));
+            return append_n<construct_method::from_pointer>(count, first);
         }
         else
         {
-            append_n<construct_method::from_iterator_range>(count, first, last);
+            const auto tmp = basic_static_string::create(first, last);
+            VX_RET_ERR_IF(!tmp, tmp.error());
+            return append_n<construct_method::from_pointer>(tmp.value().size(), tmp.value().data());
         }
-        return *this;
     }
 
     //=========================================================================
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_static_string& append(const S& other)
+    constexpr success append(const S& other)
     {
         const size_type count = static_cast<size_type>(other.size());
-        append_n<construct_method::from_pointer>(count, other.data());
-        return *this;
+        return append_n<construct_method::from_pointer>(count, other.data());
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_static_string& append(const S& other, size_type off, size_type count = npos)
+    constexpr success append(const S& other, size_type off, size_type count = npos)
     {
-        if (_char_traits_priv::check_offset(other.size(), off))
-        {
-            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
-            append_n<construct_method::from_pointer>(count, other.data() + off);
-        }
-        return *this;
+        VX_RET_ERR_IF(!_char_traits_priv::check_offset(other.size(), off), err::out_of_range);
+        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+        return append_n<construct_method::from_pointer>(count, other.data() + off);
     }
 
     //=========================================================================
 
-    basic_static_string& operator+=(const basic_static_string& other)
+    constexpr basic_static_string& operator+=(const basic_static_string& other)
     {
-        return append(other);
+        const auto ok = append(other);
+        VX_VERIFY(ok);
+        return *this;
     }
 
-    basic_static_string& operator+=(const T c)
+    constexpr basic_static_string& operator+=(const T c)
     {
-        return append(c);
+        const auto ok = append(c);
+        VX_VERIFY(ok);
+        return *this;
     }
 
-    basic_static_string& operator+=(const T* const s)
+    constexpr basic_static_string& operator+=(const T* const s)
     {
-        return append(s);
+        const auto ok = append(s);
+        VX_VERIFY(ok);
+        return *this;
     }
 
-    basic_static_string& operator+=(std::initializer_list<T> init)
+    constexpr basic_static_string& operator+=(std::initializer_list<T> init)
     {
-        return append(init);
+        const auto ok = append(init);
+        VX_VERIFY(ok);
+        return *this;
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_static_string& operator+=(const S& other)
+    constexpr basic_static_string& operator+=(const S& other)
     {
-        return append(other);
+        const auto ok = append(other);
+        VX_VERIFY(ok);
+        return *this;
     }
 
 private:
@@ -973,25 +1128,14 @@ private:
     //=========================================================================
 
     template <construct_method M, typename... Args>
-    T* insert_n(const T* cpos, const size_type count, Args&&... args)
+    constexpr T* insert_n_no_overlap(T* pos, const size_type count, Args&&... args)
     {
         auto& ptr = m_data.ptr;
         auto& size = m_data.size;
 
-        const size_type available = N - size;
-        if (count > available)
-        {
-            err::set(err::size_error);
-            return nullptr;
-        }
-
-        auto pos = const_cast<T*>(cpos);
-
-        // initialize the new elements that will be moved into uninitialized memory
         const pointer back = ptr + size;
-        mem::construct_range_maybe_trivial(back + 1, count);
+        range::construct_maybe_trivial(back + 1, count);
 
-        // move the tail backward to make room for the new elements
         const size_type tail_count = static_cast<size_type>(back - pos) + 1;
         _char_traits_priv::move_batch(pos + count, pos, tail_count);
 
@@ -1003,18 +1147,92 @@ private:
         {
             traits_type::assign(pos, count, std::forward<Args>(args)...);
         }
-        else VX_IF_CONSTEXPR (M == construct_method::from_pointer)
+        else
         {
+            VX_STATIC_ASSERT_MSG(M == construct_method::from_pointer, "invalid tag");
             _char_traits_priv::copy_batch(pos, std::forward<Args>(args)..., count);
-        }
-        else // VX_IF_CONSTEXPR (M == construct_method::from_iterator_range)
-        {
-            VX_STATIC_ASSERT_MSG(M == construct_method::from_iterator_range, "invalid tag");
-            traits_type::copy_range(pos, std::forward<Args>(args)...);
         }
 
         size += count;
         return pos;
+    }
+
+    constexpr T* insert_n_pointer_safe(T* pos, const size_type count, const T* src)
+    {
+        if (count == 0)
+        {
+            return pos;
+        }
+
+        auto& ptr = m_data.ptr;
+        auto& size = m_data.size;
+        const T* const old_back = ptr + size;
+
+        size_type unshifted;
+        if (src + count <= pos || src > old_back)
+        {
+            unshifted = count;
+        }
+        else if (pos <= src)
+        {
+            unshifted = 0;
+        }
+        else
+        {
+            unshifted = static_cast<size_type>(pos - src);
+        }
+
+        const pointer back = ptr + size;
+        range::construct_maybe_trivial(back + 1, count);
+        const size_type tail_count = static_cast<size_type>(back - pos) + 1;
+        _char_traits_priv::move_batch(pos + count, pos, tail_count);
+        size += count;
+
+        _char_traits_priv::copy_batch(pos, src, unshifted);
+        _char_traits_priv::copy_batch(pos + unshifted, src + count + unshifted, count - unshifted);
+
+        return pos;
+    }
+
+    template <construct_method M, typename... Args>
+    constexpr success insert_n(T* pos, const size_type count, Args&&... args)
+    {
+        const size_type available = N - m_data.size;
+        VX_RET_ERR_IF(count > available, err::size_error);
+
+        T* new_pos;
+        VX_IF_CONSTEXPR (M == construct_method::from_pointer)
+        {
+            new_pos = insert_n_pointer_safe(pos, count, std::forward<Args>(args)...);
+        }
+        else
+        {
+            new_pos = insert_n_no_overlap<M>(pos, count, std::forward<Args>(args)...);
+        }
+
+        return success{};
+    }
+
+    template <construct_method M, typename... Args>
+    constexpr expected<iterator, error> insert_checked(size_type off, size_type count, Args&&... args)
+    {
+        VX_RET_UNEXPECTED_ERR_IF(off > m_data.size, err::out_of_range);
+        T* pos = m_data.ptr + off;
+
+        const auto ok = insert_n<M>(pos, count, std::forward<Args>(args)...);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok.error());
+        return iterator(pos);
+    }
+
+    template <construct_method M, typename... Args>
+    constexpr iterator insert_unchecked(const_iterator pos, size_type count, Args&&... args)
+    {
+        VX_PRIV_ASSERT_CONTIG_INSERTABLE_POSITION(pos);
+        T* p = const_cast<T*>(pos.ptr());
+
+        const auto ok = insert_n<M>(p, count, std::forward<Args>(args)...);
+        VX_VERIFY(ok);
+        return iterator(p);
     }
 
 public:
@@ -1023,194 +1241,203 @@ public:
     // insert
     //=========================================================================
 
-    basic_static_string& insert(size_type off, const basic_static_string& other)
+    constexpr expected<iterator, error> insert(size_type off, const basic_static_string& other)
     {
         return insert(off, other.data(), other.size());
     }
 
-    basic_static_string& insert(size_type off, const basic_static_string& other, size_type other_off, size_type count = npos)
+    template <size_t M, VX_REQUIRES(M <= N)>
+    constexpr expected<iterator, error> insert(size_type off, const basic_static_string<M, T>& other)
     {
-        if (!_char_traits_priv::check_offset(other.size(), off))
+        return insert(off, other.data(), other.size());
+    }
+
+    constexpr expected<iterator, error> insert(size_type off, const basic_static_string& other, size_type other_off, size_type count = npos)
+    {
+        VX_RET_UNEXPECTED_ERR_IF(off > m_data.size, err::out_of_range);
+        if (!_char_traits_priv::check_offset(other.size(), other_off))
         {
-            return *this;
+            return iterator(m_data.ptr + off);
         }
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), other_off, count));
-        return insert(off, other.data() + other_off, count);
+        return insert_checked<construct_method::from_pointer>(off, count, other.data() + other_off);
     }
 
     //=========================================================================
 
-    basic_static_string& insert(size_type off, const T c)
+    constexpr expected<iterator, error> insert(size_type off, const T c)
     {
-        insert_n<construct_method::from_char>(m_data.ptr + off, 1, c);
-        return *this;
+        return insert_checked<construct_method::from_char>(off, 1, c);
     }
 
-    basic_static_string& insert(size_type off, size_type count, const T c)
+    constexpr expected<iterator, error> insert(size_type off, size_type count, const T c)
     {
-        insert_n<construct_method::from_char_count>(m_data.ptr + off, count, c);
-        return *this;
+        return insert_checked<construct_method::from_char_count>(off, count, c);
     }
 
     //=========================================================================
 
-    basic_static_string& insert(size_type off, const T* const s)
+    constexpr expected<iterator, error> insert(size_type off, const T* const s)
     {
         const size_type count = static_cast<size_type>(traits_type::length(s));
-        insert_n<construct_method::from_pointer>(m_data.ptr + off, count, s);
-        return *this;
+        return insert_checked<construct_method::from_pointer>(off, count, s);
     }
 
-    basic_static_string& insert(size_type off, const T* const s, size_type count)
+    constexpr expected<iterator, error> insert(size_type off, const T* const s, size_type count)
     {
-        insert_n<construct_method::from_pointer>(m_data.ptr + off, count, s);
-        return *this;
+        return insert_checked<construct_method::from_pointer>(off, count, s);
     }
 
     //=========================================================================
 
-    basic_static_string& insert(size_type off, std::initializer_list<T> init)
+    constexpr expected<iterator, error> insert(size_type off, std::initializer_list<T> init)
     {
         const size_type count = static_cast<size_type>(init.size());
-        insert_n<construct_method::from_pointer>(m_data.ptr + off, count, init.begin());
-        return *this;
+        return insert_checked<construct_method::from_pointer>(off, count, init.begin());
     }
 
     //=========================================================================
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    basic_static_string& insert(size_type off, IT first, IT last)
+    constexpr expected<iterator, error> insert(size_type off, IT first, IT last)
     {
-        const size_type count = static_cast<size_type>(std::distance(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
-            insert_n<construct_method::from_pointer>(m_data.ptr + off, count, first.ptr());
+            const size_type count = static_cast<size_type>(std::distance(first, last));
+            return insert_checked<construct_method::from_pointer>(off, count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            const size_type count = static_cast<size_type>(std::distance(first, last));
+            return insert_checked<construct_method::from_pointer>(off, count, first);
         }
         else
         {
-            insert_n<construct_method::from_iterator_range>(m_data.ptr + off, count, first, last);
+            const auto tmp = basic_static_string::create(first, last);
+            VX_RET_UNEXPECTED_ERR_IF(!tmp, tmp.error());
+            return insert_checked<construct_method::from_pointer>(off, tmp.value().size(), tmp.value().data());
         }
-        return *this;
     }
 
     //=========================================================================
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_static_string& insert(size_type off, const S& other)
+    constexpr expected<iterator, error> insert(size_type off, const S& other)
     {
         const size_type count = static_cast<size_type>(other.size());
-        insert_n<construct_method::from_pointer>(m_data.ptr + off, count, other.data());
-        return *this;
+        return insert_checked<construct_method::from_pointer>(off, count, other.data());
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    basic_static_string& insert(size_type off, const S& other, size_type t_off, size_type count = npos)
+    constexpr expected<iterator, error> insert(size_type off, const S& other, size_type t_off, size_type count = npos)
     {
-        if (_char_traits_priv::check_offset(other.size(), t_off))
+        VX_RET_UNEXPECTED_ERR_IF(off > m_data.size, err::out_of_range);
+        if (!_char_traits_priv::check_offset(other.size(), t_off))
         {
-            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), t_off, count));
-            insert_n<construct_method::from_pointer>(m_data.ptr + off, count, other.data() + t_off);
+            return iterator(m_data.ptr + off);
         }
-        return *this;
+        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), t_off, count));
+        return insert_checked<construct_method::from_pointer>(off, count, other.data() + t_off);
     }
 
     //=========================================================================
     //=========================================================================
 
     template <size_t M, VX_REQUIRES(M <= N)>
-    iterator insert(const_iterator pos, const basic_static_string<M, T>& other)
+    constexpr iterator insert(const_iterator pos, const basic_static_string<M, T>& other)
     {
         return insert(pos, other.data(), other.size());
     }
 
     template <size_t M>
-    iterator insert(const_iterator pos, const basic_static_string<M, T>& other, size_type other_off, size_type count = npos)
+    constexpr iterator insert(const_iterator pos, const basic_static_string<M, T>& other, size_type other_off, size_type count = npos)
     {
         if (!_char_traits_priv::check_offset(other.size(), other_off))
         {
             return iterator(pos);
         }
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), other_off, count));
-        pointer new_pos = insert_n<construct_method::from_pointer>(pos.ptr(), count, other.data() + other_off);
-        return iterator(new_pos);
+        return insert_unchecked<construct_method::from_pointer>(pos, count, other.data() + other_off);
     }
 
     //=========================================================================
 
-    iterator insert(const_iterator pos, const T c)
+    constexpr iterator insert(const_iterator pos, const T c)
     {
-        pointer new_pos = insert_n<construct_method::from_char>(pos.ptr(), 1, c);
-        return iterator(new_pos);
+        return insert_unchecked<construct_method::from_char>(pos, 1, c);
     }
 
-    iterator insert(const_iterator pos, const size_type count, const T c)
+    constexpr iterator insert(const_iterator pos, const size_type count, const T c)
     {
-        pointer new_pos = insert_n<construct_method::from_char_count>(pos.ptr(), count, c);
-        return iterator(new_pos);
+        return insert_unchecked<construct_method::from_char_count>(pos, count, c);
     }
 
     //=========================================================================
 
-    iterator insert(const_iterator pos, const T* const s, size_type count)
+    constexpr iterator insert(const_iterator pos, const T* const s, size_type count)
     {
-        pointer new_pos = insert_n<construct_method::from_pointer>(pos.ptr(), count, s);
-        return iterator(new_pos);
+        return insert_unchecked<construct_method::from_pointer>(pos, count, s);
     }
 
-    iterator insert(const_iterator pos, const T* const s)
+    constexpr iterator insert(const_iterator pos, const T* const s)
     {
         const size_type count = static_cast<size_type>(traits_type::length(s));
-        pointer new_pos = insert_n<construct_method::from_pointer>(pos.ptr(), count, s);
-        return iterator(new_pos);
+        return insert_unchecked<construct_method::from_pointer>(pos, count, s);
     }
 
     //=========================================================================
 
-    iterator insert(const_iterator pos, std::initializer_list<T> init)
+    constexpr iterator insert(const_iterator pos, std::initializer_list<T> init)
     {
         const size_type count = static_cast<size_type>(init.size());
-        pointer new_pos = insert_n<construct_method::from_pointer>(pos.ptr(), count, init.begin());
-        return iterator(new_pos);
+        return insert_unchecked<construct_method::from_pointer>(pos, count, init.begin());
     }
 
     //=========================================================================
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    iterator insert(const_iterator pos, IT first, IT last)
+    constexpr iterator insert(const_iterator pos, IT first, IT last)
     {
-        pointer new_pos;
-        const size_type count = static_cast<size_type>(std::distance(first, last));
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
-            new_pos = insert_n<construct_method::from_pointer>(pos.ptr(), count, first.ptr());
+            const size_type count = static_cast<size_type>(std::distance(first, last));
+            return insert_unchecked<construct_method::from_pointer>(pos, count, first.ptr());
+        }
+        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+        {
+            const size_type count = static_cast<size_type>(std::distance(first, last));
+            return insert_unchecked<construct_method::from_pointer>(pos, count, first);
         }
         else
         {
-            new_pos = insert_n<construct_method::from_iterator_range>(pos.ptr(), count, first, last);
+            const auto tmp = basic_static_string::create(first, last);
+            VX_VERIFY(tmp);
+            return insert_unchecked<construct_method::from_pointer>(pos, tmp.value().size(), tmp.value().data());
         }
-        return iterator(new_pos);
     }
 
     //=========================================================================
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    iterator insert(const_iterator pos, const S& other)
+    constexpr iterator insert(const_iterator pos, const S& other)
     {
         const size_type count = static_cast<size_type>(other.size());
-        pointer new_pos = insert_n<construct_method::from_pointer>(pos.ptr(), count, other.data());
-        return iterator(new_pos);
+        return insert_unchecked<construct_method::from_pointer>(pos, count, other.data());
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    iterator insert(const_iterator pos, const S& other, size_type t_off, size_type count = npos)
+    constexpr iterator insert(const_iterator pos, const S& other, size_type t_off, size_type count = npos)
     {
         if (!_char_traits_priv::check_offset(other.size(), t_off))
         {
             return iterator(pos);
         }
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), t_off, count));
-        pointer new_pos = insert_n<construct_method::from_pointer>(pos.ptr(), count, other.data() + t_off);
-        return iterator(new_pos);
+        return insert_unchecked<construct_method::from_pointer>(pos, count, other.data() + t_off);
     }
 
 public:
@@ -1219,60 +1446,54 @@ public:
     // memory
     //=========================================================================
 
-    void clear()
+    constexpr void clear() noexcept
     {
         destroy_size(m_data.ptr, m_data.size);
         m_data.size = 0;
         traits_type::assign(*m_data.ptr, T());
     }
 
-    void clear_and_deallocate()
+    constexpr void clear_and_deallocate() noexcept
     {
         clear();
     }
 
-    static bool shrink_to_fit() noexcept
+    constexpr success shrink_to_fit() noexcept
     {
-        return true;
+        return success{};
     }
 
     constexpr void swap(basic_static_string& other) noexcept
     {
-        // ptr is self-referential (points into this object's own inline
-        // storage), so we must never swap the m_data structs directly -
-        // that would leave each object's ptr pointing at the OTHER
-        // object's buffer. T is guaranteed to be a trivial character
-        // type, so it's safe to swap the entire fixed-size storage
-        // range (all N + 1 slots) element-wise and just swap size.
-        mem::swap_range(m_data.ptr, other.m_data.ptr, N + 1);
-        std::swap(m_data.size, other.m_data.size);
+        range::swap(m_data.ptr, other.m_data.ptr, N + 1);
+        vx::swap(m_data.size, other.m_data.size);
     }
 
     //=========================================================================
     // size
     //=========================================================================
 
-    bool empty() const noexcept
+    constexpr bool empty() const noexcept
     {
         return m_data.size == 0;
     }
 
-    bool full() const noexcept
+    constexpr bool full() const noexcept
     {
         return m_data.size == N;
     }
 
-    size_type size() const noexcept
+    constexpr size_type size() const noexcept
     {
         return m_data.size;
     }
 
-    size_type length() const noexcept
+    constexpr size_type length() const noexcept
     {
         return size();
     }
 
-    size_type size_bytes() const noexcept
+    constexpr size_type size_bytes() const noexcept
     {
         return size() * sizeof(T);
     }
@@ -1291,22 +1512,17 @@ public:
     // reserve
     //=========================================================================
 
-    static constexpr bool reserve(size_type new_capacity) noexcept
+    constexpr success reserve(size_type new_capacity) noexcept
     {
-        if (new_capacity > max_size())
-        {
-            err::set(err::size_error);
-            return false;
-        }
-
-        return true;
+        VX_RET_ERR_IF(new_capacity > max_size(), err::size_error);
+        return success{};
     }
 
     //=========================================================================
     // resize
     //=========================================================================
 
-    bool resize(size_type new_size, const T c = T())
+    constexpr success resize(size_type new_size, const T c = T())
     {
         auto& ptr = m_data.ptr;
         auto& size = m_data.size;
@@ -1315,10 +1531,10 @@ public:
         {
             const size_type shrink_count = size - new_size;
             pointer end_ptr = ptr + new_size;
-            mem::destroy_range(end_ptr + 1, shrink_count);
+            range::destroy(end_ptr + 1, shrink_count);
             traits_type::assign(*end_ptr, T());
             size = new_size;
-            return true;
+            return success{};
         }
 
         const size_type count = new_size - size;
@@ -1329,7 +1545,7 @@ public:
     // push back
     //=========================================================================
 
-    bool push_back(const T c)
+    constexpr success push_back(const T c)
     {
         return append_n<construct_method::from_char>(1, c);
     }
@@ -1340,7 +1556,7 @@ public:
 
 private:
 
-    T* erase_n(T* pos, size_type count)
+    constexpr T* erase_n(T* pos, size_type count)
     {
         auto& ptr = m_data.ptr;
         auto& size = m_data.size;
@@ -1350,12 +1566,10 @@ private:
         const size_type tail_count = size - off - count;
 
         // Move the tail plus the null terminator
-        // old end:  ptr[size] == '\0'
-        // new end:  ptr[new_size] must become '\0'
+        // old end: ptr[size] == '\0'
+        // new end: ptr[new_size] must become '\0'
         _char_traits_priv::move_batch(ptr + off, ptr + off + count, tail_count + 1);
-
-        // Destroy removed objects
-        mem::destroy_range(ptr + new_size, count);
+        range::destroy(ptr + new_size, count);
 
         size = new_size;
         return pos;
@@ -1363,25 +1577,26 @@ private:
 
 public:
 
-    basic_static_string& erase(size_type off = 0, size_type count = npos)
+    constexpr expected<pointer, error> erase(size_type off = 0, size_type count = npos)
     {
-        if (_char_traits_priv::check_offset(size(), off))
-        {
-            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
-            erase_n(m_data.ptr + off, count);
-        }
-
-        return *this;
+        VX_RET_UNEXPECTED_ERR_IF(!_char_traits_priv::check_offset(size(), off), err::out_of_range);
+        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
+        auto pos = m_data.ptr + off;
+        return erase_n(pos, count);
     }
 
-    iterator erase(const_iterator pos)
+    constexpr iterator erase(const_iterator pos)
     {
+        VX_PRIV_ASSERT_CONTIG_ERASABLE_POSITION(pos);
         auto ptr = const_cast<T*>(pos.ptr());
         return iterator(erase_n(ptr, 1));
     }
 
-    iterator erase(const_iterator first, const_iterator last)
+    constexpr iterator erase(const_iterator first, const_iterator last)
     {
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+        VX_PRIV_ASSERT_CONTIG_SELF_RANGE(first, last);
+
         const size_type count = static_cast<size_type>(std::distance(first, last));
         auto ptr = const_cast<T*>(first.ptr());
         return iterator(erase_n(ptr, count));
@@ -1391,7 +1606,7 @@ public:
     // pop_back
     //=========================================================================
 
-    void pop_back()
+    constexpr void pop_back()
     {
         auto& ptr = m_data.ptr;
         auto& size = m_data.size;
@@ -1404,11 +1619,21 @@ public:
         }
     }
 
+    constexpr void pop_back_capacity()
+    {
+        VX_ASSERT(m_data().size > 0);
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
+        mem::destroy_in_place(ptr + size);
+        --size;
+        traits_type::assign(ptr[size], T());
+    }
+
     //=========================================================================
     // copy
     //=========================================================================
 
-    size_type copy(T* dst, size_type count, size_type off = 0) const
+    constexpr size_type copy(T* dst, size_type count, size_type off = 0) const
     {
         if (!_char_traits_priv::check_offset(size(), off))
         {
@@ -1419,7 +1644,19 @@ public:
         return count;
     }
 
-    basic_static_string substr(size_type off = 0, size_type count = npos) const
+    constexpr size_t copy_in_range(T* dst, size_t count, size_t off = 0) const
+    {
+        VX_ASSERT(_char_traits_priv::check_offset(size(), off));
+        count = static_cast<size_t>(_char_traits_priv::clamp_suffix_size(size(), off, count));
+        traits_type::copy(dst, m_data().ptr + off, count);
+        return count;
+    }
+
+    //=========================================================================
+    // substr
+    //=========================================================================
+
+    constexpr basic_static_string substr(size_type off = 0, size_type count = npos) const
     {
         if (!_char_traits_priv::check_offset(size(), off))
         {
@@ -1429,7 +1666,18 @@ public:
         return basic_static_string(m_data.ptr + off, count);
     }
 
-    basic_string_view<T> view(size_type off = 0, size_type count = npos) const
+    constexpr basic_string substr_in_range(size_type off, size_type count) const
+    {
+        VX_ASSERT(_char_traits_priv::check_offset(size(), off));
+        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
+        return basic_string(m_data().ptr + off, count, m_allocator());
+    }
+
+    //=========================================================================
+    // view
+    //=========================================================================
+
+    constexpr basic_string_view<T> view(size_type off = 0, size_type count = npos) const
     {
         if (!_char_traits_priv::check_offset(size(), off))
         {
@@ -1437,6 +1685,13 @@ public:
         }
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
         return basic_string_view<T>(m_data.ptr + off, count);
+    }
+
+    constexpr basic_string_view<T> view_in_range(size_type off, size_type count) const noexcept
+    {
+        VX_ASSERT(_char_traits_priv::check_offset(size(), off));
+        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
+        return basic_string_view<T>(m_data().ptr + off, count);
     }
 
     //=========================================================================
@@ -1464,7 +1719,7 @@ private:
             }
 
             const pointer back = ptr + size + 1;
-            mem::construct_range_maybe_trivial(back, diff);
+            range::construct_maybe_trivial(back, diff);
 
             const size_type tail_count = static_cast<size_type>(back - (pos + out_count));
             _char_traits_priv::move_batch(pos + in_count, pos + out_count, tail_count);
@@ -1479,7 +1734,7 @@ private:
             const size_type tail_count = static_cast<size_type>(back - (pos + out_count));
             _char_traits_priv::move_batch(pos + in_count, pos + out_count, tail_count);
 
-            mem::destroy_range(back - diff, diff);
+            range::destroy(back - diff, diff);
 
             size -= diff;
         }
@@ -1722,56 +1977,56 @@ public:
     // searching
     //=========================================================================
 
-    bool contains(const basic_static_string& other) const noexcept
+    constexpr bool contains(const basic_static_string& other) const noexcept
     {
         return find(other) != npos;
     }
 
-    bool contains(const T c) const noexcept
+    constexpr bool contains(const T c) const noexcept
     {
         return find(c) != npos;
     }
 
-    bool contains(const T* const s) const noexcept
+    constexpr bool contains(const T* const s) const noexcept
     {
         return find(s) != npos;
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    bool contains(const S& other) const noexcept
+    constexpr bool contains(const S& other) const noexcept
     {
         return find(other) != npos;
     }
 
     //=========================================================================
 
-    size_type find(const basic_static_string& other, size_type off = 0) const noexcept
+    constexpr size_type find(const basic_static_string& other, size_type off = 0) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
     }
 
-    size_type find(const T c, size_type off = 0) const noexcept
+    constexpr size_type find(const T c, size_type off = 0) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_ch<traits_type>(
             m_data.ptr, m_data.size, off, c));
     }
 
-    size_type find(const T* const s, size_type off = 0) const noexcept
+    constexpr size_type find(const T* const s, size_type off = 0) const noexcept
     {
         const size_type s_len = static_cast<size_type>(traits_type::length(s));
         return static_cast<size_type>(_char_traits_priv::traits_find<traits_type>(
             m_data.ptr, m_data.size, off, s, s_len));
     }
 
-    size_type find(const T* const s, size_type off, size_type count) const noexcept
+    constexpr size_type find(const T* const s, size_type off, size_type count) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find<traits_type>(
             m_data.ptr, m_data.size, off, s, count));
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    size_type find(const S& other, size_type off = 0) const noexcept
+    constexpr size_type find(const S& other, size_type off = 0) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
@@ -1779,33 +2034,33 @@ public:
 
     //=========================================================================
 
-    size_type rfind(const basic_static_string& other, size_type off = npos) const noexcept
+    constexpr size_type rfind(const basic_static_string& other, size_type off = npos) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_rfind<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
     }
 
-    size_type rfind(const T c, size_type off = npos) const noexcept
+    constexpr size_type rfind(const T c, size_type off = npos) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_rfind_ch<traits_type>(
             m_data.ptr, m_data.size, off, c));
     }
 
-    size_type rfind(const T* const s, size_type off = npos) const noexcept
+    constexpr size_type rfind(const T* const s, size_type off = npos) const noexcept
     {
         const size_type s_len = static_cast<size_type>(traits_type::length(s));
         return static_cast<size_type>(_char_traits_priv::traits_rfind<traits_type>(
             m_data.ptr, m_data.size, off, s, s_len));
     }
 
-    size_type rfind(const T* const s, size_type off, size_type count) const noexcept
+    constexpr size_type rfind(const T* const s, size_type off, size_type count) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_rfind<traits_type>(
             m_data.ptr, m_data.size, off, s, count));
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    size_type rfind(const S& other, size_type off = npos) const noexcept
+    constexpr size_type rfind(const S& other, size_type off = npos) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_rfind<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
@@ -1813,33 +2068,33 @@ public:
 
     //=========================================================================
 
-    size_type find_first_of(const basic_static_string& other, size_type off = 0) const noexcept
+    constexpr size_type find_first_of(const basic_static_string& other, size_type off = 0) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_first_of<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
     }
 
-    size_type find_first_of(const T c, size_type off = 0) const noexcept
+    constexpr size_type find_first_of(const T c, size_type off = 0) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_ch<traits_type>(
             m_data.ptr, m_data.size, off, c));
     }
 
-    size_type find_first_of(const T* const s, size_type off = 0) const noexcept
+    constexpr size_type find_first_of(const T* const s, size_type off = 0) const noexcept
     {
         const size_type s_len = static_cast<size_type>(traits_type::length(s));
         return static_cast<size_type>(_char_traits_priv::traits_find_first_of<traits_type>(
             m_data.ptr, m_data.size, off, s, s_len));
     }
 
-    size_type find_first_of(const T* const s, size_type off, size_type count) const noexcept
+    constexpr size_type find_first_of(const T* const s, size_type off, size_type count) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_first_of<traits_type>(
             m_data.ptr, m_data.size, off, s, count));
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    size_type find_first_of(const S& other, size_type off = 0) const noexcept
+    constexpr size_type find_first_of(const S& other, size_type off = 0) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_first_of<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
@@ -1847,33 +2102,33 @@ public:
 
     //=========================================================================
 
-    size_type find_last_of(const basic_static_string& other, size_type off = npos) const noexcept
+    constexpr size_type find_last_of(const basic_static_string& other, size_type off = npos) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_last_of<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
     }
 
-    size_type find_last_of(const T c, size_type off = npos) const noexcept
+    constexpr size_type find_last_of(const T c, size_type off = npos) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_rfind_ch<traits_type>(
             m_data.ptr, m_data.size, off, c));
     }
 
-    size_type find_last_of(const T* const s, size_type off = npos) const noexcept
+    constexpr size_type find_last_of(const T* const s, size_type off = npos) const noexcept
     {
         const size_type s_len = static_cast<size_type>(traits_type::length(s));
         return static_cast<size_type>(_char_traits_priv::traits_find_last_of<traits_type>(
             m_data.ptr, m_data.size, off, s, s_len));
     }
 
-    size_type find_last_of(const T* const s, size_type off, size_type count) const noexcept
+    constexpr size_type find_last_of(const T* const s, size_type off, size_type count) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_last_of<traits_type>(
             m_data.ptr, m_data.size, off, s, count));
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    size_type find_last_of(const S& other, size_type off = npos) const noexcept
+    constexpr size_type find_last_of(const S& other, size_type off = npos) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_last_of<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
@@ -1881,33 +2136,33 @@ public:
 
     //=========================================================================
 
-    size_type find_first_not_of(const basic_static_string& other, size_type off = 0) const noexcept
+    constexpr size_type find_first_not_of(const basic_static_string& other, size_type off = 0) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_first_not_of<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
     }
 
-    size_type find_first_not_of(const T c, size_type off = 0) const noexcept
+    constexpr size_type find_first_not_of(const T c, size_type off = 0) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_not_ch<traits_type>(
             m_data.ptr, m_data.size, off, c));
     }
 
-    size_type find_first_not_of(const T* const s, size_type off = 0) const noexcept
+    constexpr size_type find_first_not_of(const T* const s, size_type off = 0) const noexcept
     {
         const size_type s_len = static_cast<size_type>(traits_type::length(s));
         return static_cast<size_type>(_char_traits_priv::traits_find_first_not_of<traits_type>(
             m_data.ptr, m_data.size, off, s, s_len));
     }
 
-    size_type find_first_not_of(const T* const s, size_type off, size_type count) const noexcept
+    constexpr size_type find_first_not_of(const T* const s, size_type off, size_type count) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_first_not_of<traits_type>(
             m_data.ptr, m_data.size, off, s, count));
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    size_type find_first_not_of(const S& other, size_type off = 0) const noexcept
+    constexpr size_type find_first_not_of(const S& other, size_type off = 0) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_first_not_of<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
@@ -1915,33 +2170,33 @@ public:
 
     //=========================================================================
 
-    size_type find_last_not_of(const basic_static_string& other, size_type off = npos) const noexcept
+    constexpr size_type find_last_not_of(const basic_static_string& other, size_type off = npos) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_last_not_of<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
     }
 
-    size_type find_last_not_of(const T c, size_type off = npos) const noexcept
+    constexpr size_type find_last_not_of(const T c, size_type off = npos) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_rfind_not_ch<traits_type>(
             m_data.ptr, m_data.size, off, c));
     }
 
-    size_type find_last_not_of(const T* const s, size_type off = npos) const noexcept
+    constexpr size_type find_last_not_of(const T* const s, size_type off = npos) const noexcept
     {
         const size_type s_len = static_cast<size_type>(traits_type::length(s));
         return static_cast<size_type>(_char_traits_priv::traits_find_last_not_of<traits_type>(
             m_data.ptr, m_data.size, off, s, s_len));
     }
 
-    size_type find_last_not_of(const T* const s, size_type off, size_type count) const noexcept
+    constexpr size_type find_last_not_of(const T* const s, size_type off, size_type count) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_last_not_of<traits_type>(
             m_data.ptr, m_data.size, off, s, count));
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    size_type find_last_not_of(const S& other, size_type off = npos) const noexcept
+    constexpr size_type find_last_not_of(const S& other, size_type off = npos) const noexcept
     {
         return static_cast<size_type>(_char_traits_priv::traits_find_last_not_of<traits_type>(
             m_data.ptr, m_data.size, off, other.data(), other.size()));
@@ -1951,14 +2206,14 @@ public:
     // comparison
     //=========================================================================
 
-    int compare(const basic_static_string& other) const noexcept
+    constexpr int compare(const basic_static_string& other) const noexcept
     {
         return _char_traits_priv::traits_compare<traits_type>(
             m_data.ptr, m_data.size,
             other.data(), other.size());
     }
 
-    int compare(size_type off, size_type count, const basic_static_string& other) const noexcept
+    constexpr int compare(size_type off, size_type count, const basic_static_string& other) const noexcept
     {
         if (!_char_traits_priv::check_offset(size(), off))
         {
@@ -1970,7 +2225,7 @@ public:
             other.data(), other.size());
     }
 
-    int compare(size_type off1, size_type count1, const basic_static_string& other, size_type off2, size_type count2 = npos) const noexcept
+    constexpr int compare(size_type off1, size_type count1, const basic_static_string& other, size_type off2, size_type count2 = npos) const noexcept
     {
         if (!_char_traits_priv::check_offset(size(), off1) || !_char_traits_priv::check_offset(other.size(), off2))
         {
@@ -1985,7 +2240,7 @@ public:
 
     //=========================================================================
 
-    int compare(const T* const s) const noexcept
+    constexpr int compare(const T* const s) const noexcept
     {
         const size_type s_len = static_cast<size_type>(traits_type::length(s));
         return _char_traits_priv::traits_compare<traits_type>(
@@ -1993,7 +2248,7 @@ public:
             s, s_len);
     }
 
-    int compare(size_type off, size_type count, const T* const s) const noexcept
+    constexpr int compare(size_type off, size_type count, const T* const s) const noexcept
     {
         if (!_char_traits_priv::check_offset(size(), off))
         {
@@ -2004,7 +2259,7 @@ public:
         return compare(off, count, s, s_len);
     }
 
-    int compare(size_type off, size_type count1, const T* const s, size_type count2) const noexcept
+    constexpr int compare(size_type off, size_type count1, const T* const s, size_type count2) const noexcept
     {
         if (!_char_traits_priv::check_offset(size(), off))
         {
@@ -2019,7 +2274,7 @@ public:
     //=========================================================================
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    int compare(const S& other) const noexcept
+    constexpr int compare(const S& other) const noexcept
     {
         return _char_traits_priv::traits_compare<traits_type>(
             m_data.ptr, m_data.size,
@@ -2027,7 +2282,7 @@ public:
     }
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    int compare(size_type off1, size_type count1, const S& other, size_type off2, size_type count2 = npos) const noexcept
+    constexpr int compare(size_type off1, size_type count1, const S& other, size_type off2, size_type count2 = npos) const noexcept
     {
         if (!_char_traits_priv::check_offset(size(), off1) || !_char_traits_priv::check_offset(other.size(), off2))
         {
@@ -2046,7 +2301,7 @@ public:
 //=========================================================================
 
 template <size_t N, typename T>
-basic_static_string<N, T> operator+(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs)
+constexpr basic_static_string<N, T> operator+(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs)
 {
     basic_static_string<N, T> result(lhs);
     return result.append(rhs);
@@ -2055,14 +2310,14 @@ basic_static_string<N, T> operator+(const basic_static_string<N, T>& lhs, const 
 //=========================================================================
 
 template <size_t N, typename T>
-basic_static_string<N, T> operator+(const basic_static_string<N, T>& lhs, const T rhs)
+constexpr basic_static_string<N, T> operator+(const basic_static_string<N, T>& lhs, const T rhs)
 {
     basic_static_string<N, T> result(lhs);
     return result.append(rhs);
 }
 
 template <size_t N, typename T>
-basic_static_string<N, T> operator+(const T lhs, const basic_static_string<N, T>& rhs)
+constexpr basic_static_string<N, T> operator+(const T lhs, const basic_static_string<N, T>& rhs)
 {
     basic_static_string<N, T> result(1, lhs);
     return result.append(rhs);
@@ -2071,14 +2326,14 @@ basic_static_string<N, T> operator+(const T lhs, const basic_static_string<N, T>
 //=========================================================================
 
 template <size_t N, typename T>
-basic_static_string<N, T> operator+(const basic_static_string<N, T>& lhs, const T* const rhs)
+constexpr basic_static_string<N, T> operator+(const basic_static_string<N, T>& lhs, const T* const rhs)
 {
     basic_static_string<N, T> result(lhs);
     return result.append(rhs);
 }
 
 template <size_t N, typename T>
-basic_static_string<N, T> operator+(const T* const lhs, const basic_static_string<N, T>& rhs)
+constexpr basic_static_string<N, T> operator+(const T* const lhs, const basic_static_string<N, T>& rhs)
 {
     basic_static_string<N, T> result(lhs);
     return result.append(rhs);
@@ -2089,109 +2344,109 @@ basic_static_string<N, T> operator+(const T* const lhs, const basic_static_strin
 //=========================================================================
 
 template <size_t N, typename T>
-bool operator==(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator==(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return lhs.compare(rhs) == 0;
 }
 
 template <size_t N, typename T>
-bool operator==(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+constexpr bool operator==(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
 {
     return lhs.compare(rhs) == 0;
 }
 
 template <size_t N, typename T>
-bool operator==(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator==(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return rhs.compare(lhs) == 0;
 }
 
 template <size_t N, typename T>
-bool operator!=(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator!=(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return lhs.compare(rhs) != 0;
 }
 
 template <size_t N, typename T>
-bool operator!=(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+constexpr bool operator!=(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
 {
     return lhs.compare(rhs) != 0;
 }
 
 template <size_t N, typename T>
-bool operator!=(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator!=(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return rhs.compare(lhs) != 0;
 }
 
 template <size_t N, typename T>
-bool operator<(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator<(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return lhs.compare(rhs) < 0;
 }
 
 template <size_t N, typename T>
-bool operator<(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+constexpr bool operator<(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
 {
     return lhs.compare(rhs) < 0;
 }
 
 template <size_t N, typename T>
-bool operator<(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator<(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return rhs.compare(lhs) > 0;
 }
 
 template <size_t N, typename T>
-bool operator>(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator>(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return lhs.compare(rhs) > 0;
 }
 
 template <size_t N, typename T>
-bool operator>(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+constexpr bool operator>(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
 {
     return lhs.compare(rhs) > 0;
 }
 
 template <size_t N, typename T>
-bool operator>(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator>(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return rhs.compare(lhs) < 0;
 }
 
 template <size_t N, typename T>
-bool operator<=(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator<=(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return lhs.compare(rhs) <= 0;
 }
 
 template <size_t N, typename T>
-bool operator<=(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+constexpr bool operator<=(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
 {
     return lhs.compare(rhs) <= 0;
 }
 
 template <size_t N, typename T>
-bool operator<=(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator<=(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return rhs.compare(lhs) >= 0;
 }
 
 template <size_t N, typename T>
-bool operator>=(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator>=(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return lhs.compare(rhs) >= 0;
 }
 
 template <size_t N, typename T>
-bool operator>=(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+constexpr bool operator>=(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
 {
     return lhs.compare(rhs) >= 0;
 }
 
 template <size_t N, typename T>
-bool operator>=(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+constexpr bool operator>=(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
 {
     return rhs.compare(lhs) <= 0;
 }

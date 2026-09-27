@@ -74,12 +74,6 @@ public:
     template <typename Allocator>
     constexpr basic_cstring_view(const str::basic_string<T, Allocator>& s) noexcept
         : m_view(s.c_str(), s.size())
-        : m_view(s.c_str(), s.size())
-    {}
-
-    template <typename Traits2, typename Allocator2>
-    constexpr basic_cstring_view(const std::basic_string<T, Traits2, Allocator2>& s) noexcept
-        : m_view(s.c_str(), s.size())
     {}
 
     constexpr basic_cstring_view(unsafe_t, const T* ptr, const size_type count) noexcept
@@ -88,37 +82,6 @@ public:
         VX_ASSERT(ptr);
         VX_ASSERT(ptr[count] == T());
     }
-
-    //=========================================================================
-    // conversion
-    //=========================================================================
-
-    constexpr operator basic_string_view<T>() const noexcept
-    {
-        return m_view;
-    }
-
-    template <typename Allocator>
-    operator str::basic_string<T, Allocator>() const
-    {
-        return std::basic_string<T, Allocator>(data(), size());
-    }
-
-    template <typename Traits2, typename Allocator2>
-    operator std::basic_string<T, Traits2, Allocator2>() const
-    {
-        return std::basic_string<T, Traits2, Allocator2>(data(), size());
-    }
-
-#if VX_HAVE_STD_STRING_VIEW
-
-    template <typename Traits2>
-    operator std::basic_string_view<T, Traits2>() const noexcept
-    {
-        return std::basic_string_view<T, Traits2>(data(), size());
-    }
-
-#endif // VX_HAVE_STD_STRING_VIEW
 
     //=========================================================================
     // element access
@@ -150,6 +113,12 @@ public:
     {
         VX_ASSERT(i < m_view.size());
         return m_view[i];
+    }
+
+    expected<const T&, error> at(size_type i) const noexcept
+    {
+        VX_RET_UNEXPECTED_ERR_IF(i >= m_view.size(), err::out_of_range);
+        return operator[](i);
     }
 
     //=========================================================================
