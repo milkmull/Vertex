@@ -32,6 +32,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/static_vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/singly_linked_list.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/doubly_linked_list.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bitset.hpp"
 
     # Strings
     "${CMAKE_CURRENT_SOURCE_DIR}/char_traits.hpp"
@@ -65,6 +66,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_tools/dynamic_array_base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_tools/pointer_iterator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_tools/invoke.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_tools/hash.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_simd/min_max.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_simd/simd_algorithms.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_string_convert/string_convert_common.hpp"

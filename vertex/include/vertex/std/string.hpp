@@ -3446,16 +3446,3 @@ struct hash<str::basic_string<T, Allocator>>
 };
 
 } // namespace vx
-
-namespace std {
-
-template <typename T, typename Allocator>
-struct hash<vx::str::basic_string<T, Allocator>>
-{
-    size_t operator()(const vx::str::basic_string<T, Allocator>& s) const noexcept
-    {
-        return vx::hash<vx::str::basic_string<T, Allocator>>{}(s);
-    }
-};
-
-} // namespace std
