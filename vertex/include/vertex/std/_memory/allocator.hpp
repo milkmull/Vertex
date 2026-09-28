@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory> // std::allocator_traits
+
 #include "vertex/std/_memory/memory_core.hpp"
 
 namespace vx {

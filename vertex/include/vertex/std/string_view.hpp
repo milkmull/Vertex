@@ -4,6 +4,7 @@
 
 #include "vertex/std/_tools/pointer_iterator.hpp"
 #include "vertex/std/char_traits.hpp"
+#include "vertex/std/expected.hpp"
 #include "vertex/std/string_traits.hpp"
 
 namespace vx {
@@ -149,7 +150,7 @@ public:
 
     expected<const T&, error> at(size_type i) const noexcept
     {
-        VX_RET_UNEXPECTED_ERR_IF(i >= m_view.size(), err::out_of_range);
+        VX_RET_UNEXPECTED_ERR_IF(i >= size(), err::out_of_range);
         return operator[](i);
     }
 

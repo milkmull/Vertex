@@ -9,6 +9,7 @@
 #include "vertex/std/_tools/invoke.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/expected.hpp"
+#include "vertex/std/iterator.hpp"
 #include "vertex/std/memory.hpp"
 #include "vertex/std/util.hpp"
 
@@ -546,7 +547,7 @@ public:
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         insert_op op(m_allocator());
-        const auto ok =op.append_n(count);
+        const auto ok = op.append_n(count);
         VX_VERIFY(ok);
         op.attach_after(m_data().before_head());
     }
@@ -679,14 +680,28 @@ public:
         return list;
     }
 
-    static expected<single_linked_list, error> create(single_linked_list&& other, const allocator_type& alloc = allocator_type()) noexcept
+    static expected<single_linked_list, error> create(single_linked_list&& other, const allocator_type& alloc = allocator_type())
     {
         single_linked_list list(uninitialized_tag{}, alloc);
+
+        VX_IF_CONSTEXPR (!mem::allocator_traits<allocator_type>::is_always_equal::value)
+        {
+            if (list.m_allocator() != other.m_allocator())
+            {
+                insert_op op(list.m_allocator());
+                const auto ok = op.append_range(vx::make_move_iterator(other.begin()), other.end());
+                VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+                op.attach_after(list.m_data().before_head());
+                return list;
+            }
+        }
+
         list.take_head(other);
         return list;
     }
 
-    static expected<single_linked_list, error> create(const_iterator first, const_iterator last, const allocator_type& alloc = allocator_type())
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    static expected<single_linked_list, error> create(IT first, IT last, const allocator_type& alloc = allocator_type())
     {
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
 
@@ -816,7 +831,9 @@ public:
     success assign(size_type count, const T& value)
     {
         clear();
-        return insert_after(before_begin(), count, value) != end();
+        const auto ok = insert_after(before_begin(), count, value);
+        VX_RET_ERR_IF(!ok, ok.error());
+        return success{};
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
@@ -831,11 +848,13 @@ public:
 
     reference front() noexcept
     {
+        VX_ASSERT(!empty());
         return m_data().head->value;
     }
 
     const_reference front() const noexcept
     {
+        VX_ASSERT(!empty());
         return m_data().head->value;
     }
 
@@ -1025,18 +1044,21 @@ public:
     iterator erase_after(const_iterator first, const_iterator last)
     {
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
         node_ptr keep_node = first.m_ptr;
-
-        for (;;)
+        if (keep_node != last.m_ptr)
         {
-            const node_ptr erase_node = keep_node->next;
-            if (erase_node == last.m_ptr)
+            for (;;)
             {
-                break;
-            }
+                const node_ptr erase_node = keep_node->next;
+                if (erase_node == last.m_ptr)
+                {
+                    break;
+                }
 
-            keep_node->next = erase_node->next;
-            node::free_node(m_allocator(), erase_node);
+                keep_node->next = erase_node->next;
+                node::free_node(m_allocator(), erase_node);
+            }
         }
 
         return iterator(last.m_ptr);
@@ -1166,6 +1188,8 @@ private:
     template <typename Pred>
     void merge_impl(single_linked_list& other, Pred pred)
     {
+        VX_ASSERT(m_allocator() == other.m_allocator());
+
         if (this == &other)
         {
             return;
@@ -1289,6 +1313,8 @@ private:
     // splice other (prev, prev + 2) after pos
     void splice_after_impl(node_ptr pos, single_linked_list& other, node_ptr prev) noexcept
     {
+        VX_ASSERT(m_allocator() == other.m_allocator());
+
         if (pos != prev)
         {
             const auto first_node = prev->next;
@@ -1306,6 +1332,8 @@ private:
     template <class _Sentinel>
     void splice_after_impl(const_iterator pos, single_linked_list& other, const_iterator first, _Sentinel last) noexcept
     {
+        VX_ASSERT(m_allocator() == other.m_allocator());
+
         if (first == last)
         {
             return;

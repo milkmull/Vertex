@@ -573,27 +573,27 @@ public:
     // element access
     //=========================================================================
 
-    expected<T&, error> front() noexcept
+    T& front() noexcept
     {
-        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
+        VX_ASSERT(!empty());
         return *m_data().ptr;
     }
 
-    expected<const T&, error> front() const noexcept
+    const T& front() const noexcept
     {
-        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
+        VX_ASSERT(!empty());
         return *m_data().ptr;
     }
 
-    expected<T&, error> back() noexcept
+    T& back() noexcept
     {
-        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
+        VX_ASSERT(!empty());
         return m_data().ptr[m_data().size - 1];
     }
 
-    expected<const T&, error> back() const noexcept
+    const T& back() const noexcept
     {
-        VX_RET_UNEXPECTED_ERR_IF(empty(), err::out_of_range);
+        VX_ASSERT(!empty());
         return m_data().ptr[m_data().size - 1];
     }
 
