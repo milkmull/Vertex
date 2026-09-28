@@ -9,6 +9,8 @@ namespace vx {
 // weak_ptr
 //=========================================================================
 
+#if VX_STD_WEAK_PTR_ENABLED
+
 template <typename T>
 class weak_ptr
 {
@@ -161,5 +163,7 @@ inline void swap(weak_ptr<T>& lhs, weak_ptr<T>& rhs) noexcept
 {
     lhs.swap(rhs);
 }
+
+#endif // VX_STD_WEAK_PTR_ENABLED
 
 } // namespace vx

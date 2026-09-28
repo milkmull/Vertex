@@ -7,10 +7,20 @@
 #include "vertex/std/expected.hpp"
 #include "vertex/std/memory.hpp"
 
+#if !defined(VX_STD_DISABLE_WEAK_PTR)
+    #define VX_STD_DISABLE_WEAK_PTR 0
+#endif
+
+#define VX_STD_WEAK_PTR_ENABLED (!VX_STD_DISABLE_WEAK_PTR)
+
 namespace vx {
+
+#if VX_STD_WEAK_PTR_ENABLED
 
 template <typename T>
 class weak_ptr;
+
+#endif // VX_STD_WEAK_PTR_ENABLED
 
 template <typename T>
 class shared_ptr;
@@ -24,22 +34,15 @@ namespace _shared_ptr_priv {
 // control block base
 //=========================================================================
 
-// Holds the strong and weak reference counts shared by shared_ptr and
-// weak_ptr.
-//
-// Invariant (classic shared_ptr scheme): the "strong" group of
-// references itself holds exactly one implicit "weak" reference. That
-// is why both counters start at 1: as soon as the last strong ref goes
-// away, the managed object is destroyed and the implicit weak ref is
-// released too. The control block's own storage is only freed once the
-// weak count also reaches 0, i.e. once every shared_ptr AND every
-// weak_ptr observing it are gone.
 class sp_counter_base
 {
 public:
 
     sp_counter_base() noexcept
-        : m_strong(1), m_weak(1)
+        : m_strong(1)
+#if VX_STD_WEAK_PTR_ENABLED
+        , m_weak(1)
+#endif // VX_STD_WEAK_PTR_ENABLED
     {
     }
 
@@ -52,6 +55,8 @@ public:
     {
         m_strong.fetch_add(1, os::memory_order_relaxed);
     }
+
+#if VX_STD_WEAK_PTR_ENABLED
 
     // Attempts to add a strong reference, but only if the object is
     // still alive (strong count != 0). Used by weak_ptr::lock(), which
@@ -74,14 +79,24 @@ public:
         return false;
     }
 
+#endif // VX_STD_WEAK_PTR_ENABLED
+
     void dec_strong() noexcept
     {
         if (m_strong.fetch_sub(1, os::memory_order_acq_rel) == 1)
         {
             destroy_object();
+#if VX_STD_WEAK_PTR_ENABLED
             dec_weak();
+#else
+            // No weak count to release: the control block's storage
+            // can be freed immediately.
+            destroy_this();
+#endif // VX_STD_WEAK_PTR_ENABLED
         }
     }
+
+#if VX_STD_WEAK_PTR_ENABLED
 
     void inc_weak() noexcept
     {
@@ -96,6 +111,8 @@ public:
         }
     }
 
+#endif // VX_STD_WEAK_PTR_ENABLED
+
     size_t use_count() const noexcept
     {
         return m_strong.load(os::memory_order_relaxed);
@@ -107,15 +124,17 @@ protected:
     // count reaches 0. Must NOT free the control block's own storage.
     virtual void destroy_object() noexcept = 0;
 
-    // Frees the control block's own storage. Called exactly once, when
-    // the weak count reaches 0 (which can only happen after the strong
-    // count already reached 0).
+    // Frees the control block's own storage. Called exactly once: right
+    // after destroy_object() if weak_ptr support is disabled, or once
+    // the weak count also reaches 0 if it's enabled.
     virtual void destroy_this() noexcept = 0;
 
 private:
 
     os::atomic<size_t> m_strong;
+#if VX_STD_WEAK_PTR_ENABLED
     os::atomic<size_t> m_weak;
+#endif // VX_STD_WEAK_PTR_ENABLED
 };
 
 //=========================================================================
@@ -224,8 +243,12 @@ private:
     template <typename U>
     friend class shared_ptr;
 
+#if VX_STD_WEAK_PTR_ENABLED
+
     template <typename U>
     friend class weak_ptr;
+
+#endif // VX_STD_WEAK_PTR_ENABLED
 
     template <typename U, typename... Args>
     friend expected<shared_ptr<U>, error> make_shared(Args&&... args) noexcept;

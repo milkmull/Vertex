@@ -181,7 +181,7 @@ public:
     // element access
     //=========================================================================
 
-    constexpr const_reference front() const noexcept
+    constexpr expected<const_reference, error> front() const noexcept
     {
         VX_ASSERT(size() > 0);
         return m_data.data[0];
@@ -203,6 +203,12 @@ public:
     {
         VX_ASSERT(i < size());
         return m_data.data[i];
+    }
+
+    constexpr expected<const_reference, error> at(const size_type i) const noexcept
+    {
+        VX_RET_UNEXPECTED_ERR_IF(i >= size(), err::out_of_range);
+        return operator[](i);
     }
 
     //=========================================================================
