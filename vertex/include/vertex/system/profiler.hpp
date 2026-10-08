@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vertex/util/time/timer.hpp"
 #include "vertex/std/io.hpp"
+#include "vertex/std/time/timer.hpp"
 
 namespace vx {
 namespace profile {
@@ -37,8 +37,8 @@ VX_API bool is_enabled();
 struct result
 {
     std::string name;
-    time::time_point start;
-    time::time_point elapsed_time;
+    time::duration start;
+    time::duration elapsed_time;
 };
 
 /**
@@ -69,10 +69,10 @@ public:
 
     void stop()
     {
-        if (m_timer.running())
+        if (m_timer.is_running())
         {
             m_timer.stop();
-            record({ m_name, m_timer.start_time(), m_timer.elapsed_time() });
+            record({ m_name, m_timer.start_ticks(), m_timer.elapsed_stopped() });
         }
     }
 

@@ -1,8 +1,8 @@
 #include "vertex_impl/os/_platform/windows/windows_process.hpp"
-#include "vertex_impl/os/_platform/windows/windows_file.hpp"
-#include "vertex/util/string/string.hpp"
-#include "vertex/system/error.hpp"
+#include "vertex/std/file.hpp"
 #include "vertex/system/assert.hpp"
+#include "vertex/system/error.hpp"
+#include "vertex/util/string/string.hpp"
 
 namespace vx {
 namespace os {
@@ -42,8 +42,7 @@ static bool is_batch_file_path(const std::string& arg)
         return false;
     }
 
-    return (arg.compare(size - 3, 3, "bat") == 0 || arg.compare(size - 3, 3, "BAT") == 0)
-        || (arg.compare(size - 3, 3, "cmd") == 0 || arg.compare(size - 3, 3, "CMD") == 0);
+    return (arg.compare(size - 3, 3, "bat") == 0 || arg.compare(size - 3, 3, "BAT") == 0) || (arg.compare(size - 3, 3, "cmd") == 0 || arg.compare(size - 3, 3, "CMD") == 0);
 }
 
 static std::string join_arguments(const std::vector<std::string>& args)
@@ -180,41 +179,46 @@ bool process::process_impl::start(process* p, const config& config)
         HANDLE pipes[2];
         file* redirect;
 
-        HANDLE& read_pipe() noexcept { return pipes[read_pipe_index]; }
-        HANDLE& write_pipe() noexcept { return pipes[write_pipe_index]; }
+        HANDLE& read_pipe() noexcept
+        { return pipes[read_pipe_index]; }
+        HANDLE& write_pipe() noexcept
+        { return pipes[write_pipe_index]; }
 
-        int user_pipe_index() const noexcept { return (type == STD_INPUT_HANDLE) ? write_pipe_index : read_pipe_index; }
-        int proc_pipe_index() const noexcept { return (type == STD_INPUT_HANDLE) ? read_pipe_index : write_pipe_index; }
+        int user_pipe_index() const noexcept
+        { return (type == STD_INPUT_HANDLE) ? write_pipe_index : read_pipe_index; }
+        int proc_pipe_index() const noexcept
+        { return (type == STD_INPUT_HANDLE) ? read_pipe_index : write_pipe_index; }
 
-        HANDLE& user_pipe() noexcept { return pipes[user_pipe_index()]; }
-        HANDLE& proc_pipe() noexcept { return pipes[proc_pipe_index()]; }
+        HANDLE& user_pipe() noexcept
+        { return pipes[user_pipe_index()]; }
+        HANDLE& proc_pipe() noexcept
+        { return pipes[proc_pipe_index()]; }
 
-        file::mode user_file_mode() const noexcept { return (type == STD_INPUT_HANDLE) ? file::mode::write : file::mode::read; }
-        file::mode proc_file_mode() const noexcept { return (type == STD_INPUT_HANDLE) ? file::mode::read : file::mode::write; }
+        typename file::mode::enum_type user_file_mode() const noexcept
+        { return (type == STD_INPUT_HANDLE) ? file::mode::write : file::mode::read; }
+        typename file::mode::enum_type proc_file_mode() const noexcept
+        { return (type == STD_INPUT_HANDLE) ? file::mode::read : file::mode::write; }
     };
 
     stream_data streams[stream_count] = {
         // stdin
-        { 
-            STD_INPUT_HANDLE,
-            config.stdin_option,
-            { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE },
-            config.stdin_redirect
-        },
+        {
+         STD_INPUT_HANDLE,
+         config.stdin_option,
+         { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE },
+         config.stdin_redirect  },
         // stdout
         {
-            STD_OUTPUT_HANDLE,
-            config.stdout_option,
-            { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE },
-            config.stdout_redirect
-        },
+         STD_OUTPUT_HANDLE,
+         config.stdout_option,
+         { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE },
+         config.stdout_redirect },
         // stderr
         {
-            STD_ERROR_HANDLE,
-            config.stderr_option,
-            { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE },
-            config.stderr_redirect
-        }
+         STD_ERROR_HANDLE,
+         config.stderr_option,
+         { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE },
+         config.stderr_redirect }
     };
 
     for (int i = 0; i < stream_count; ++i)
@@ -239,8 +243,7 @@ bool process::process_impl::start(process* p, const config& config)
                     &security_attributes,
                     OPEN_EXISTING,
                     0,
-                    NULL
-                );
+                    NULL);
 
                 if (h == INVALID_HANDLE_VALUE)
                 {
@@ -291,13 +294,13 @@ bool process::process_impl::start(process* p, const config& config)
                 }
 
                 if (!::DuplicateHandle(
-                    ::GetCurrentProcess(),
-                    _priv::file_impl::get_native_handle(*stream.redirect),
-                    ::GetCurrentProcess(),
-                    &stream.proc_pipe(),
-                    0,
-                    TRUE,
-                    DUPLICATE_SAME_ACCESS))
+                        ::GetCurrentProcess(),
+                        stream.redirect->get_native_handle(),
+                        ::GetCurrentProcess(),
+                        &stream.proc_pipe(),
+                        0,
+                        TRUE,
+                        DUPLICATE_SAME_ACCESS))
                 {
                     stream.proc_pipe() = INVALID_HANDLE_VALUE;
                     err::set_last_os_error("DuplicateHandle");
@@ -307,7 +310,7 @@ bool process::process_impl::start(process* p, const config& config)
                 if (::GetFileType(stream.proc_pipe()) == FILE_TYPE_PIPE)
                 {
                     // PIPE_WAIT ensures that read and write operations on the named pipe are blocking.
-                    // This means the process will wait (instead of returning immediately) 
+                    // This means the process will wait (instead of returning immediately)
                     // until data is available for reading or until a write operation completes.
 
                     DWORD wait_mode = PIPE_WAIT;
@@ -325,13 +328,13 @@ bool process::process_impl::start(process* p, const config& config)
             {
                 // Duplicate the handle from the parent process
                 if (!::DuplicateHandle(
-                    ::GetCurrentProcess(),
-                    ::GetStdHandle(stream.type),
-                    ::GetCurrentProcess(),
-                    &stream.proc_pipe(),
-                    0,
-                    TRUE,
-                    DUPLICATE_SAME_ACCESS))
+                        ::GetCurrentProcess(),
+                        ::GetStdHandle(stream.type),
+                        ::GetCurrentProcess(),
+                        &stream.proc_pipe(),
+                        0,
+                        TRUE,
+                        DUPLICATE_SAME_ACCESS))
                 {
                     stream.proc_pipe() = INVALID_HANDLE_VALUE;
                     err::set_last_os_error("DuplicateHandle");
@@ -344,21 +347,21 @@ bool process::process_impl::start(process* p, const config& config)
     }
 
     // Assign the handles to the STARTUPINFO structure
-    startup_info.hStdInput  = streams[stdin_index ].proc_pipe();
+    startup_info.hStdInput = streams[stdin_index].proc_pipe();
     startup_info.hStdOutput = streams[stdout_index].proc_pipe();
-    startup_info.hStdError  = streams[stderr_index].proc_pipe();
+    startup_info.hStdError = streams[stderr_index].proc_pipe();
 
     if (!::CreateProcessW(
-        NULL,                       // Executable path (null if using command line args)
-        command_line,               // Command line arguments
-        NULL,                       // Process attributes
-        NULL,                       // Thread attributes
-        TRUE,                       // Inherit handles
-        creation_flags,             // Process creation flags
-        environment,                // Environment variables (null if inheriting)
-        working_directory,          // Current directory (null if default)
-        &startup_info,              // Startup information (with redirected stdin/stdout/stderr)
-        &m_process_information))    // Process information
+            NULL,                    // Executable path (null if using command line args)
+            command_line,            // Command line arguments
+            NULL,                    // Process attributes
+            NULL,                    // Thread attributes
+            TRUE,                    // Inherit handles
+            creation_flags,          // Process creation flags
+            environment,             // Environment variables (null if inheriting)
+            working_directory,       // Current directory (null if default)
+            &startup_info,           // Startup information (with redirected stdin/stdout/stderr)
+            &m_process_information)) // Process information
     {
         err::set_last_os_error("CreateProcess");
         goto cleanup;
@@ -370,10 +373,9 @@ bool process::process_impl::start(process* p, const config& config)
         if (streams[i].option == io_option::create)
         {
             // Create file object from handle for the corresponding stream
-            p->m_streams[i] = _priv::file_impl::from_native_handle(
+            p->m_streams[i] = file::from_native_handle(
                 streams[i].user_pipe(),
-                streams[i].user_file_mode()
-            );
+                streams[i].user_file_mode());
 
             if (!p->m_streams[i].is_open())
             {
@@ -384,31 +386,31 @@ bool process::process_impl::start(process* p, const config& config)
 
     success = true;
 
-    cleanup:
+cleanup:
+{
+    for (stream_data& s : streams)
     {
-        for (stream_data& s : streams)
+        // Only close proc_pipe() if:
+        // - It was created (CREATE or NONE), not redirected or inherited
+        // - We succeeded and the child has inherited it already
+        // - OR we failed to create the process, in which case everything must be cleaned up
+        const bool created_pipe = (s.option == io_option::create || s.option == io_option::none);
+
+        if (s.proc_pipe() != INVALID_HANDLE_VALUE)
         {
-            // Only close proc_pipe() if:
-            // - It was created (CREATE or NONE), not redirected or inherited
-            // - We succeeded and the child has inherited it already
-            // - OR we failed to create the process, in which case everything must be cleaned up
-            const bool created_pipe = (s.option == io_option::create || s.option == io_option::none);
-
-            if (s.proc_pipe() != INVALID_HANDLE_VALUE)
+            if (!success || created_pipe)
             {
-                if (!success || created_pipe)
-                {
-                    ::CloseHandle(s.proc_pipe());
-                }
-            }
-
-            // If we failed, we also need to close user_pipe (the parent-facing end of the pipe)
-            if (!success && s.user_pipe() != INVALID_HANDLE_VALUE)
-            {
-                ::CloseHandle(s.user_pipe());
+                ::CloseHandle(s.proc_pipe());
             }
         }
+
+        // If we failed, we also need to close user_pipe (the parent-facing end of the pipe)
+        if (!success && s.user_pipe() != INVALID_HANDLE_VALUE)
+        {
+            ::CloseHandle(s.user_pipe());
+        }
     }
+}
 
     return success;
 }
@@ -416,8 +418,7 @@ bool process::process_impl::start(process* p, const config& config)
 process::id process::process_impl::get_pid() const
 {
     return static_cast<id>(
-        is_valid() ? m_process_information.dwProcessId : 0
-    );
+        is_valid() ? m_process_information.dwProcessId : 0);
 }
 
 bool process::process_impl::is_valid() const
@@ -447,8 +448,7 @@ bool process::process_impl::is_complete() const
 
     const DWORD result = ::WaitForSingleObject(
         m_process_information.hProcess,
-        0
-    );
+        0);
 
     if (result == WAIT_FAILED)
     {
@@ -465,8 +465,7 @@ bool process::process_impl::join()
 
     const DWORD result = ::WaitForSingleObject(
         m_process_information.hProcess,
-        INFINITE
-    );
+        INFINITE);
 
     if (result == WAIT_FAILED)
     {
@@ -540,8 +539,7 @@ process::environment this_process::get_environment_impl()
 
             environment.emplace(
                 str::string_cast<char>(wname),
-                str::string_cast<char>(wvalue)
-            );
+                str::string_cast<char>(wvalue));
         }
 
         current += entry.size() + 1;
@@ -593,21 +591,20 @@ static io_stream get_stream_handle(DWORD nStdHandle)
 
     // Duplicate the handle from the parent process
     if (!::DuplicateHandle(
-        ::GetCurrentProcess(),
-        ::GetStdHandle(nStdHandle),
-        ::GetCurrentProcess(),
-        &h,
-        0,
-        TRUE,
-        DUPLICATE_SAME_ACCESS))
+            ::GetCurrentProcess(),
+            ::GetStdHandle(nStdHandle),
+            ::GetCurrentProcess(),
+            &h,
+            0,
+            TRUE,
+            DUPLICATE_SAME_ACCESS))
     {
         err::set_last_os_error("DuplicateHandle");
     }
 
-    return _priv::file_impl::from_native_handle(
+    return file::from_native_handle(
         h,
-        (nStdHandle == STD_INPUT_HANDLE) ? io_stream::mode::read : io_stream::mode::write
-    );
+        (nStdHandle == STD_INPUT_HANDLE) ? io_stream::mode::read : io_stream::mode::write);
 }
 
 io_stream this_process::get_stdin_impl()

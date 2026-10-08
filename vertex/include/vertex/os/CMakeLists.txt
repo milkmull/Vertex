@@ -8,7 +8,6 @@ file(GLOB VX_OS_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/error_type.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/error.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/io.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/filesystem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/locale.hpp"

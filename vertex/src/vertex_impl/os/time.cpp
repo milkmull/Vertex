@@ -6,29 +6,25 @@
 
 namespace vx {
 
-///////////////////////////////////////////////////////////////////////////////
-// Time
-///////////////////////////////////////////////////////////////////////////////
-
-time::datetime time::time_point::to_datetime(bool local) const
+expected<time::datetime, error> time::time_point::to_datetime(bool local) const
 {
-    return os::time_point_to_datetime_impl(*this, local);
+    return os::time_to_datetime_impl(*this, local);
 }
 
 namespace os {
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // Current Time
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 time::time_point system_time()
 {
     return system_time_impl();
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // Ticks
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 static inline uint32_t calculate_gcd(uint32_t a, uint32_t b)
 {
@@ -61,7 +57,7 @@ struct ticks_data
     }
 };
 
-time::time_point get_ticks()
+time::duration get_ticks()
 {
     // initialize on first call
     static const ticks_data s_ticks_data{};
@@ -85,38 +81,38 @@ int64_t get_performance_frequency()
     return get_performance_frequency_impl();
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // Sleep
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
-void sleep(const time::time_point& t)
+void sleep(const time::duration& d)
 {
-    sleep_impl(t);
+    sleep_impl(d);
 }
 
 // https://github.com/libsdl-org/SDL/blob/main/src/timer/SDL_timer.c#L664
 
-void sleep_precise(const time::time_point& t)
+void sleep_precise(const time::duration& d)
 {
-    time::time_point current = get_ticks();
-    const time::time_point target = current + t;
+    time::duration current = get_ticks();
+    const time::duration target = current + d;
 
     // Sleep for a short number of cycles when real sleeps are desired.
     // We'll use 1 ms, it's the minimum guaranteed to produce real sleeps across
     // all platforms.
-    constexpr time::time_point short_sleep = time::milliseconds(1);
+    constexpr time::duration short_sleep = time::milliseconds(1);
 
     // Sleep in small segments until we get near the target.
     // While doing this, record the largest amount the system actually slept,
     // since real sleep calls often overshoot their requested interval.
-    time::time_point max_sleep = short_sleep;
+    time::duration max_sleep = short_sleep;
     while (current + max_sleep < target)
     {
         // Sleep for a short time
         sleep(short_sleep);
 
-        const time::time_point now = get_ticks();
-        const time::time_point next_sleep = (now - current);
+        const time::duration now = get_ticks();
+        const time::duration next_sleep = (now - current);
 
         // If the sleep call took longer than requested, remember that.
         // It tells us how much the OS tends to overshoot, which we can use later.
@@ -133,7 +129,7 @@ void sleep_precise(const time::time_point& t)
     // This helps reach the target without jumping past it due to sleep inaccuracy.
     if (current < target && (target - current) > (max_sleep - short_sleep))
     {
-        const time::time_point delay = (target - current) - (max_sleep - short_sleep);
+        const time::duration delay = (target - current) - (max_sleep - short_sleep);
         sleep(delay);
         current = get_ticks();
     }

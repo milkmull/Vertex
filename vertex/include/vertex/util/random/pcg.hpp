@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/util/bit.hpp"
+#include "vertex/std/bit.hpp"
 
 namespace vx {
 namespace random {

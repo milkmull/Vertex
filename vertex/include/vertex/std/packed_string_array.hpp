@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vertex/std/error.hpp"
+#include "vertex/std/expected.hpp"
 #include "vertex/std/math/checked_arithmetic.hpp"
 #include "vertex/std/memory.hpp"
 #include "vertex/std/string_utils.hpp"
@@ -44,6 +46,15 @@ private:
         return m_storage.allocator();
     }
 
+    // Tag-dispatched constructor used internally by create() so the caller-supplied
+    // allocator is actually threaded into the object before any allocation happens.
+    struct uninitialized_tag
+    {};
+
+    explicit packed_string_array(uninitialized_tag, const allocator_type& alloc) noexcept
+        : m_storage(alloc)
+    {}
+
 public:
 
     packed_string_array() noexcept = default;
@@ -78,7 +89,7 @@ public:
         return *this;
     }
 
-    VX_NO_DISCARD static packed_string_array create(
+    VX_NO_DISCARD static expected<packed_string_array, error> create(
         const C* const* src,
         const size_t count,
         const allocator_type& alloc = allocator_type())
@@ -86,7 +97,8 @@ public:
         VX_ASSERT(src);
         VX_ASSERT(count);
 
-        packed_string_array result;
+        // alloc is now stored in result from construction, not lost.
+        packed_string_array result(uninitialized_tag{}, alloc);
 
         size_t pointer_count;
         size_t pointer_bytes;
@@ -112,8 +124,7 @@ public:
         if (!math::checked_add(count, size_t(1), pointer_count) ||
             !math::checked_mul(pointer_count, sizeof(array_type), pointer_bytes))
         {
-            err::set(err::size_error);
-            return result;
+            return vx::unexpected(err::size_error);
         }
 
         for (size_t i = 0; i < count; ++i)
@@ -128,8 +139,7 @@ public:
                 !math::checked_mul(length, sizeof(C), bytes) ||
                 !math::checked_add(string_bytes, bytes, new_string_bytes))
             {
-                err::set(err::size_error);
-                return result;
+                return vx::unexpected(err::size_error);
             }
 
             string_bytes = new_string_bytes;
@@ -137,8 +147,7 @@ public:
 
         if (!math::checked_add(pointer_bytes, string_bytes, total_bytes))
         {
-            err::set(err::size_error);
-            return result;
+            return vx::unexpected(err::size_error);
         }
 
 #endif // VX_PACKED_STRING_ARRAY_DISABLE_MAX_SIZE_CHECKS
@@ -149,7 +158,7 @@ public:
         typename allocator_type::value_type* memory = result.allocator().allocate(total_bytes);
         if (!memory)
         {
-            return result;
+            return vx::unexpected(err::out_of_memory);
         }
 
         auto** table = reinterpret_cast<array_type>(memory);

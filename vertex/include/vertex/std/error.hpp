@@ -51,9 +51,11 @@ enum code : error_type
     out_of_memory, // Insufficient memory for requested operation
     size_error,    // Inappropriate or invalid size for an operation
 
-    // Data validation and argument errors
+    // Arguments
     invalid_data,           // Data provided is invalid or corrupted
     invalid_argument,       // Provided argument is invalid or inappropriate for the function
+
+    // Unsupported operations
     unsupported_format,     // Format of input or output is not supported
     unsupported_conversion, // Attempted conversion between incompatible types
     unsupported_operation,  // Operation requested is unsupported or not implemented
@@ -61,17 +63,10 @@ enum code : error_type
     // Resource-related errors
     resource_not_found,      // Resource, such as a file or database entry, could not be found
     resource_already_exists, // Resource already exists, e.g., trying to create a file that already exists
+    permission_denied,
 
-    // File operation errors
-    file_operation_failed, // General file operation failure
-    file_open_failed,      // Failed to open the specified file
-    file_read_failed,      // Error occurred while reading from a file
-    file_write_failed,     // Error occurred while writing to a file
-
-    // File-specific conditions
-    file_no_permission, // Lack of permission to perform a file operation
-    file_in_use,        // File is currently in use and cannot be accessed
-    file_corrupt,       // File is corrupted or unreadable
+    // io errors
+    eof, // End of input reached; no more data is available
 
     // Platform-specific error
     system_error // Error specific to the platform, e.g., system-level failures
@@ -101,21 +96,16 @@ constexpr const char* code_to_string(code c) noexcept
 
         "invalid data",           // invalid_data
         "invalid argument",       // invalid_argument
+
         "unsupported format",     // unsupported_format
         "unsupported conversion", // unsupported_conversion
         "unsupported operation",  // unsupported_operation
 
         "resource not found",      // resource_not_found
         "resource already exists", // resource_already_exists
+        "permission denied",       // permission_denied
 
-        "file operation failed", // file_operation_failed
-        "file open failed",      // file_open_failed
-        "file read failed",      // file_read_failed
-        "file write failed",     // file_write_failed
-
-        "file no permission", // file_no_permission
-        "file in use",        // file_in_use
-        "file corrupt",       // file_corrupt
+        "eof", // eof
 
         "system error" // system_error
     };
@@ -518,7 +508,7 @@ VX_NO_RETURN inline void unreachable() noexcept
 //========================================
 
 #define VX_UNSUPPORTED(op) \
-    ::vx::err::set_error(err::unsupported_operation, op " is not a supported operation")
+    ::vx::err::set(::vx::err::unsupported_operation, op " is not a supported operation")
 
 } // namespace err
 

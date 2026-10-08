@@ -1,10 +1,12 @@
-#include <sstream>
 #include <iomanip>
 #include <memory>
+#include <sstream>
 
-#include "vertex/system/profiler.hpp"
-#include "vertex/os/file.hpp"
 #include "vertex/os/mutex.hpp"
+#include "vertex/os/time.hpp"
+#include "vertex/std/file.hpp"
+#include "vertex/os/filesystem.hpp"
+#include "vertex/system/profiler.hpp"
 
 namespace vx {
 namespace profile {
@@ -13,8 +15,10 @@ class profiler
 {
 public:
 
-    profiler() {}
-    ~profiler() { stop(); }
+    profiler()
+    {}
+    ~profiler()
+    { stop(); }
 
 public:
 
@@ -22,8 +26,8 @@ public:
     {
         stop();
 
-        const bool exists = os::file::exists(output_file);
-        const auto mode = clear_file ? os::file::mode::write : os::file::mode::append;
+        const bool exists = os::file_exists(output_file);
+        const auto mode = clear_file ? file::mode::write : file::mode::append;
         m_file.open(output_file, mode);
 
         if (m_file.is_open() && (clear_file || !exists))
@@ -89,14 +93,15 @@ public:
 
 private:
 
-    os::file m_file;
+    file m_file;
 };
 
 class profiler_wrapper
 {
 public:
 
-    profiler_wrapper() : m_profiler(std::make_unique<profiler>()) {}
+    profiler_wrapper() : m_profiler(std::make_unique<profiler>())
+    {}
 
 public:
 
@@ -152,5 +157,5 @@ void record(const result& r)
     s_profiler.record(r);
 }
 
-}
-}
+} // namespace profile
+} // namespace vx

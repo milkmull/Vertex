@@ -5,9 +5,10 @@
 
 #include "vertex/config/feature_detection.hpp"
 #include "vertex/config/type_traits.hpp"
-#include "vertex/std/_simd/simd_algorithms.hpp"
-#include "vertex/std/crypto/fnv1a.hpp"
 #include "vertex/std/_memory/memory_base.hpp"
+#include "vertex/std/_simd/simd_algorithms.hpp"
+#include "vertex/std/algorithm.hpp"
+#include "vertex/std/crypto/fnv1a.hpp"
 
 namespace vx {
 namespace str {
@@ -1538,14 +1539,24 @@ constexpr void move_batch(T* const first1, const U* const first2, const size_t c
 
 //=========================================================================
 
-constexpr size_t clamp_suffix_size(const size_t size, const size_t off, const size_t count) noexcept
+template <typename size_type>
+constexpr size_type clamp_suffix_size(const size_type size, const size_type off, const size_type count) noexcept
 {
     return vx::min(count, size - off);
 }
 
-constexpr bool check_offset(const size_t size, const size_t off) noexcept
+template <typename size_type>
+constexpr bool check_offset(const size_type size, const size_type off) noexcept
 {
     return (off <= size);
+}
+
+// Offsets past the end behave as an empty range at the end, matching
+// substr/copy/view, which return empty on a bad offset.
+template <typename size_type>
+constexpr size_type clamp_offset(size_type size, size_type off) noexcept
+{
+    return off > size ? size : off;
 }
 
 } // namespace _char_traits_priv

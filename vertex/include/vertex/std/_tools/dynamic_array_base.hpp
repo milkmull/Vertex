@@ -89,9 +89,11 @@ constexpr bool contig_ptr_outside_range(P1 addr, P2 begin, P3 end) noexcept
     return addr < begin || addr >= end;
 }
 
-// Used by insert/assign: true if [first,last) could alias *this.
+// True if [first,last) overlaps the container's live range [begin, end).
+// An empty range never overlaps anything. This is NOT a containment check;
+// use assert_contig_contained_range for that.
 template <typename C, typename IT1, typename IT2>
-constexpr bool assert_contig_self_range(const C& container, const IT1& first, const IT2& last)
+constexpr bool assert_contig_overlaps_self(const C& container, const IT1& first, const IT2& last)
 {
     using T = typename C::value_type;
 
@@ -117,7 +119,9 @@ constexpr bool assert_contig_self_range(const C& container, const IT1& first, co
     }
 }
 
-// Used by erase: true if [first,last) is a valid sub-range of *this.
+// True if [first,last) is a valid sub-range of the container's live range,
+// including the empty range at any position in [begin, end].
+// Used by erase and replace, where [first,last) is the target range.
 template <typename C, typename IT1, typename IT2>
 constexpr bool assert_contig_contained_range(const C& container, const IT1& first, const IT2& last)
 {
@@ -198,11 +202,8 @@ constexpr bool assert_not_aliasing_element_pack(const C& container, const Arg& v
 
 //=========================================================================
 
-#define VX_PRIV_ASSERT_CONTIG_SELF_RANGE(first, last) \
-    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_contig_self_range(*this, (first), (last)))
-
 #define VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last) \
-    VX_ASSERT(!::vx::_dynamic_array_base_priv::assert_contig_self_range(*this, (first), (last)))
+    VX_ASSERT(!::vx::_dynamic_array_base_priv::assert_contig_overlaps_self(*this, (first), (last)))
 
 #define VX_PRIV_ASSERT_CONTIG_CONTAINED_RANGE(first, last) \
     VX_ASSERT(::vx::_dynamic_array_base_priv::assert_contig_contained_range(*this, (first), (last)))

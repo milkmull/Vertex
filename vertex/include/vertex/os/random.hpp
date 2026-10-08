@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/std/error.hpp"
 
 namespace vx {
 namespace os {
@@ -21,7 +22,7 @@ namespace os {
  * @note The implementation may vary depending on the operating system, using platform-specific
  * methods to collect entropy.
  */
-VX_API bool get_entropy(uint8_t* bytes, size_t count);
+VX_API success get_entropy(uint8_t* bytes, size_t count);
 
 } // namespace os
 } // namespace vx

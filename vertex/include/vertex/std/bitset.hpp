@@ -1,11 +1,14 @@
 #pragma once
 
-#include <bitset>
+#include <climits>
+#include <cstddef>
+#include <type_traits>
 
 #include "vertex/config/assert.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/crypto/fnv1a.hpp"
 #include "vertex/std/expected.hpp"
+#include "vertex/std/bit.hpp"
 
 namespace vx {
 
@@ -15,23 +18,36 @@ struct hash;
 template <size_t N>
 class bitset
 {
-private:
 
     //=========================================================================
     // member types
     //=========================================================================
 
-    friend hash<bitset<N>>;
-
-    using T = typename std::conditional<N <= sizeof(unsigned long) * CHAR_BIT, unsigned long, unsigned long long>::type;
+public:
 
     static constexpr size_t bits = N;
-    static constexpr size_t bits_per_word = sizeof(T) * CHAR_BIT;
-    static constexpr size_t words = (bits == 0) ? 0 : (bits - 1) / bits_per_word;
+    using word_type = typename std::conditional<bits <= sizeof(unsigned long) * CHAR_BIT, unsigned long, unsigned long long>::type;
 
-    static constexpr bool need_mask = (bits != 0) && (bits % bits_per_word != 0);
-    static constexpr unsigned long long mask = 1ull << (need_mask ? bits % bits_per_word : 0) - 1ull;
-    static constexpr T native_mask = static_cast<T>(mask);
+    // public values are signed
+    static constexpr ptrdiff_t bits_per_word = static_cast<ptrdiff_t>(sizeof(word_type) * CHAR_BIT);
+    static constexpr ptrdiff_t word_count = (bits == 0) ? 0 : static_cast<ptrdiff_t>((bits - 1) / (sizeof(word_type) * CHAR_BIT)); // index of the last word (number of words - 1)
+
+private:
+
+    friend hash<bitset<bits>>;
+
+    // unsigned twins for internal bit arithmetic
+    static constexpr size_t ubits_per_word = static_cast<size_t>(bits_per_word);
+    static constexpr size_t uword_count = static_cast<size_t>(word_count);
+
+    // mask for the last word (padding bits)
+    static constexpr bool need_mask = (bits != 0) && (bits % ubits_per_word != 0);
+    static constexpr unsigned long long mask = (1ull << (need_mask ? bits % ubits_per_word : 0)) - 1ull;
+    static constexpr word_type native_mask = static_cast<word_type>(mask);
+
+    // mask for the value constructor (only relevant when everything fits in one ull)
+    static constexpr bool need_ctor_mask = bits < sizeof(unsigned long long) * CHAR_BIT;
+    static constexpr unsigned long long ctor_mask = (1ull << (need_ctor_mask ? bits : 0)) - 1ull;
 
 public:
 
@@ -59,7 +75,7 @@ public:
             return *this;
         }
 
-        constexpr reference& operator=(const bool val) const noexcept
+        constexpr const reference& operator=(const bool val) const noexcept
         {
             m_bitset->set_unchecked(m_pos, val);
             return *this;
@@ -103,13 +119,13 @@ public:
 
     private:
 
-        bitset<N>* m_bitset;
+        bitset<bits>* m_bitset;
         size_t m_pos; // position of element in bitset
     };
 
 private:
 
-    T m_array[words + 1];
+    word_type m_array[uword_count + 1];
 
 public:
 
@@ -122,7 +138,7 @@ public:
     {}
 
     constexpr bitset(unsigned long long val) noexcept
-        : m_array{ static_cast<T>(need_mask ? val & mask : val) }
+        : m_array{ static_cast<word_type>(need_ctor_mask ? val & ctor_mask : val) }
     {}
 
     //=========================================================================
@@ -133,30 +149,38 @@ private:
 
     constexpr bool subscript(size_t pos) const noexcept
     {
-        return (m_array[pos / bits_per_word] & (T{ 1 } << pos % bits_per_word)) != 0;
+        return (m_array[pos / ubits_per_word] & (word_type{ 1 } << pos % ubits_per_word)) != 0;
     }
 
 public:
 
     constexpr bool operator[](size_t pos) const noexcept
     {
+        VX_ASSERT(pos < bits);
         return subscript(pos);
     }
 
     constexpr reference operator[](size_t pos) noexcept
     {
+        VX_ASSERT(pos < bits);
         return reference{ *this, pos };
     }
 
     //=========================================================================
 
-    constexpr bool text_unchecked(size_t pos) const noexcept
+    constexpr word_type* data() noexcept
     {
-        VX_ASSERT(pos < bits);
-        return subscript(pos);
+        return m_array;
     }
 
-    constexpr bool text_unchecked(size_t pos) const
+    constexpr const word_type* data() const noexcept
+    {
+        return m_array;
+    }
+
+    //=========================================================================
+
+    constexpr bool test_unchecked(size_t pos) const noexcept
     {
         VX_ASSERT(pos < bits);
         return subscript(pos);
@@ -164,15 +188,15 @@ public:
 
     constexpr expected<bool, error> test(size_t pos) const
     {
-        VX_RET_UNEXPECTED_ERR_IF(pos >= N, err::out_of_range);
-        return text_unchecked(pos);
+        VX_RET_UNEXPECTED_ERR_IF(pos >= bits, err::out_of_range);
+        return test_unchecked(pos);
     }
 
     //=========================================================================
 
     constexpr bool any() const noexcept
     {
-        for (size_t i = 0; i <= words; ++i)
+        for (ptrdiff_t i = 0; i <= word_count; ++i)
         {
             if (m_array[i] != 0)
             {
@@ -192,15 +216,15 @@ public:
         }
         else
         {
-            constexpr bool no_padding = bits % bits_per_word == 0;
-            for (size_t i = 0; i < words + no_padding; ++i)
+            constexpr bool no_padding = bits % ubits_per_word == 0;
+            for (ptrdiff_t i = 0; i < word_count + no_padding; ++i)
             {
-                if (m_array[i] != ~static_cast<T>(0))
+                if (m_array[i] != ~static_cast<word_type>(0))
                 {
                     return false;
                 }
             }
-            return no_padding || m_array[words] == (static_cast<T>(1) << (bits % bits_per_word)) - 1;
+            return no_padding || m_array[word_count] == (static_cast<word_type>(1) << (bits % ubits_per_word)) - 1;
         }
     }
 
@@ -215,7 +239,70 @@ public:
 
     constexpr size_t count() const noexcept
     {
-        // todo
+        size_t n = 0;
+        for (ptrdiff_t i = 0; i <= word_count; ++i)
+        {
+            n += bit::popcount(m_array[i]);
+        }
+        return n;
+    }
+
+    //=========================================================================
+    // conversions
+    //=========================================================================
+
+    // Converts to any unsigned integer type. Returns err::overflow if a set bit
+    // does not fit in T. Relies on the padding bits being zero (see trim()).
+    template <typename T, VX_REQUIRES(std::is_unsigned<T>::value && !std::is_same<T, bool>::value)>
+    constexpr expected<T, error> to_integer() const
+    {
+        constexpr size_t t_bits = sizeof(T) * CHAR_BIT;
+
+        T result = 0;
+        for (ptrdiff_t i = 0; i <= word_count; ++i)
+        {
+            const word_type word = m_array[i];
+            if (word == 0)
+            {
+                continue;
+            }
+
+            // first bit position this word contributes to
+            const size_t shift = static_cast<size_t>(i) * ubits_per_word;
+
+            // word starts entirely beyond T
+            VX_RET_UNEXPECTED_ERR_IF(shift >= t_bits, err::out_of_range);
+
+            // word straddles the top of T: the bits that don't fit must be zero
+            if (shift + ubits_per_word > t_bits)
+            {
+                VX_RET_UNEXPECTED_ERR_IF((word >> (t_bits - shift)) != 0, err::out_of_range);
+            }
+
+            result |= static_cast<T>(static_cast<T>(word) << shift);
+        }
+
+        return result;
+    }
+
+    // Truncating conversion: returns the low min(bits, bits of T) bits, never fails
+    template <typename T, VX_REQUIRES(std::is_unsigned<T>::value && !std::is_same<T, bool>::value)>
+    constexpr T to_integer_unchecked() const noexcept
+    {
+        constexpr size_t t_bits = sizeof(T) * CHAR_BIT;
+
+        // words needed to cover T, capped at the words the bitset actually has
+        constexpr size_t t_words = (t_bits + ubits_per_word - 1) / ubits_per_word;
+        constexpr ptrdiff_t words_used = static_cast<ptrdiff_t>(t_words < uword_count + 1 ? t_words : uword_count + 1);
+
+        T result = 0;
+        for (ptrdiff_t i = 0; i < words_used; ++i)
+        {
+            // the cast truncates a wide word (T narrower than the word)
+            result |= static_cast<T>(static_cast<T>(m_array[i]) << (static_cast<size_t>(i) * ubits_per_word));
+        }
+
+        return result;
     }
 
     //=========================================================================
@@ -233,12 +320,12 @@ public:
 
 private:
 
-    void trim() noexcept
+    constexpr void trim() noexcept
     {
-        constexpr bool need_trim = bits == 0 || bits % bits_per_word != 0;
+        constexpr bool need_trim = bits == 0 || bits % ubits_per_word != 0;
         VX_IF_CONSTEXPR (need_trim)
         {
-            m_array[words] &= native_mask;
+            m_array[word_count] &= native_mask;
         }
     }
 
@@ -248,25 +335,25 @@ public:
     {
         if (VX_IS_CONSTANT_EVALUATED())
         {
-            for (size_t i = 0; i <= words; ++i)
+            for (ptrdiff_t i = 0; i <= word_count; ++i)
             {
-                m_array[i] = ~static_cast<T>(0);
+                m_array[i] = ~static_cast<word_type>(0);
             }
         }
         else
         {
-            mem::set(&m_array, 0xFF, sizeof(m_array));
+            mem::set(m_array, 0xFF, sizeof(m_array));
         }
 
         trim();
     }
 
-    constexpr void set_unchecked(size_t pos, bool val = true)
+    constexpr void set_unchecked(size_t pos, bool val = true) noexcept
     {
         VX_ASSERT(pos < bits);
 
-        auto& selected_word = m_array[pos / bits_per_word];
-        const auto bit = T{ 1 } << pos % bits_per_word;
+        auto& selected_word = m_array[pos / ubits_per_word];
+        const auto bit = word_type{ 1 } << pos % ubits_per_word;
 
         if (val)
         {
@@ -291,14 +378,14 @@ public:
     {
         if (VX_IS_CONSTANT_EVALUATED())
         {
-            for (size_t i = 0; i <= words; ++i)
+            for (ptrdiff_t i = 0; i <= word_count; ++i)
             {
                 m_array[i] = 0;
             }
         }
         else
         {
-            mem::set(&m_array, 0, sizeof(m_array));
+            mem::set(m_array, 0, sizeof(m_array));
         }
     }
 
@@ -313,17 +400,17 @@ public:
 
     constexpr void flip() noexcept
     {
-        for (size_t i = 0; i <= words; ++i)
+        for (ptrdiff_t i = 0; i <= word_count; ++i)
         {
             m_array[i] = ~m_array[i];
         }
         trim();
     }
 
-    constexpr void flip_unchecked(size_t pos)
+    constexpr void flip_unchecked(size_t pos) noexcept
     {
         VX_ASSERT(pos < bits);
-        m_array[pos / bits_per_word] ^= T{ 1 } << pos % bits_per_word;
+        m_array[pos / ubits_per_word] ^= word_type{ 1 } << pos % ubits_per_word;
     }
 
     constexpr success flip(size_t pos)
@@ -337,7 +424,7 @@ public:
 
     constexpr bitset& operator&=(const bitset& other) noexcept
     {
-        for (size_t i = 0; i <= words; ++i)
+        for (ptrdiff_t i = 0; i <= word_count; ++i)
         {
             m_array[i] &= other.m_array[i];
         }
@@ -348,7 +435,7 @@ public:
 
     constexpr bitset& operator|=(const bitset& other) noexcept
     {
-        for (size_t i = 0; i <= words; ++i)
+        for (ptrdiff_t i = 0; i <= word_count; ++i)
         {
             m_array[i] |= other.m_array[i];
         }
@@ -359,7 +446,7 @@ public:
 
     constexpr bitset& operator^=(const bitset& other) noexcept
     {
-        for (size_t i = 0; i <= words; ++i)
+        for (ptrdiff_t i = 0; i <= word_count; ++i)
         {
             m_array[i] ^= other.m_array[i];
         }
@@ -368,7 +455,7 @@ public:
 
     //=========================================================================
 
-    constexpr bitset operator~() noexcept
+    constexpr bitset operator~() const noexcept
     {
         bitset tmp = *this;
         tmp.flip();
@@ -379,20 +466,20 @@ public:
 
     constexpr bitset& operator<<=(size_t pos) noexcept
     {
-        const auto word_shift = static_cast<ptrdiff_t>(pos / bits_per_word);
+        const auto word_shift = static_cast<ptrdiff_t>(pos / ubits_per_word);
         if (word_shift != 0)
         {
-            for (ptrdiff_t wpos = words; 0 <= wpos; --wpos)
+            for (ptrdiff_t i = word_count; 0 <= i; --i)
             {
-                m_array[wpos] = word_shift <= wpos ? m_array[wpos - word_shift] : 0;
+                m_array[i] = word_shift <= i ? m_array[i - word_shift] : 0;
             }
         }
 
-        if ((pos %= bits_per_word) != 0)
+        if ((pos %= ubits_per_word) != 0)
         {
-            for (ptrdiff_t wpos = words; 0 < wpos; --wpos)
+            for (ptrdiff_t i = word_count; 0 < i; --i)
             {
-                m_array[wpos] = (m_array[wpos] << pos) | (m_array[wpos - 1] >> (bits_per_word - pos));
+                m_array[i] = (m_array[i] << pos) | (m_array[i - 1] >> (ubits_per_word - pos));
             }
             m_array[0] <<= pos;
         }
@@ -403,22 +490,22 @@ public:
 
     constexpr bitset& operator>>=(size_t pos) noexcept
     {
-        const auto word_shift = static_cast<ptrdiff_t>(pos / bits_per_word);
+        const auto word_shift = static_cast<ptrdiff_t>(pos / ubits_per_word);
         if (word_shift != 0)
         {
-            for (ptrdiff_t wpos = 0; wpos <= words; ++wpos)
+            for (ptrdiff_t i = 0; i <= word_count; ++i)
             {
-                m_array[wpos] = word_shift <= words - wpos ? m_array[wpos + word_shift] : 0;
+                m_array[i] = word_shift <= word_count - i ? m_array[i + word_shift] : 0;
             }
         }
 
-        if ((pos %= bits_per_word) != 0)
+        if ((pos %= ubits_per_word) != 0)
         {
-            for (ptrdiff_t wpos = 0; wpos < words; ++wpos)
+            for (ptrdiff_t i = 0; i < word_count; ++i)
             {
-                m_array[wpos] = (m_array[wpos] >> pos) | (m_array[wpos + 1] << (bits_per_word - pos));
+                m_array[i] = (m_array[i] >> pos) | (m_array[i + 1] << (ubits_per_word - pos));
             }
-            m_array[words] >>= pos;
+            m_array[word_count] >>= pos;
         }
 
         return *this;
@@ -448,7 +535,7 @@ public:
     {
         if (VX_IS_CONSTANT_EVALUATED())
         {
-            for (size_t i = 0; i <= words; ++i)
+            for (ptrdiff_t i = 0; i <= word_count; ++i)
             {
                 if (m_array[i] != rhs.m_array[i])
                 {
@@ -512,7 +599,7 @@ struct hash<vx::bitset<N>>
     size_t operator()(const vx::bitset<N>& s) const noexcept
     {
         fnv1a fnv;
-        fnv.update(reinterpret_cast<const unsigned char*>(s.m_array), count * sizeof(char_type));
+        fnv.update(s.m_array, s.m_array + s.word_count + 1);
         return fnv.result();
     }
 };

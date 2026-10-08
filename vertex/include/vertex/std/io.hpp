@@ -25,20 +25,20 @@ void print_one(os::stream s, const C* v)
 {
     using traits = str::char_traits<C>;
     const size_t size = traits::length(v);
-    os::write_raw(s, v, size);
+    os::write_stream(s, v, size);
 }
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& compatible_char<C>::value)>
 void print_one(os::stream s, C v)
 {
     const char c = static_cast<char>(v);
-    os::write_raw(s, &c, 1);
+    os::write_stream(s, &c, 1);
 }
 
 template <typename S, VX_REQUIRES(str::is_string_like<S>::value&& compatible_char<typename S::value_type>::value)>
 void print_one(os::stream s, const S& v)
 {
-    os::write_raw(s, v.data(), v.size());
+    os::write_stream(s, v.data(), v.size());
 }
 
 // ============================================================
@@ -53,7 +53,7 @@ void print_integer(os::stream s, I v)
 
     const auto res = strconv::write_integer_base10(v, buffer_type, buffer_size);
     VX_ASSERT(res.err == strconv::to_string_error::none);
-    os::write_raw(s, buffer_type, res.count);
+    os::write_stream(s, buffer_type, res.count);
 }
 
 template <typename I, VX_REQUIRES(std::is_integral<I>::value && !type_traits::is_char<I>::value)>
@@ -81,7 +81,7 @@ void print_one(os::stream s, F v)
 
     const auto res = strconv::write_float(v, buffer_type, buffer_size);
     VX_ASSERT(res.err == strconv::to_string_error::none);
-    os::write_raw(s, buffer_type, res.count);
+    os::write_stream(s, buffer_type, res.count);
 }
 
 // ============================================================
@@ -101,7 +101,7 @@ inline void print_pointer(os::stream s, const void* v)
     const auto res = strconv::write_integer(addr, buffer_type + 2, buffer_size - 2, fmt);
     VX_ASSERT(res.err == strconv::to_string_error::none);
 
-    os::write_raw(s, buffer_type, res.count);
+    os::write_stream(s, buffer_type, res.count);
 }
 
 template <typename T, VX_REQUIRES(!type_traits::is_char<T>::value)>
@@ -124,7 +124,7 @@ void print_one(os::stream s, const T& v)
     const char close = ']';
     const char separator = ',';
 
-    os::write_raw(s, &open, 1);
+    os::write_stream(s, &open, 1);
 
     bool first = true;
 
@@ -132,16 +132,16 @@ void print_one(os::stream s, const T& v)
     {
         if (!first)
         {
-            os::write_raw(s, &separator, 1);
+            os::write_stream(s, &separator, 1);
             const char space = ' ';
-            os::write_raw(s, &space, 1);
+            os::write_stream(s, &space, 1);
         }
 
         first = false;
         print_one(s, element);
     }
 
-    os::write_raw(s, &close, 1);
+    os::write_stream(s, &close, 1);
 }
 
 } // namespace _io_priv
@@ -176,7 +176,7 @@ void println(os::stream s, const Args&... args)
     print(s, args...);
 
     const char c = '\n';
-    os::write_raw(s, &c, 1);
+    os::write_stream(s, &c, 1);
 }
 
 template <typename... Args>
@@ -196,7 +196,7 @@ void println_err(const Args&... args)
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& _io_priv::compatible_char<C>::value)>
 void print_raw(os::stream s, const C* data, size_t size)
 {
-    os::write_raw(s, data, size);
+    os::write_stream(s, data, size);
 }
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& _io_priv::compatible_char<C>::value)>
@@ -216,10 +216,10 @@ void print_raw_err(const C* data, size_t size)
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& _io_priv::compatible_char<C>::value)>
 void println_raw(os::stream s, const C* data, size_t size)
 {
-    os::write_raw(s, data, size);
+    os::write_stream(s, data, size);
 
     const char c = '\n';
-    os::write_raw(s, &c, 1);
+    os::write_stream(s, &c, 1);
 }
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value&& _io_priv::compatible_char<C>::value)>

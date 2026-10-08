@@ -32,18 +32,18 @@ public:
         }
     }
 
-    template <typename T, VX_REQUIRES(std::is_trivial<T>::value)>
+    template <typename T, VX_REQUIRES(std::is_trivially_copyable<T>::value)>
     void update(const T& value) noexcept
     {
         update(reinterpret_cast<const unsigned char* const>(&value), sizeof(T));
     }
 
-    template <typename T, VX_REQUIRES(std::is_trivial<T>::value)>
-    void update(const T* const first, const T* const last) noexcept
+    template <typename T, VX_REQUIRES(std::is_trivially_copyable<T>::value)>
+    void update(const T* first, const T* last) noexcept
     {
-        const auto first_byte = reinterpret_cast<const unsigned char* const>(first);
-        const auto last_byte = reinterpret_cast<const unsigned char* const>(last);
-        return update(first_byte, static_cast<size_t>(last_byte - first_byte));
+        const auto first_byte = reinterpret_cast<const unsigned char*>(first);
+        const auto last_byte = reinterpret_cast<const unsigned char*>(last);
+        update(first_byte, static_cast<size_t>(last_byte - first_byte));
     }
 
     size_t result() const noexcept
@@ -53,7 +53,7 @@ public:
 
 private:
 
-    size_t m_buffer = 0;
+    size_t m_buffer = offset_basis;
 };
 
 } // namespace vx

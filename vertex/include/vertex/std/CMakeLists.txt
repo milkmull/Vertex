@@ -10,7 +10,10 @@ file(GLOB VX_STD_HEADER_FILES
 
     # Core
     "${CMAKE_CURRENT_SOURCE_DIR}/array.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bit.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/endian.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/util.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/functional.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/algorithm.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/aligned_storage.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/variant_storage.hpp"
@@ -24,6 +27,11 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/unique_ptr.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/weak_ptr.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/shared_ptr.hpp"
+
+    # System
+    "${CMAKE_CURRENT_SOURCE_DIR}/path.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/file.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/filesystem.hpp"
 
     # Containers
     "${CMAKE_CURRENT_SOURCE_DIR}/growth_policy.hpp"
@@ -48,10 +56,11 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/utf.hpp"
 
     # Math / numeric
-    "${CMAKE_CURRENT_SOURCE_DIR}/math.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/math/numeric.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/float_bits.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/float_traits.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math/checked_arithmetic.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/math.hpp"
 
     # Formatting
     "${CMAKE_CURRENT_SOURCE_DIR}/format.hpp"
@@ -59,6 +68,24 @@ file(GLOB VX_STD_HEADER_FILES
 
     # Crypto
     "${CMAKE_CURRENT_SOURCE_DIR}/crypto/fnv1a.hpp"
+
+    # Time
+    "${CMAKE_CURRENT_SOURCE_DIR}/time/datetime.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/time/time.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/time/timer.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/time.hpp"
+
+    # Random
+    "${CMAKE_CURRENT_SOURCE_DIR}/random/algorithm.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/random/bernoulli_distribution.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/random/discrete_distribution.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/random/generate_canonical.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/random/normal_distribution.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/random/pcg.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/random/rng.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/random/uniform_int_distribution.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/random/uniform_real_distribution.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/random.hpp"
 
     # Internal
     "${CMAKE_CURRENT_SOURCE_DIR}/_tools/compressed_pair.hpp"

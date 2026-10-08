@@ -11,12 +11,6 @@ file(GLOB VX_OS_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_error.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/error.cpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_io.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/io.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_file.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/file.cpp"
-
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_filesystem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/filesystem.cpp"
 
@@ -56,7 +50,6 @@ file(GLOB VX_OS_DUMMY_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_error.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_io.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_filesystem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_locale.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_mutex.hpp"
@@ -82,7 +75,6 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_error.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_io.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_io.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_file.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_filesystem.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_filesystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_locale.hpp"

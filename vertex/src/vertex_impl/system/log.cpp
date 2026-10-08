@@ -1,12 +1,12 @@
 #include <memory>
 
+#include "vertex/os/mutex.hpp"
+#include "vertex/std/file.hpp"
 #include "vertex/system/log.hpp"
 #include "vertex/util/io/iostream.hpp"
-#include "vertex/os/file.hpp"
-#include "vertex/os/mutex.hpp"
 
 #ifdef ERROR
-#   undef ERROR
+    #undef ERROR
 #endif
 
 namespace vx {
@@ -17,18 +17,21 @@ class logger
 public:
 
     logger() = default;
-    ~logger() { stop(); }
+    ~logger()
+    { stop(); }
 
 public:
 
-    level get_level() const { return m_level; }
-    void set_level(level log_level) { m_level = log_level; }
+    level get_level() const
+    { return m_level; }
+    void set_level(level log_level)
+    { m_level = log_level; }
 
     bool start(const char* filename)
     {
         stop();
 
-        m_file.open(filename, os::file::mode::write);
+        m_file.open(filename, file::mode::write);
         if (!m_file.is_open())
         {
             stop();
@@ -68,14 +71,15 @@ public:
 private:
 
     level m_level = level::trace;
-    os::file m_file;
+    file m_file;
 };
 
 class logger_wrapper
 {
 public:
 
-    logger_wrapper() : m_logger(std::make_unique<logger>()) {}
+    logger_wrapper() : m_logger(std::make_unique<logger>())
+    {}
 
 public:
 

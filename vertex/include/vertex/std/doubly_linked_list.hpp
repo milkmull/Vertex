@@ -1,16 +1,20 @@
 #pragma once
 
-#include <list>
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <initializer_list>
+#include <iterator>
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/_tools/compressed_pair.hpp"
 #include "vertex/std/_tools/invoke.hpp"
 #include "vertex/std/error.hpp"
+#include "vertex/std/expected.hpp"
+#include "vertex/std/functional.hpp"
+#include "vertex/std/iterator.hpp"
 #include "vertex/std/memory.hpp"
-
-// #define VX_DOUBLY_LINKED_LIST_
+#include "vertex/std/util.hpp"
 
 namespace vx {
 
@@ -23,59 +27,217 @@ namespace _doubly_linked_list_priv {
 // node
 //=========================================================================
 
+// links only: everything here is independent of T, so there is one copy in the binary
+struct node_base
+{
+    using link_ptr = node_base*;
+    link_ptr next;
+    link_ptr prev;
+
+    // link one detached node before pos
+    static void link_before(link_ptr pos, link_ptr n) noexcept
+    {
+        n->prev = pos->prev;
+        n->next = pos;
+        pos->prev->next = n;
+        pos->prev = n;
+    }
+
+    // link the detached chain [first, last] (inclusive, already internally linked) before pos
+    static void link_chain(link_ptr pos, link_ptr first, link_ptr last) noexcept
+    {
+        link_ptr before = pos->prev;
+        before->next = first;
+        first->prev = before;
+        last->next = pos;
+        pos->prev = last;
+    }
+
+    // remove n from its list (n's own links are left untouched)
+    static void unlink(link_ptr n) noexcept
+    {
+        n->prev->next = n->next;
+        n->next->prev = n->prev;
+    }
+
+    // move [first, last) to just before `before`. `before` may be in another list and
+    // the other list's sentinel is a valid `last`. Returns last.
+    static link_ptr splice(link_ptr before, link_ptr first, link_ptr last) noexcept
+    {
+        VX_ASSERT(before != first && before != last && first != last);
+
+        const auto first_prev = first->prev;
+        first_prev->next = last;
+        const auto last_prev = last->prev;
+        last_prev->next = before;
+        const auto before_prev = before->prev;
+        before_prev->next = first;
+
+        before->prev = last_prev;
+        last->prev = first_prev;
+        first->prev = before_prev;
+
+        return last;
+    }
+
+    // move the single node n to just before `before`. Returns n->next (as it was).
+    static link_ptr splice(link_ptr before, link_ptr n) noexcept
+    {
+        VX_ASSERT(before != n && n->next != before);
+
+        const auto next = n->next;
+
+        const auto n_prev = n->prev;
+        n_prev->next = next;
+        n->next = before;
+        const auto before_prev = before->prev;
+        before_prev->next = n;
+
+        before->prev = n;
+        next->prev = n_prev;
+        n->prev = before_prev;
+
+        return next;
+    }
+
+    // reverse the whole circle, sentinel included, by swapping every node's links
+    static void reverse(link_ptr head) noexcept
+    {
+        link_ptr n = head;
+        do
+        {
+            const auto next = n->next;
+            n->next = n->prev;
+            n->prev = next;
+            n = next;
+
+        } while (n != head);
+    }
+};
+
 template <typename T>
-struct node_type
+struct node_type : node_base
 {
     using node_ptr = node_type*;
     using value_type = T;
 
-    node_ptr next;
-    node_ptr prev;
     value_type value;
 
-    node_type() = default;
     node_type(const node_type&) = delete;
     node_type& operator=(const node_type&) = delete;
 
-    template <typename Allocator>
-    static node_ptr buy_head_node(Allocator& alloc)
+    static node_ptr from_link(link_ptr p) noexcept
     {
-        const auto node = alloc.allocate(1);
-        if (node)
+        return static_cast<node_ptr>(p);
+    }
+
+    static T& val(link_ptr p) noexcept
+    {
+        return from_link(p)->value;
+    }
+
+    // destroys the value and frees the node; the links are the caller's business
+    template <typename Allocator>
+    static void free_node(Allocator& alloc, node_ptr n) noexcept
+    {
+        mem::destroy_in_place(std::addressof(n->value));
+        alloc.deallocate(n, 1);
+    }
+
+    // free every node in the circle except the sentinel; the caller re-inits the sentinel
+    template <typename Allocator>
+    static void free_all(Allocator& alloc, link_ptr sentinel) noexcept
+    {
+        link_ptr cur = sentinel->next;
+        while (cur != sentinel)
         {
-            mem::construct_in_place(node->next, node);
-            mem::construct_in_place(node->prev, node);
+            link_ptr next = cur->next;
+            free_node(alloc, from_link(cur));
+            cur = next;
+        }
+    }
+
+    // merge the adjacent sorted ranges [first, mid) and [mid, last).
+    // pred compares values. Returns the new first node of the merged range.
+    template <typename Pred>
+    static link_ptr inplace_merge(link_ptr first, link_ptr mid, const link_ptr last, Pred pred)
+    {
+        VX_ASSERT(first != mid && mid != last);
+
+        link_ptr new_first;
+        if (pred(val(mid), val(first)))
+        {
+            new_first = mid;
+        }
+        else
+        {
+            new_first = first;
+            do
+            {
+                first = first->next;
+                if (first == mid)
+                {
+                    return new_first;
+                }
+
+            } while (!pred(val(mid), val(first)));
         }
 
-        return node;
-    }
-
-    template <typename Allocator>
-    static void free_node_internal(Allocator& alloc, node_ptr node) noexcept
-    {
-        mem::destroy_in_place(node->next);
-        mem::destroy_in_place(node->prev);
-        alloc.deallocate(node, 1);
-    }
-
-    template <typename Allocator>
-    static void free_node(Allocator& alloc, node_ptr node) noexcept
-    {
-        mem::destroy_in_place(std::addressof(node->value));
-        free_node_internal(alloc, node);
-    }
-
-    template <typename Allocator>
-    static void free_non_head_node(Allocator& alloc, node_ptr head_node) noexcept
-    {
-        head_node->prev->next = nullptr;
-
-        auto current_node = head_node->next;
-        for (node_ptr next_node; current_node; current_node = next_node)
+        for (;;)
         {
-            next_node = current_node->next;
-            free_node(alloc, current_node);
+            const link_ptr run_start = mid;
+            do
+            {
+                mid = mid->next;
+
+            } while (mid != last && pred(val(mid), val(first)));
+
+            splice(first, run_start, mid);
+            if (mid == last)
+            {
+                return new_first;
+            }
+
+            do
+            {
+                first = first->next;
+                if (first == mid)
+                {
+                    return new_first;
+                }
+
+            } while (!pred(val(mid), val(first)));
         }
+    }
+
+    // stable merge sort of the `size` nodes starting at `first`.
+    // Returns the node after the range. `first` is updated to the new first node.
+    template <typename Pred>
+    static link_ptr sort_range(link_ptr& first, const size_t size, Pred pred)
+    {
+        if (size < 2)
+        {
+            return size ? first->next : first;
+        }
+
+        link_ptr mid = sort_range(first, size / 2, pred);
+        // mid is updated to the second half's new first node
+        const link_ptr last = sort_range(mid, size - size / 2, pred);
+        first = inplace_merge(first, mid, last, pred);
+        return last;
+    }
+
+    // sort the whole list. head is the sentinel, size is the element count
+    template <typename Pred>
+    static void sort(link_ptr head, const size_t size, Pred pred)
+    {
+        if (size < 2)
+        {
+            return;
+        }
+
+        link_ptr first = head->next;
+        sort_range(first, size, pred);
     }
 };
 
@@ -99,211 +261,62 @@ struct list_types
 };
 
 //=========================================================================
-// list value
+// list value: just the embedded sentinel
 //=========================================================================
 
-template <typename T>
-struct list_ops
+struct list_value
 {
-    using types = list_types<T>;
-    using node = typename types::node;
-    using node_ptr = typename types::node_ptr;
-    using size_type = typename types::size_type;
+    node_base head;
 
-    // splice [first, last) before before_node; returns last
-    static node_ptr splice(const node_ptr before_node, const node_ptr first, const node_ptr last) noexcept
+    list_value() noexcept
     {
-        VX_ASSERT(before_node != first && before_node != last && first != last);
-
-        const auto first_prev = first->prev;
-        first_prev->next = last;
-        const auto last_prev = last->prev;
-        last_prev->next = before_node;
-        const auto before_node_prev = before_node->prev;
-        before_node_prev->next = first;
-
-        before_node->prev = last_prev;
-        last->prev = first_prev;
-        first->prev = before_node_prev;
-
-        return last;
+        reset();
     }
 
-    // splice [first, first->next) before before_node; returns first->next
-    static node_ptr splice(const node_ptr before_node, const node_ptr first) noexcept
+    // non-copyable: the sentinel points at itself
+    list_value(const list_value&) = delete;
+    list_value& operator=(const list_value&) = delete;
+
+    node_base* sentinel() const noexcept
     {
-        VX_ASSERT(before_node != first && first->next != before_node);
-
-        const auto last = first->next;
-
-        const auto first_prev = first->prev;
-        first_prev->next = last;
-        first->next = before_node;
-        const auto before_node_prev = before_node->prev;
-        before_node_prev->next = first;
-
-        before_node->prev = first;
-        last->prev = first_prev;
-        first->prev = before_node_prev;
-
-        return last;
+        return const_cast<node_base*>(&head);
     }
 
-    template <typename Pred>
-    static node_ptr merge_same(node_ptr first, node_ptr mid, const node_ptr last, Pred pred)
+    bool empty() const noexcept
     {
-        VX_ASSERT(first != mid && mid != last);
+        return head.next == &head;
+    }
 
-        node_ptr newfirst;
-        if (pred(mid->value, first->value))
-        {
-            newfirst = mid;
-        }
-        else
-        {
-            newfirst = first;
-            do
-            {
-                first = first->next;
-                if (first == mid)
-                {
-                    return newfirst;
-                }
+    // make the list empty WITHOUT freeing anything
+    void reset() noexcept
+    {
+        head.next = head.prev = &head;
+    }
 
-            } while (!pred(mid->value, first->value));
+    // steal o's nodes. *this must already be empty (cleared or freshly constructed)
+    void take(list_value& o) noexcept
+    {
+        if (o.empty())
+        {
+            reset();
+            return;
         }
 
-        for (;;)
-        {
-            auto run_start = mid;
+        head.next = o.head.next;
+        head.prev = o.head.prev;
 
-            do
-            {
-                mid = mid->next;
+        head.next->prev = &head;
+        head.prev->next = &head;
 
-            } while (mid != last && pred(mid->value, first->value));
-
-            splice(first, run_start, mid);
-            if (mid == last)
-            {
-                return newfirst;
-            }
-
-            do
-            {
-                first = first->next;
-                if (first == mid)
-                {
-                    return newfirst;
-                }
-
-            } while (!pred(mid->value, first->value));
-        }
+        o.reset();
     }
 
-    template <typename Pred>
-    static node_ptr sort(node_ptr& first, const size_type size, Pred pred)
+    void swap(list_value& o) noexcept
     {
-        switch (size)
-        {
-            case 0: return first;
-            case 1: return first->next;
-            default: break;
-        }
-
-        auto mid = sort(first, size / 2, pred);
-        const auto last = sort(mid, size - size / 2, pred);
-        first = merge_same(first, mid, last, pred);
-        return last;
-    }
-};
-
-template <typename T, bool Sized = true>
-struct list_data : public list_ops<T>
-{
-    using types = list_types<T>;
-    using node_ptr = typename types::node_ptr;
-    using size_type = typename types::size_type;
-
-    list_data() noexcept
-        : head(), size(0)
-    {}
-
-    node_ptr head;
-    size_type size;
-
-    size_type get_size() const noexcept
-    {
-        return size;
-    }
-
-    void increment_size(size_type n = 1) noexcept
-    {
-        size += n;
-    }
-};
-
-template <typename T>
-struct list_data<T, false> : public list_ops<T>
-{
-    using types = list_types<T>;
-    using node_ptr = typename types::node_ptr;
-    using size_type = typename types::size_type;
-
-    list_data() noexcept
-        : head()
-    {}
-
-    node_ptr head;
-
-    size_type get_size() const noexcept
-    {
-        size_type count = 0;
-        for (node_ptr n = head; n != head->prev; n = n->next)
-        {
-            ++count;
-        }
-        return count;
-    }
-
-    void increment_size(size_type) noexcept
-    {
-    }
-};
-
-template <typename T, bool Sized>
-struct value : public list_data<T, Sized>
-{
-    using types = list_types<T>;
-
-    using node = typename types::node;
-    using node_ptr = typename types::node_ptr;
-
-    using value_type = typename types::value_type;
-    using pointer = typename types::pointer;
-    using const_pointer = typename types::const_pointer;
-    using reference = typename types::reference;
-    using const_reference = typename types::const_reference;
-    using size_type = typename types::size_type;
-    using difference_type = typename types::difference_type;
-
-    static constexpr bool sized = Sized;
-    using base = list_data<T, Sized>;
-
-    using base::base; // inherit constructor
-    using base::decrement_size;
-    using base::get_size;
-    using base::head;
-    using base::increment_size;
-    using base::set_size;
-
-    // unlink node at pos from the list
-    node_ptr unlink_node(node_ptr node) noexcept
-    {
-        node->prev->next = node->next;
-        node->next->prev = node->prev;
-        decrement_size();
-        return node;
+        list_value tmp;
+        tmp.take(*this);
+        take(o);
+        o.take(tmp);
     }
 };
 
@@ -311,181 +324,107 @@ struct value : public list_data<T, Sized>
 // insert operation
 //=========================================================================
 
-template <typename Allocator, bool Sized = true>
+// Builds a detached chain off to the side, then links it in with one operation.
+// If anything fails (or the op is destroyed before attach) the chain is freed and
+// the list is untouched, so inserts have the strong guarantee.
+template <typename Allocator>
 class insert_op
 {
 private:
 
     using allocator_type = Allocator;
-    using value_type = typename allocator_type::value_type;
-    using pointer = value_type*;
+    using node = typename allocator_type::value_type; // node_type<T>
+    using node_ptr = node*;
+    using link_ptr = node_base*;
 
-    using types = list_types<value_type>;
-    using size_type = typename types::size_type;
+    allocator_type& m_allocator;
+    node_base m_anchor; // m_anchor.next is the first built node; the anchor never joins a list
+    link_ptr m_tail;    // last built node, or &m_anchor while empty
 
-    static constexpr bool sized = Sized;
+    template <typename... Args>
+    success push(Args&&... args)
+    {
+        node_ptr ptr = m_allocator.allocate(1);
+        VX_RET_ERR_IF(!ptr, err::out_of_memory);
 
-    Allocator& m_allocator;
-    size_type m_added; // if 0, the values of m_head and m_tail are indeterminate
-    pointer m_tail;    // points to the most recently appended element; it doesn't have next constructed
-    pointer m_head;    // points to the first appended element; it doesn't have prev constructed
-    bool m_ok = true;  // Success of the operation
+        mem::construct_in_place(std::addressof(ptr->value), std::forward<Args>(args)...);
+        ptr->next = nullptr;
+        ptr->prev = m_tail; // for the first node this is the anchor; link_chain overwrites it
+        m_tail->next = ptr;
+        m_tail = ptr;
+        return success{};
+    }
 
 public:
 
-    explicit insert_op(allocator_type& allocator)
-        : m_allocator(allocator), m_added(0), m_tail(nullptr), m_head(nullptr), m_ok(true)
-    {}
+    explicit insert_op(allocator_type& allocator) noexcept
+        : m_allocator(allocator), m_anchor(), m_tail(&m_anchor)
+    {
+        m_anchor.next = nullptr;
+        m_anchor.prev = nullptr;
+    }
 
     insert_op(const insert_op&) = delete;
     insert_op& operator=(const insert_op&) = delete;
 
-    // Append count elements constructed from args
+    ~insert_op()
+    {
+        discard();
+    }
+
+    // append count elements constructed from args (copied for every node)
     template <typename... Args>
-    void append_n(size_type count, const Args&... args)
+    success append_n(size_t count, const Args&... args)
     {
-        if (count <= 0)
+        for (; count > 0; --count)
         {
-            return;
+            const auto ok = push(args...);
+            VX_RET_ERR_IF(!ok, ok);
         }
-
-        if (m_added == 0)
-        {
-            auto ptr = m_allocator.allocate(1);
-            if (!ptr)
-            {
-                m_ok = false;
-                return;
-            }
-
-            mem::construct_in_place(std::addressof(ptr->value), args...);
-            m_head = ptr;
-            m_tail = ptr;
-            ++m_added;
-            --count;
-        }
-
-        for (; 0 < count; --count)
-        {
-            auto ptr = m_allocator.allocate(1);
-            if (!ptr)
-            {
-                m_ok = false;
-                return;
-            }
-
-            mem::construct_in_place(std::addressof(ptr->value), args...);
-            mem::construct_in_place(m_tail->next, ptr);
-            mem::construct_in_place(ptr->prev, m_tail);
-            m_tail = ptr;
-            ++m_added;
-        }
+        return success{};
     }
 
-    // Append the values in [first, last)
+    // append the values in [first, last). A move_iterator moves the elements.
     template <typename IT1, typename IT2>
-    void append_range(IT1 first, const IT2 last)
+    success append_range(IT1 first, IT2 last)
     {
-        if (first == last)
+        for (; first != last; ++first)
         {
-            return;
+            const auto ok = push(*first);
+            VX_RET_ERR_IF(!ok, ok);
         }
-
-        if (m_added == 0)
-        {
-            _Newnode._Allocate();
-            Allocator_traits::construct(_Al, _STD addressof(ptr->_Myval), *first);
-            const auto _Newhead = _STD exchange(ptr, pointer{});
-            m_head = _Newhead;
-            m_tail = _Newhead;
-            ++m_added;
-            ++first;
-        }
-
-        while (first != last)
-        {
-            _Newnode._Allocate();
-            Allocator_traits::construct(_Al, _STD addressof(ptr->_Myval), *first);
-            _Construct_in_place(m_tail->_Next, ptr);
-            _Construct_in_place(ptr->_Prev, m_tail);
-            m_tail = _STD exchange(ptr, pointer{});
-            ++m_added;
-            ++first;
-        }
+        return success{};
     }
 
-    template <class _Val_types>
-    pointer _Attach_before(_List_val<_Val_types>& _List_data, const pointer _Insert_before) noexcept
+    // link the built chain before pos. Returns the first inserted node, or pos if nothing
+    // was built. Resets *this to empty.
+    link_ptr attach(link_ptr pos) noexcept
     {
-        // Attach the elements in *this before _Insert_before.
-        // If *this is empty, returns _Insert_before; otherwise returns a pointer to the first inserted list node.
-        // Resets *this to the default-initialized state.
-
-        const auto _Local_added = m_added;
-        if (_Local_added == 0)
+        if (!m_anchor.next)
         {
-            return _Insert_before;
+            return pos;
         }
 
-        const auto _Local_head = m_head;
-        const auto _Local_tail = m_tail;
-        const auto _Insert_after = _Insert_before->_Prev;
-
-        _Construct_in_place(_Local_head->_Prev, _Insert_after);
-        _Insert_after->_Next = _Local_head;
-        _Construct_in_place(_Local_tail->_Next, _Insert_before);
-        _Insert_before->_Prev = _Local_tail;
-
-        _List_data._Mysize += _Local_added;
-        m_added = 0;
-        return _Local_head;
+        const link_ptr first = m_anchor.next;
+        node_base::link_chain(pos, first, m_tail);
+        m_anchor.next = nullptr;
+        m_tail = &m_anchor;
+        return first;
     }
 
-    template <class _Val_types>
-    void _Attach_at_end(_List_val<_Val_types>& _List_data) noexcept
+    // free whatever chain is currently held
+    void discard() noexcept
     {
-        _Attach_before(_List_data, _List_data._Myhead);
-    }
-
-    template <class _Val_types>
-    void _Attach_head(_List_val<_Val_types>& _List_data)
-    {
-        _Alloc_construct_ptr<Allocator> _Newnode(_Al);
-        _Newnode._Allocate();
-        const auto _Local_added = _STD exchange(m_added, size_type{ 0 });
-        if (_Local_added == 0)
+        link_ptr cur = m_anchor.next;
+        while (cur)
         {
-            _Construct_in_place(ptr->_Next, ptr);
-            _Construct_in_place(ptr->_Prev, ptr);
-        }
-        else
-        {
-            const auto _Local_head = m_head;
-            const auto _Local_tail = m_tail;
-            _Construct_in_place(ptr->_Next, _Local_head);
-            _Construct_in_place(ptr->_Prev, _Local_tail);
-            _Construct_in_place(_Local_head->_Prev, ptr);
-            _Construct_in_place(_Local_tail->_Next, ptr);
+            link_ptr next = cur->next;
+            node::free_node(m_allocator, node::from_link(cur));
+            cur = next;
         }
 
-        _List_data._Mysize = _Local_added;
-        _List_data._Myhead = _Newnode._Release();
-    }
-
-    ~_List_node_insert_op2()
-    {
-        if (m_added == 0)
-        {
-            return;
-        }
-
-        _Construct_in_place(m_head->_Prev, pointer{});
-        _Construct_in_place(m_tail->_Next, pointer{});
-        pointer _Subject = m_head;
-        while (_Subject)
-        {
-            value_type::_Freenode(_Al, _STD exchange(_Subject, _Subject->_Next));
-        }
+        m_anchor.next = nullptr;
+        m_tail = &m_anchor;
     }
 };
 
@@ -497,15 +436,17 @@ template <typename T>
 class const_iterator
 {
     template <typename, typename>
-    friend class doubly_linked_list;
+    friend class ::vx::doubly_linked_list;
 
     using types = list_types<T>;
-    using node_ptr = typename types::node_ptr;
-    node_ptr m_ptr;
+    using node = typename types::node;
+    using link_ptr = node_base*;
+
+    link_ptr m_ptr;
 
 public:
 
-    using iterator_category = std::forward_iterator_tag;
+    using iterator_category = std::bidirectional_iterator_tag;
 
     using value_type = typename types::value_type;
     using difference_type = typename types::difference_type;
@@ -518,18 +459,18 @@ public:
         : m_ptr()
     {}
 
-    const_iterator(node_ptr node) noexcept
-        : m_ptr(node)
+    explicit const_iterator(link_ptr ptr) noexcept
+        : m_ptr(ptr)
     {}
 
     reference operator*() const noexcept
     {
-        return m_ptr->value;
+        return node::from_link(m_ptr)->value;
     }
 
     pointer operator->() const noexcept
     {
-        return &operator*();
+        return std::addressof(operator*());
     }
 
     const_iterator& operator++() noexcept
@@ -545,6 +486,19 @@ public:
         return tmp;
     }
 
+    const_iterator& operator--() noexcept
+    {
+        m_ptr = m_ptr->prev;
+        return *this;
+    }
+
+    const_iterator operator--(int) noexcept
+    {
+        const_iterator tmp = *this;
+        m_ptr = m_ptr->prev;
+        return tmp;
+    }
+
     bool operator==(const const_iterator& other) const noexcept
     {
         return m_ptr == other.m_ptr;
@@ -552,7 +506,7 @@ public:
 
     bool operator!=(const const_iterator& other) const noexcept
     {
-        return !(*this == other);
+        return m_ptr != other.m_ptr;
     }
 };
 
@@ -561,15 +515,12 @@ public:
 template <typename T>
 class iterator : public const_iterator<T>
 {
-    template <typename, typename>
-    friend class doubly_linked_list;
-
     using base = const_iterator<T>;
     using types = list_types<T>;
 
 public:
 
-    using iterator_category = std::forward_iterator_tag;
+    using iterator_category = std::bidirectional_iterator_tag;
 
     using value_type = typename types::value_type;
     using difference_type = typename types::difference_type;
@@ -585,7 +536,7 @@ public:
 
     pointer operator->() const noexcept
     {
-        return &operator*();
+        return std::addressof(operator*());
     }
 
     iterator& operator++() noexcept
@@ -600,9 +551,26 @@ public:
         base::operator++();
         return tmp;
     }
+
+    iterator& operator--() noexcept
+    {
+        base::operator--();
+        return *this;
+    }
+
+    iterator operator--(int) noexcept
+    {
+        iterator tmp = *this;
+        base::operator--();
+        return tmp;
+    }
 };
 
 } // namespace _doubly_linked_list_priv
+
+//=========================================================================
+// doubly_linked_list
+//=========================================================================
 
 template <typename T, typename Allocator = mem::default_allocator<T>>
 class doubly_linked_list
@@ -626,21 +594,32 @@ public:
 
     using iterator = _doubly_linked_list_priv::iterator<T>;
     using const_iterator = _doubly_linked_list_priv::const_iterator<T>;
+    using reverse_iterator = vx::reverse_iterator<iterator>;
+    using const_reverse_iterator = vx::reverse_iterator<const_iterator>;
 
 private:
 
     using node = typename types::node;
     using node_ptr = typename types::node_ptr;
+    using node_base = _doubly_linked_list_priv::node_base;
+    using link_ptr = node_base*;
 
-    using list_value = _doubly_linked_list_priv::value<T>;
+    using list_value = _doubly_linked_list_priv::list_value;
 
     // rebind the value allocator into a node allocator
     using node_allocator = typename mem::rebind_allocator<allocator_type, node>::type;
     using insert_op = _doubly_linked_list_priv::insert_op<node_allocator>;
 
-    // compressed storage: node_allocator + head pointer (or whatever "value"
-    // you want compressed alongside it) in one base-optimized object
-    _compressed_pair_priv::compressed_pair<node_allocator, list_value> m_storage;
+    using alloc_traits = mem::allocator_traits<allocator_type>;
+
+    // true if nodes can move between *this and other without crossing allocators
+    bool allocators_compatible(const doubly_linked_list& other) const noexcept
+    {
+        return alloc_traits::is_always_equal::value || m_allocator() == other.m_allocator();
+    }
+
+    // compressed storage: node allocator + embedded sentinel
+    _priv::compressed_pair<node_allocator, list_value> m_storage;
 
     node_allocator& m_allocator() noexcept
     {
@@ -660,9 +639,40 @@ private:
         return m_storage.second;
     }
 
-    void take_head(doubly_linked_list& other) noexcept
+    // erase [first, last)
+    void erase_range(link_ptr first, link_ptr last) noexcept
     {
-        m_data().head = mem::exchange(other.m_data().head, nullptr);
+        if (first == last)
+        {
+            return;
+        }
+
+        link_ptr before = first->prev;
+        for (link_ptr cur = first; cur != last;)
+        {
+            link_ptr next = cur->next;
+            node::free_node(m_allocator(), node::from_link(cur));
+            cur = next;
+        }
+
+        before->next = last;
+        last->prev = before;
+    }
+
+    // Allocate a node, construct its value from args, then link it before pos.
+    // The value is constructed before anything is linked, so an argument that refers to an
+    // element already in the list is safe. On success out is the new node; on failure the
+    // list is unchanged and out_of_memory is returned.
+    template <typename... Args>
+    success emplace_impl(link_ptr pos, node_ptr& out, Args&&... args)
+    {
+        node_ptr n = m_allocator().allocate(1);
+        VX_RET_ERR_IF(!n, err::out_of_memory);
+
+        mem::construct_in_place(std::addressof(n->value), std::forward<Args>(args)...);
+        node_base::link_before(pos, n);
+        out = n;
+        return success{};
     }
 
 public:
@@ -672,85 +682,172 @@ public:
     //=========================================================================
 
     doubly_linked_list() noexcept
-        : m_storage(_compressed_pair_priv::zero_then_variadic_args_tag{})
+        : m_storage(_priv::zero_then_variadic_args_tag{})
     {}
 
-    explicit doubly_linked_list(const allocator_type& alloc)
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+    explicit doubly_linked_list(const allocator_type& alloc) noexcept
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {}
 
     //=========================================================================
 
     explicit doubly_linked_list(size_type count, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         insert_op op(m_allocator());
-        op.append_n(count);
-        op.attach_after(m_data().before_head());
+        const auto ok = op.append_n(count);
+        VX_VERIFY(ok);
+        op.attach(m_data().sentinel());
     }
 
     doubly_linked_list(size_type count, const T& value, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         insert_op op(m_allocator());
-        op.append_n(count, value);
-        op.attach_after(m_data().before_head());
+        const auto ok = op.append_n(count, value);
+        VX_VERIFY(ok);
+        op.attach(m_data().sentinel());
     }
 
     //=========================================================================
 
     doubly_linked_list(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
-        insert_after(before_begin(), init.begin(), init.end());
+        insert_op op(m_allocator());
+        const auto ok = op.append_range(init.begin(), init.end());
+        VX_VERIFY(ok);
+        op.attach(m_data().sentinel());
     }
 
     //=========================================================================
 
     doubly_linked_list(const doubly_linked_list& other)
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, other.m_allocator())
+        : m_storage(_priv::one_then_variadic_args_tag{}, other.m_allocator())
     {
         insert_op op(m_allocator());
-        op.append_range(other.begin(), other.end());
-        op.attach_after(m_data().before_head());
+        const auto ok = op.append_range(other.begin(), other.end());
+        VX_VERIFY(ok);
+        op.attach(m_data().sentinel());
     }
 
     doubly_linked_list(const doubly_linked_list& other, const allocator_type& alloc)
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
         insert_op op(m_allocator());
-        op.append_range(other.begin(), other.end());
-        op.attach_after(m_data().before_head());
+        const auto ok = op.append_range(other.begin(), other.end());
+        VX_VERIFY(ok);
+        op.attach(m_data().sentinel());
     }
+
+    //=========================================================================
 
     doubly_linked_list(doubly_linked_list&& other) noexcept
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, std::move(other.m_allocator()))
+        : m_storage(_priv::one_then_variadic_args_tag{}, std::move(other.m_allocator()))
     {
-        take_head(other);
+        m_data().take(other.m_data());
     }
 
-    doubly_linked_list(doubly_linked_list&& other, const allocator_type& alloc) noexcept
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+    doubly_linked_list(doubly_linked_list&& other, const allocator_type& alloc) noexcept(alloc_traits::is_always_equal::value)
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
-        take_head(other);
+        VX_PRIV_ASSERT_ALLOCATORS_EQUAL(other.m_allocator(), alloc);
+        m_data().take(other.m_data());
     }
 
     //=========================================================================
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    doubly_linked_list(IT first, IT last, const allocator_type& alloc = allocator_type()) noexcept
-        : m_storage(_compressed_pair_priv::one_then_variadic_args_tag{}, alloc)
+    doubly_linked_list(IT first, IT last, const allocator_type& alloc = allocator_type())
+        : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
         insert_op op(m_allocator());
-        op.append_range(first, last);
-        op.attach_after(m_data().before_head());
+        const auto ok = op.append_range(first, last);
+        VX_VERIFY(ok);
+        op.attach(m_data().sentinel());
     }
 
     //=========================================================================
+    // fallible construction
+    //=========================================================================
 
-    bool is_valid() const noexcept
+    // the allocator-only constructor never allocates, so create() can use it directly
+
+    static expected<doubly_linked_list, error> create(const allocator_type& alloc = allocator_type())
     {
-        return true;
+        return doubly_linked_list(alloc);
+    }
+
+    static expected<doubly_linked_list, error> create(size_type count, const allocator_type& alloc = allocator_type())
+    {
+        doubly_linked_list list(alloc);
+
+        insert_op op(list.m_allocator());
+        const auto ok = op.append_n(count);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        op.attach(list.m_data().sentinel());
+        return list;
+    }
+
+    static expected<doubly_linked_list, error> create(size_type count, const T& value, const allocator_type& alloc = allocator_type())
+    {
+        doubly_linked_list list(alloc);
+
+        insert_op op(list.m_allocator());
+        const auto ok = op.append_n(count, value);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        op.attach(list.m_data().sentinel());
+        return list;
+    }
+
+    static expected<doubly_linked_list, error> create(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
+    {
+        doubly_linked_list list(alloc);
+
+        insert_op op(list.m_allocator());
+        const auto ok = op.append_range(init.begin(), init.end());
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        op.attach(list.m_data().sentinel());
+        return list;
+    }
+
+    static expected<doubly_linked_list, error> create(const doubly_linked_list& other, const allocator_type& alloc = allocator_type())
+    {
+        doubly_linked_list list(alloc);
+
+        insert_op op(list.m_allocator());
+        const auto ok = op.append_range(other.begin(), other.end());
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        op.attach(list.m_data().sentinel());
+        return list;
+    }
+
+    static expected<doubly_linked_list, error> create(doubly_linked_list&& other)
+    {
+        doubly_linked_list list(std::move(other));
+        return list;
+    }
+
+    static expected<doubly_linked_list, error> create(doubly_linked_list&& other, const allocator_type& alloc = allocator_type())
+    {
+        doubly_linked_list list(std::move(other), alloc);
+        return list;
+    }
+
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    static expected<doubly_linked_list, error> create(IT first, IT last, const allocator_type& alloc = allocator_type())
+    {
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
+        doubly_linked_list list(alloc);
+
+        insert_op op(list.m_allocator());
+        const auto ok = op.append_range(first, last);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        op.attach(list.m_data().sentinel());
+        return list;
     }
 
     //=========================================================================
@@ -759,7 +856,7 @@ public:
 
     ~doubly_linked_list()
     {
-        clear();
+        node::free_all(m_allocator(), m_data().sentinel()); // the object is dying, no reset needed
     }
 
     //=========================================================================
@@ -772,42 +869,44 @@ public:
     }
 
     //=========================================================================
-    // assignment operators
+    // assignment
     //=========================================================================
 
 private:
 
+    // overwrite existing nodes first, then append the rest or erase the leftovers
     template <typename IT1, typename IT2>
-    bool assign_range(IT1 first, IT2 last)
+    success assign_range(IT1 first, IT2 last)
     {
-        auto head_node = m_data().before_head();
+        auto& data = m_data();
+        const link_ptr end_node = data.sentinel();
+        link_ptr cur = data.head.next;
 
-        for (; first != last; ++first)
+        for (; first != last && cur != end_node; ++first, cur = cur->next)
         {
-            const auto next_node = head_node->next;
-            if (!next_node)
-            {
-                insert_op op(m_allocator());
-                op.append_range(std::move(first), last);
-                op.attach_after(head_node);
-                return op.success();
-            }
-
-            next_node->value = *first;
-            head_node = next_node;
+            node::from_link(cur)->value = *first;
         }
 
-        for (auto del_node = mem::exchange(head_node->next, nullptr); del_node;)
+        if (first != last)
         {
-            const auto next_node = del_node->next;
-            node::free(m_allocator(), del_node);
-            del_node = next_node;
+            // out of nodes: build the rest off to the side and attach at the end
+            insert_op op(m_allocator());
+            const auto ok = op.append_range(std::move(first), last);
+            VX_RET_ERR_IF(!ok, ok);
+            op.attach(end_node);
+        }
+        else
+        {
+            // out of input: erase the leftover tail
+            erase_range(cur, end_node);
         }
 
-        return true;
+        return success{};
     }
 
 public:
+
+    // Allocators never propagate: the container's allocator is fixed at construction.
 
     doubly_linked_list& operator=(const doubly_linked_list& other)
     {
@@ -816,7 +915,8 @@ public:
             return *this;
         }
 
-        assign_range(other.begin(), other.end());
+        const auto ok = assign_range(other.begin(), other.end());
+        VX_VERIFY(ok);
         return *this;
     }
 
@@ -829,13 +929,14 @@ public:
 
         clear();
         m_allocator() = std::move(other.m_allocator());
-        take_head(other);
+        m_data().take(other.m_data());
         return *this;
     }
 
-    doubly_linked_list& operator=(std::initializer_list<T> init) noexcept
+    doubly_linked_list& operator=(std::initializer_list<T> init)
     {
-        assign_range(init.begin(), init.end());
+        const auto ok = assign_range(init.begin(), init.end());
+        VX_VERIFY(ok);
         return *this;
     }
 
@@ -843,36 +944,43 @@ public:
     // assign
     //=========================================================================
 
-    bool assign(const doubly_linked_list& other)
+    success assign(const doubly_linked_list& other)
     {
         if (this == &other)
         {
-            return true;
+            return success{};
         }
 
         return assign_range(other.begin(), other.end());
     }
 
-    bool assign(doubly_linked_list&& other) noexcept
+    success assign(doubly_linked_list&& other) noexcept(alloc_traits::is_always_equal::value)
     {
         operator=(std::move(other));
-        return true;
+        return success{};
     }
 
-    bool assign(std::initializer_list<T> init)
+    success assign(std::initializer_list<T> init)
     {
         return assign_range(init.begin(), init.end());
     }
 
-    bool assign(size_type count, const T& value)
+    success assign(size_type count, const T& value)
     {
+        // build first so a failure leaves *this unchanged and value may alias an element
+        insert_op op(m_allocator());
+        const auto ok = op.append_n(count, value);
+        VX_RET_ERR_IF(!ok, ok);
+
         clear();
-        return insert_after(before_begin(), count, value) != end();
+        op.attach(m_data().sentinel());
+        return success{};
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    bool assign(IT first, IT last)
+    success assign(IT first, IT last)
     {
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
         return assign_range(first, last);
     }
 
@@ -882,58 +990,51 @@ public:
 
     reference front() noexcept
     {
-        return m_data().head->value;
+        VX_ASSERT(!empty());
+        return node::val(m_data().head.next);
     }
 
     const_reference front() const noexcept
     {
-        return m_data().head->value;
+        VX_ASSERT(!empty());
+        return node::val(m_data().head.next);
+    }
+
+    reference back() noexcept
+    {
+        VX_ASSERT(!empty());
+        return node::val(m_data().head.prev);
+    }
+
+    const_reference back() const noexcept
+    {
+        VX_ASSERT(!empty());
+        return node::val(m_data().head.prev);
     }
 
     //=========================================================================
     // iterators
     //=========================================================================
 
-    iterator before_begin() noexcept
-    {
-        return iterator(m_data().before_head());
-    }
-
-    const_iterator before_begin() const noexcept
-    {
-        return const_iterator(m_data().before_head());
-    }
-
-    const_iterator cbefore_begin() const noexcept
-    {
-        return before_begin();
-    }
-
-    //=========================================================================
-
     iterator begin() noexcept
     {
-        return iterator(m_data().head);
+        return iterator(m_data().head.next);
     }
 
     const_iterator begin() const noexcept
     {
-        return const_iterator(m_data().head);
+        return const_iterator(m_data().head.next);
     }
-
-    //=========================================================================
 
     iterator end() noexcept
     {
-        return iterator(nullptr);
+        return iterator(m_data().sentinel());
     }
 
     const_iterator end() const noexcept
     {
-        return const_iterator(nullptr);
+        return const_iterator(m_data().sentinel());
     }
-
-    //=========================================================================
 
     const_iterator cbegin() const noexcept
     {
@@ -946,15 +1047,59 @@ public:
     }
 
     //=========================================================================
+
+    reverse_iterator rbegin() noexcept
+    {
+        return reverse_iterator(end());
+    }
+
+    const_reverse_iterator rbegin() const noexcept
+    {
+        return const_reverse_iterator(end());
+    }
+
+    reverse_iterator rend() noexcept
+    {
+        return reverse_iterator(begin());
+    }
+
+    const_reverse_iterator rend() const noexcept
+    {
+        return const_reverse_iterator(begin());
+    }
+
+    const_reverse_iterator crbegin() const noexcept
+    {
+        return rbegin();
+    }
+
+    const_reverse_iterator crend() const noexcept
+    {
+        return rend();
+    }
+
+    //=========================================================================
     // capacity
     //=========================================================================
 
-    const bool empty() const noexcept
+    bool empty() const noexcept
     {
-        return m_data().head == nullptr;
+        return m_data().empty();
     }
 
-    constexpr size_type max_size() const noexcept
+    // O(n): the list does not store its size. Prefer empty() for emptiness tests.
+    size_type count() const noexcept
+    {
+        size_type n = 0;
+        const link_ptr end_node = m_data().sentinel();
+        for (link_ptr p = m_data().head.next; p != end_node; p = p->next)
+        {
+            ++n;
+        }
+        return n;
+    }
+
+    size_type max_size() const noexcept
     {
         return static_cast<size_type>(mem::allocator_traits<node_allocator>::max_size(m_allocator()));
     }
@@ -963,166 +1108,187 @@ public:
     // clear
     //=========================================================================
 
-    void clear()
+    void clear() noexcept
     {
-        auto& alloc = m_allocator();
-
-        node_ptr node = mem::exchange(m_data().head, nullptr);
-        node_ptr next;
-
-        for (; node; node = next)
-        {
-            // delete an element
-            next = node->next;
-            node::free(alloc, node);
-        }
+        node::free_all(m_allocator(), m_data().sentinel());
+        m_data().reset();
     }
 
     //=========================================================================
-    // insert after
+    // emplace (VX_VERIFY) / emplace_checked (expected)
     //=========================================================================
-
-private:
 
     template <typename... Args>
-    node_ptr insert_after_impl(node_ptr ptr, Args&&... args)
+    iterator emplace(const_iterator pos, Args&&... args)
     {
-        node_ptr new_ptr = m_allocator().allocate(1);
-        if (!new_ptr)
-        {
-            return nullptr;
-        }
-
-        mem::construct_in_place(std::addressof(new_ptr->value), std::forward<Args>(args)...);
-        new_ptr->next = ptr->next;
-        ptr->next = new_ptr;
-        return new_ptr;
+        node_ptr n = nullptr;
+        const auto ok = emplace_impl(pos.m_ptr, n, std::forward<Args>(args)...);
+        VX_VERIFY(ok);
+        return iterator(n);
     }
 
-public:
-
-    iterator insert_after(const_iterator pos, const T& value)
+    template <typename... Args>
+    expected<iterator, error> emplace_checked(const_iterator pos, Args&&... args)
     {
-        const auto ptr = insert_after_impl(pos.m_ptr, value);
-        return iterator(ptr);
+        node_ptr n = nullptr;
+        const auto ok = emplace_impl(pos.m_ptr, n, std::forward<Args>(args)...);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        return iterator(n);
     }
 
-    iterator insert_after(const_iterator pos, T&& value)
+    //=========================================================================
+    // insert (VX_VERIFY) / insert_checked (expected)
+    //=========================================================================
+
+    iterator insert(const_iterator pos, const T& value)
     {
-        return emplace_after(pos, std::move(value));
+        return emplace(pos, value);
     }
 
-    iterator insert_after(const_iterator pos, const size_t count, const T& value)
+    iterator insert(const_iterator pos, T&& value)
     {
-        if (count != 0)
-        {
-            insert_op op(m_allocator());
-            op.append_n(count, value);
-            pos.m_ptr = op.attach_after(pos.m_ptr);
-        }
-
-        return iterator(pos.m_ptr);
+        return emplace(pos, std::move(value));
     }
 
-    iterator insert_after(const_iterator pos, std::initializer_list<T> init)
+    // returns an iterator to the first inserted element, or pos if nothing was inserted
+    iterator insert(const_iterator pos, size_type count, const T& value)
     {
-        return insert_after(pos, init.begin(), init.end());
+        insert_op op(m_allocator());
+        const auto ok = op.append_n(count, value);
+        VX_VERIFY(ok);
+        return iterator(op.attach(pos.m_ptr));
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    iterator insert_after(const_iterator pos, IT first, IT last)
+    iterator insert(const_iterator pos, IT first, IT last)
     {
-        if (first == last)
-        {
-            return iterator(pos.m_ptr);
-        }
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
 
         insert_op op(m_allocator());
-        op.append_range(std::move(first), last);
-        return iterator(op.attach_after(pos.m_ptr));
+        const auto ok = op.append_range(std::move(first), last);
+        VX_VERIFY(ok);
+        return iterator(op.attach(pos.m_ptr));
+    }
+
+    iterator insert(const_iterator pos, std::initializer_list<T> init)
+    {
+        return insert(pos, init.begin(), init.end());
     }
 
     //=========================================================================
-    // emplace after
+
+    expected<iterator, error> insert_checked(const_iterator pos, const T& value)
+    {
+        return emplace_checked(pos, value);
+    }
+
+    expected<iterator, error> insert_checked(const_iterator pos, T&& value)
+    {
+        return emplace_checked(pos, std::move(value));
+    }
+
+    expected<iterator, error> insert_checked(const_iterator pos, size_type count, const T& value)
+    {
+        insert_op op(m_allocator());
+        const auto ok = op.append_n(count, value);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        return iterator(op.attach(pos.m_ptr));
+    }
+
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    expected<iterator, error> insert_checked(const_iterator pos, IT first, IT last)
+    {
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
+        insert_op op(m_allocator());
+        const auto ok = op.append_range(std::move(first), last);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        return iterator(op.attach(pos.m_ptr));
+    }
+
+    expected<iterator, error> insert_checked(const_iterator pos, std::initializer_list<T> init)
+    {
+        return insert_checked(pos, init.begin(), init.end());
+    }
+
+    //=========================================================================
+    // emplace / push at the ends (always fallible, like single_linked_list::push_front)
     //=========================================================================
 
     template <typename... Args>
-    iterator emplace_after(const_iterator pos, Args&&... args)
+    expected<pointer, error> emplace_back(Args&&... args)
     {
-        auto ptr = insert_after_impl(
-            pos.m_ptr,
-            std::forward<Args>(args)...);
+        node_ptr n = nullptr;
+        const auto ok = emplace_impl(m_data().sentinel(), n, std::forward<Args>(args)...);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        return std::addressof(n->value);
+    }
 
-        return iterator(ptr);
+    template <typename... Args>
+    expected<pointer, error> emplace_front(Args&&... args)
+    {
+        node_ptr n = nullptr;
+        const auto ok = emplace_impl(m_data().head.next, n, std::forward<Args>(args)...);
+        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
+        return std::addressof(n->value);
     }
 
     //=========================================================================
-    // erase after
-    //=========================================================================
 
-    iterator erase_after(const_iterator pos)
+    success push_back(const T& value)
     {
-        node_ptr keep_node = pos.m_ptr;
-        node_ptr erase_node = keep_node->next;
-        VX_ASSERT(erase_node != nullptr);
-
-        keep_node->next = erase_node->next;
-        node::free(m_allocator(), erase_node);
-
-        return iterator(keep_node->next);
+        node_ptr n = nullptr;
+        return emplace_impl(m_data().sentinel(), n, value);
     }
 
-    iterator erase_after(const_iterator first, const_iterator last)
+    success push_back(T&& value)
     {
-        node_ptr keep_node = first.m_ptr;
+        node_ptr n = nullptr;
+        return emplace_impl(m_data().sentinel(), n, std::move(value));
+    }
 
-        for (;;)
-        {
-            const node_ptr erase_node = keep_node->next;
-            if (erase_node == last.m_ptr)
-            {
-                break;
-            }
+    success push_front(const T& value)
+    {
+        node_ptr n = nullptr;
+        return emplace_impl(m_data().head.next, n, value);
+    }
 
-            keep_node->next = erase_node->next;
-            node::free(m_allocator(), erase_node);
-        }
+    success push_front(T&& value)
+    {
+        node_ptr n = nullptr;
+        return emplace_impl(m_data().head.next, n, std::move(value));
+    }
 
+    //=========================================================================
+    // erase / pop (cannot fail)
+    //=========================================================================
+
+    iterator erase(const_iterator pos) noexcept
+    {
+        VX_ASSERT(pos.m_ptr != m_data().sentinel());
+        const link_ptr next = pos.m_ptr->next;
+        node_base::unlink(pos.m_ptr);
+        node::free_node(m_allocator(), node::from_link(pos.m_ptr));
+        return iterator(next);
+    }
+
+    iterator erase(const_iterator first, const_iterator last) noexcept
+    {
+        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+        erase_range(first.m_ptr, last.m_ptr);
         return iterator(last.m_ptr);
     }
 
-    //=========================================================================
-    // push front
-    //=========================================================================
-
-    bool push_front(const T& value)
+    void pop_front() noexcept
     {
-        return insert_after_impl(m_data().before_head(), value) != nullptr;
+        VX_ASSERT(!empty());
+        erase(begin());
     }
 
-    bool push_front(T&& value)
+    void pop_back() noexcept
     {
-        return insert_after_impl(m_data().before_head(), std::move(value)) != nullptr;
-    }
-
-    //=========================================================================
-    // emplace front
-    //=========================================================================
-
-    template <typename... Args>
-    pointer emplace_front(Args&&... args)
-    {
-        node_ptr ptr = insert_after_impl(m_data().before_head(), std::forward<Args>(args)...);
-        return ptr ? std::addressof(ptr->value) : nullptr;
-    }
-
-    //=========================================================================
-    // pop front
-    //=========================================================================
-
-    void pop_front()
-    {
-        erase_after(m_data().before_head());
+        VX_ASSERT(!empty());
+        erase(const_iterator(m_data().head.prev));
     }
 
     //=========================================================================
@@ -1132,54 +1298,43 @@ public:
 private:
 
     template <typename... Args>
-    bool resize_impl(size_type new_size, const Args&... args)
+    success resize_impl(size_type new_size, const Args&... args)
     {
-        auto head_node = m_data().before_head();
-        auto& alloc = m_allocator();
+        const link_ptr end_node = m_data().sentinel();
+        link_ptr cur = m_data().head.next;
 
-        for (;;)
+        // walk until we've passed new_size elements or hit the end
+        for (; cur != end_node && new_size > 0; cur = cur->next)
         {
-            auto next_node = head_node->next;
-            if (!next_node)
-            {
-                // list too short, insert remaining new_size objects initialized from args...
-                insert_op op(alloc);
-                op.append_n(new_size, args...);
-                op.attach_after(head_node);
-                return op.success();
-            }
-
-            if (new_size == 0)
-            {
-                // list is too long, erase the next and after
-                head_node->next = nullptr;
-
-                do
-                {
-                    const auto nextnext_node = next_node->next;
-                    node::free(alloc, next_node);
-                    next_node = nextnext_node;
-
-                } while (next_node);
-
-                break;
-            }
-
-            head_node = next_node;
             --new_size;
         }
 
-        return true;
+        if (cur == end_node)
+        {
+            // list too short (or exact): build the missing elements off to the side, then attach.
+            // If new_size is 0 nothing is built and attach does nothing.
+            insert_op op(m_allocator());
+            const auto ok = op.append_n(new_size, args...);
+            VX_RET_ERR_IF(!ok, ok);
+            op.attach(end_node);
+        }
+        else
+        {
+            // list too long: cur is the first element to drop
+            erase_range(cur, end_node);
+        }
+
+        return success{};
     }
 
 public:
 
-    bool resize(const size_type count)
+    success resize(const size_type count)
     {
         return resize_impl(count);
     }
 
-    bool resize(const size_type count, const T& value)
+    success resize(const size_type count, const T& value)
     {
         return resize_impl(count, value);
     }
@@ -1190,7 +1345,7 @@ public:
 
     void swap(doubly_linked_list& other) noexcept
     {
-        mem::swap(m_storage, other.m_storage);
+        vx::swap(m_storage, other.m_storage);
     }
 
     //=========================================================================
@@ -1199,10 +1354,12 @@ public:
 
 private:
 
-    // merge in elements from other, both ordered by pred
+    // merge in the elements of other; both lists must be ordered by pred
     template <typename Pred>
     void merge_impl(doubly_linked_list& other, Pred pred)
     {
+        VX_ASSERT(alloc_traits::is_always_equal::value || m_allocator() == other.m_allocator());
+
         if (this == &other)
         {
             return;
@@ -1211,81 +1368,31 @@ private:
         auto& data = m_data();
         auto& other_data = other.m_data();
 
-        if (!data.head)
+        if (other_data.empty())
+        {
+            return;
+        }
+
+        if (data.empty())
         {
             // *this is empty; take all elements of other with no comparisons
-            data.head = other_data.head;
-            other_data.head = nullptr;
+            data.take(other_data);
             return;
         }
 
-        if (!other_data.head)
+        const link_ptr sentinel = data.sentinel();
+        const link_ptr first = data.head.next;
+        const link_ptr other_first = other_data.head.next;
+
+        // if nothing in other belongs before our last element, appending is enough
+        const bool already_ordered = !pred(node::val(other_first), node::val(data.head.prev));
+
+        // move all of other to the end of *this; this leaves other's sentinel self-linked
+        node_base::splice(sentinel, other_first, other_data.sentinel());
+
+        if (!already_ordered)
         {
-            return;
-        }
-
-        auto beforefirst_node = data.before_head();
-        auto otherfirst_node = other_data.head;
-
-        for (;;)
-        {
-            // process 1 splice
-            node_ptr first_node;
-
-            for (;;)
-            {
-                // advance beforefirst_node over elements already in position
-                first_node = beforefirst_node->next;
-                if (!first_node)
-                {
-                    // all elements in other are greater than elements in *this, splice them all
-                    beforefirst_node->next = otherfirst_node;
-                    other_data.head = nullptr;
-                    return;
-                }
-
-                if (pred(otherfirst_node->value, first_node->value))
-                {
-                    // otherfirst_node->value is out of order
-                    break;
-                }
-
-                // first_node->value is already in position; advance
-                beforefirst_node = first_node;
-            }
-
-            // find the end of the "run" of elements less than first_node->value in other
-            auto other_run_end = otherfirst_node;
-            node_ptr run_end_node;
-
-            for (;;)
-            {
-                run_end_node = other_run_end->next;
-                if (!run_end_node)
-                {
-                    break;
-                }
-
-                if (!pred(run_end_node->value, first_node->value))
-                {
-                    // run_end_node is the first element in other that shouldn't precede first_node->value.
-                    // After the splice first_node->value will be in position and must not be compared again.
-                    break;
-                }
-
-                other_run_end = run_end_node;
-            }
-
-            other_data.head = run_end_node;           // snip out the run from its old position
-            beforefirst_node->next = otherfirst_node; // insert into new position
-            other_run_end->next = first_node;
-            if (!run_end_node)
-            {
-                return;
-            }
-
-            beforefirst_node = first_node;
-            otherfirst_node = run_end_node;
+            node::inplace_merge(first, other_first, sentinel, pred);
         }
     }
 
@@ -1294,13 +1401,13 @@ public:
     // merge in elements from other, both ordered by operator<
     void merge(doubly_linked_list& other)
     {
-        merge_impl(other, std::less<>{});
+        merge_impl(other, vx::less<>{});
     }
 
     // merge in elements from other, both ordered by operator<
     void merge(doubly_linked_list&& other)
     {
-        merge_impl(other, std::less<>{});
+        merge_impl(other, vx::less<>{});
     }
 
     // merge in elements from other, both ordered by pred
@@ -1318,98 +1425,64 @@ public:
     }
 
     //=========================================================================
-    // splice_after
+    // splice (all O(1), including cross-list ranges)
     //=========================================================================
 
-private:
-
-    // splice other (prev, prev + 2) after pos
-    void splice_after_impl(node_ptr pos, doubly_linked_list& other, node_ptr prev) noexcept
+    // move all of other before pos
+    void splice(const_iterator pos, doubly_linked_list& other) noexcept
     {
-        if (pos != prev)
-        {
-            const auto first_node = prev->next;
+        VX_ASSERT(m_allocator() == other.m_allocator());
+        VX_ASSERT(this != &other);
 
-            if (pos != first_node)
-            {
-                prev->next = first_node->next;
-                first_node->next = pos->next;
-                pos->next = first_node;
-            }
-        }
-    }
-
-    // splice other (first, last) just after pos
-    template <class IT2>
-    void splice_after_impl(const_iterator pos, doubly_linked_list& other, const_iterator first, IT2 last) noexcept
-    {
-        if (first == last)
+        if (other.empty())
         {
             return;
         }
 
-        // find prev(last)
-        const_iterator after = first;
-        ++after;
-        if (after == last)
+        node_base::splice(pos.m_ptr, other.m_data().head.next, other.m_data().sentinel());
+    }
+
+    void splice(const_iterator pos, doubly_linked_list&& other) noexcept
+    {
+        splice(pos, other);
+    }
+
+    // move the element it (of other) before pos
+    void splice(const_iterator pos, doubly_linked_list& other, const_iterator it) noexcept
+    {
+        VX_ASSERT(m_allocator() == other.m_allocator());
+        VX_ASSERT(it.m_ptr != other.m_data().sentinel());
+
+        // already in place
+        if (pos.m_ptr == it.m_ptr || pos.m_ptr == it.m_ptr->next)
         {
             return;
         }
 
-        const_iterator lastlast = first;
-        do
-        {
-            lastlast = after;
-            ++after;
-
-        } while (after != last);
-
-        const auto extracted_head = first.m_ptr->next;
-        first.m_ptr->next = after.m_ptr;
-        lastlast.m_ptr->next = pos.m_ptr->next;
-        pos.m_ptr->next = extracted_head;
+        node_base::splice(pos.m_ptr, it.m_ptr);
     }
 
-public:
-
-    // splice all of other after pos
-    void splice_after(const_iterator pos, doubly_linked_list& other) noexcept
+    void splice(const_iterator pos, doubly_linked_list&& other, const_iterator it) noexcept
     {
-        if (this != &other && !other.empty())
+        splice(pos, other, it);
+    }
+
+    // move [first, last) of other before pos. If other is *this, pos must not be in the range.
+    void splice(const_iterator pos, doubly_linked_list& other, const_iterator first, const_iterator last) noexcept
+    {
+        VX_ASSERT(m_allocator() == other.m_allocator());
+
+        if (first == last || pos == first || pos == last)
         {
-            // worth splicing, do it
-            splice_after_impl(pos, other, other.before_begin(), other.end());
+            return;
         }
+
+        node_base::splice(pos.m_ptr, first.m_ptr, last.m_ptr);
     }
 
-    // splice all of other after pos
-    void splice_after(const_iterator pos, doubly_linked_list&& other) noexcept
+    void splice(const_iterator pos, doubly_linked_list&& other, const_iterator first, const_iterator last) noexcept
     {
-        splice_after(pos, other);
-    }
-
-    // splice other (first, first + 2) after pos
-    void splice_after(const_iterator pos, doubly_linked_list& other, const_iterator first) noexcept
-    {
-        splice_after_impl(pos.m_ptr, other, first.m_ptr);
-    }
-
-    // splice other (first, first + 2) after pos
-    void splice_after(const_iterator pos, doubly_linked_list&& other, const_iterator first) noexcept
-    {
-        splice_after(pos, other, first);
-    }
-
-    // splice other (first, last) after pos
-    void splice_after(const_iterator pos, doubly_linked_list& other, const_iterator first, const_iterator last) noexcept
-    {
-        splice_after_impl(pos, other, first, last);
-    }
-
-    // splice other [first, last) after pos
-    void splice_after(const_iterator pos, doubly_linked_list&& other, const_iterator first, const_iterator last) noexcept
-    {
-        splice_after(pos, other, first, last);
+        splice(pos, other, first, last);
     }
 
     //=========================================================================
@@ -1420,86 +1493,72 @@ private:
 
     struct remove_op
     {
-        // tracks nodes pending removal in a remove operation, so that
-        // program-defined predicates may reference those elements until
-        // the removal is complete.
+        // Tracks nodes pending removal, so that program-defined predicates (or the value
+        // passed to remove) may reference those elements until the removal is complete.
+        // Removed nodes are unlinked from the list but stay allocated until destruction.
 
         explicit remove_op(doubly_linked_list& list) noexcept
-            : m_list(list), m_head(), m_tail(&m_head)
+            : m_list(list), m_pending(nullptr)
         {}
 
         remove_op(const remove_op&) = delete;
         remove_op& operator=(const remove_op&) = delete;
 
-        node_ptr transfer_back(const node_ptr prev_node) noexcept
+        // unlink n from the list and park it; returns n's successor
+        link_ptr transfer(link_ptr n) noexcept
         {
-            // extract prev_node->next from the container, and add it to
-            // the singly-linked m_list of nodes to destroy returns the
-            // successor of the removed node
-
-            // snip the node out
-            const auto removed_node = prev_node->next;
-            const auto next_node = removed_node->next;
-            removed_node->next = nullptr;
-            prev_node->next = next_node;
-
-            *m_tail = removed_node;
-            m_tail = &removed_node->next;
-
-            return next_node;
+            const link_ptr next = n->next;
+            node_base::unlink(n);
+            n->next = m_pending; // the pending chain is singly linked through next
+            m_pending = n;
+            return next;
         }
 
         ~remove_op()
         {
-            auto target_node = m_head;
-            while (target_node)
+            while (m_pending)
             {
-                auto next_node = target_node->next;
-                mem::destroy_in_place(target_node->next);
-                mem::destroy_in_place(std::addressof(target_node->value));
-                m_list.m_allocator().deallocate(target_node, 1);
-                target_node = next_node;
+                const link_ptr next = m_pending->next;
+                node::free_node(m_list.m_allocator(), node::from_link(m_pending));
+                m_pending = next;
             }
         }
 
         doubly_linked_list& m_list;
-        node_ptr m_head;
-        node_ptr* m_tail;
+        link_ptr m_pending;
     };
 
 public:
 
-    // erase each element satisfying Pred
+    // erase each element satisfying pred; returns the number removed
     template <typename Pred>
     size_type remove_if(Pred pred)
     {
         remove_op op(*this);
+        size_type removed = 0;
+        const link_ptr end_node = m_data().sentinel();
 
-        auto beforefirst = before_begin();
-        size_type count = 0;
-
-        for (auto first = begin(); first.m_ptr;)
+        for (link_ptr cur = m_data().head.next; cur != end_node;)
         {
-            if (pred(*first))
+            if (pred(node::val(cur)))
             {
-                first.m_ptr = op.transfer_back(beforefirst.m_ptr);
-                ++count;
+                cur = op.transfer(cur);
+                ++removed;
             }
             else
             {
-                beforefirst = first;
-                ++first;
+                cur = cur->next;
             }
         }
 
-        return count;
+        return removed;
     }
 
     //=========================================================================
     // remove
     //=========================================================================
 
-    // erase each element matching _Val
+    // erase each element matching value
     size_type remove(const T& value)
     {
         return remove_if([&](const T& other) -> bool
@@ -1513,7 +1572,7 @@ public:
     // erase each element matching previous
     size_type unique()
     {
-        return unique(std::equal_to<>{});
+        return unique(vx::equal_to<>{});
     }
 
     // erase each element satisfying pred with previous
@@ -1521,47 +1580,48 @@ public:
     size_type unique(Pred pred)
     {
         remove_op op(*this);
-        auto first = begin();
-        size_type count = 0;
+        size_type removed = 0;
+        const link_ptr end_node = m_data().sentinel();
 
-        if (first.m_ptr)
+        link_ptr first = m_data().head.next;
+        if (first == end_node)
         {
-            auto after = first;
-            ++after;
+            return 0;
+        }
 
-            while (after.m_ptr)
+        link_ptr after = first->next;
+        while (after != end_node)
+        {
+            if (pred(node::val(first), node::val(after)))
             {
-                if (pred(*first, *after))
-                {
-                    after.m_ptr = op.transfer_back(first.m_ptr);
-                    ++count;
-                }
-                else
-                {
-                    first = after;
-                    ++after;
-                }
+                after = op.transfer(after);
+                ++removed;
+            }
+            else
+            {
+                first = after;
+                after = after->next;
             }
         }
 
-        return count;
+        return removed;
     }
 
     //=========================================================================
     // sort
     //=========================================================================
 
-    // order sequence
+    // order sequence (stable). Costs one O(n) count walk before sorting.
     void sort()
     {
-        list_value::sort(m_data().before_head(), std::less<>{});
+        node::sort(m_data().sentinel(), count(), vx::less<>{});
     }
 
-    // order sequence
-    template <class Pred>
+    // order sequence (stable)
+    template <typename Pred>
     void sort(Pred pred)
     {
-        list_value::sort(m_data().before_head(), fn::pass_func(pred));
+        node::sort(m_data().sentinel(), count(), fn::pass_func(pred));
     }
 
     //=========================================================================
@@ -1571,29 +1631,19 @@ public:
     // reverse sequence
     void reverse() noexcept
     {
-        auto current_node = m_data().head;
-        if (!current_node)
-        {
-            // empty
-            return;
-        }
-
-        node_ptr prev_node{};
-        for (;;)
-        {
-            const auto next_node = current_node->next;
-            current_node->next = prev_node;
-            if (!next_node)
-            {
-                m_data().head = current_node;
-                return;
-            }
-
-            prev_node = current_node;
-            current_node = next_node;
-        }
+        node_base::reverse(m_data().sentinel());
     }
 };
+
+//=========================================================================
+// non-member functions
+//=========================================================================
+
+template <typename T, typename Allocator>
+void swap(doubly_linked_list<T, Allocator>& a, doubly_linked_list<T, Allocator>& b) noexcept
+{
+    a.swap(b);
+}
 
 //=========================================================================
 // comparison
@@ -1634,5 +1684,10 @@ bool operator>=(const doubly_linked_list<T, Allocator>& lhs, const doubly_linked
 {
     return !(lhs < rhs);
 }
+
+//=========================================================================
+
+template <typename T, typename Allocator = mem::default_allocator<T>>
+using dlist = doubly_linked_list<T, Allocator>;
 
 } // namespace vx

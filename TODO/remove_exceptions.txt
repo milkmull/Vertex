@@ -12,12 +12,12 @@ x static string
 x string
 
 - packed string array
-- single link list
+x single link list
 - double link list
 - hash
 - unordered_set
 - unordered_map
-- bitfield
+x bitset
 - type_traits
 - locale
 

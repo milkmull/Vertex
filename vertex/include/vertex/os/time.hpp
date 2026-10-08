@@ -1,14 +1,15 @@
 #pragma once
 
-#include "vertex/util/time/time.hpp"
-#include "vertex/util/time/datetime.hpp"
+#include "vertex/std/expected.hpp"
+#include "vertex/std/time/datetime.hpp"
+#include "vertex/std/time/time.hpp"
 
 namespace vx {
 namespace os {
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // Current Time
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Retrieves the current system time.
@@ -17,9 +18,9 @@ namespace os {
  */
 VX_API time::time_point system_time();
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // Ticks
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Retrieves the current time in terms of "ticks" (elapsed time since
@@ -31,7 +32,7 @@ VX_API time::time_point system_time();
  *
  * @return The current time elapsed since the program started, in nanoseconds.
  */
-VX_API time::time_point get_ticks();
+VX_API time::duration get_ticks();
 
 /**
  * @brief Retrieves the current value of a high-resolution performance counter.
@@ -54,9 +55,9 @@ VX_API int64_t get_performance_counter();
  */
 VX_API int64_t get_performance_frequency();
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // Sleep
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Causes the current thread to sleep until the specified time point.
@@ -66,7 +67,7 @@ VX_API int64_t get_performance_frequency();
  *
  * @param t The time point until which the thread should sleep.
  */
-VX_API void sleep(const time::time_point& t);
+VX_API void sleep(const time::duration& d);
 
 /**
  * @brief Sleeps with higher timing accuracy than the standard sleep function.
@@ -78,7 +79,7 @@ VX_API void sleep(const time::time_point& t);
  *
  * @param t Absolute time point at which the thread should resume execution.
  */
-VX_API void sleep_precise(const time::time_point& t);
+VX_API void sleep_precise(const time::duration& d);
 
 } // namespace os
 } // namespace vx

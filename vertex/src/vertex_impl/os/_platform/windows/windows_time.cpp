@@ -6,7 +6,7 @@
 namespace vx {
 namespace os {
 
-time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool local)
+expected<time::datetime, error> time_to_datetime_impl(const time::time_point& tp, bool local)
 {
     FILETIME ft{};
     windows::time_point_to_file_time(tp, ft.dwLowDateTime, ft.dwHighDateTime);
@@ -14,27 +14,27 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
     SYSTEMTIME utc_st, local_st;
     SYSTEMTIME* st = NULL;
 
-    time::datetime dt{};
-
     if (!::FileTimeToSystemTime(&ft, &utc_st))
     {
         err::set_last_os_error("FileTimeToSystemTime");
-        return dt;
+        return make_unexpected(::vx::error{ err::system_error });
     }
+
+    time::datetime dt{};
 
     if (local)
     {
         if (!::SystemTimeToTzSpecificLocalTime(NULL, &utc_st, &local_st))
         {
             err::set_last_os_error("SystemTimeToTzSpecificLocalTime");
-            return dt;
+            return make_unexpected(::vx::error{ err::system_error });
         }
 
         FILETIME local_ft{};
         if (!::SystemTimeToFileTime(&local_st, &local_ft))
         {
             err::set_last_os_error("SystemTimeToFileTime");
-            return dt;
+            return make_unexpected(::vx::error{ err::system_error });
         }
 
         time::time_point local_ticks = windows::time_point_from_file_time(local_ft.dwLowDateTime, local_ft.dwHighDateTime);
@@ -56,14 +56,14 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
     dt.minute = static_cast<int32_t>(st->wMinute);
     dt.second = static_cast<int32_t>(st->wSecond);
     // Extract nanoseconds within the second
-    dt.nanosecond = static_cast<int32_t>(tp.as_nanoseconds() % time::nanoseconds_per_second);
+    dt.nanosecond = static_cast<int32_t>(tp.time_since_epoch().as_nanoseconds() % time::nanoseconds_per_second);
 
     return dt;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // Current Time
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 time::time_point system_time_impl() noexcept
 {
@@ -86,9 +86,9 @@ int64_t get_performance_frequency_impl() noexcept
     return static_cast<int64_t>(frequency.QuadPart);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // Sleep
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/timer/windows/SDL_systimer.c
 
@@ -160,7 +160,7 @@ static HANDLE get_waitable_event()
 // 2. If unavailable, fall back to WaitForSingleObjectEx on an event.
 // 3. Last resort, use ::Sleep (least precise, but always available).
 
-void sleep_impl(const time::time_point& t) noexcept
+void sleep_impl(const time::duration& d) noexcept
 {
     const HANDLE timer = get_waitable_timer();
     if (timer)
@@ -169,7 +169,7 @@ void sleep_impl(const time::time_point& t) noexcept
 
         // Convert to negative 100-ns intervals (relative time).
         // Clamp to avoid overflow if input duration is very large.
-        int64_t ns = t.as_nanoseconds();
+        int64_t ns = d.as_nanoseconds();
         if (ns / 100 > std::numeric_limits<LONGLONG>::max())
         {
             ns = std::numeric_limits<LONGLONG>::max() * 100;
@@ -184,7 +184,7 @@ void sleep_impl(const time::time_point& t) noexcept
         return;
     }
 
-    int64_t ms = t.as_milliseconds();
+    int64_t ms = d.as_milliseconds();
     if (ms > std::numeric_limits<DWORD>::max())
     {
         ms = std::numeric_limits<DWORD>::max();

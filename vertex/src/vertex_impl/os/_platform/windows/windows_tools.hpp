@@ -2,15 +2,15 @@
 
 #include "vertex_impl/os/_platform/windows/windows_header.hpp"
 #include "vertex/os/handle.hpp"
-#include "vertex/util/time/time.hpp"
+#include "vertex/std/time/time.hpp"
 
 namespace vx {
 namespace os {
 namespace windows {
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // Alignment
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 // See https://github.com/libsdl-org/SDL/pull/7607
 // force_align_arg_pointer attribute requires gcc >= 4.2.x.
@@ -28,9 +28,9 @@ namespace windows {
 
 #undef _HAVE_FORCE_ALIGN_ARG_POINTER
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // time
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 // Epoch difference between 1601-01-01 and 1970-01-01 in 100 nanosecond units
 #define DELTA_EPOCH_1601_100NS (11644473600ull * 10000000ull)
@@ -42,13 +42,13 @@ inline constexpr time::time_point time_point_from_file_time(DWORD low, DWORD hig
     // Adjust for Unix epoch and convert to nanoseconds (100-nanosecond intervals to nanoseconds)
     uint64_t ticks = (wtime - DELTA_EPOCH_1601_100NS) * 100;
     // Already in nanoseconds
-    return time::time_point{ static_cast<int64_t>(ticks) };
+    return time::time_point{ time::nanoseconds(static_cast<int64_t>(ticks)) };
 }
 
 inline constexpr void time_point_to_file_time(time::time_point t, DWORD& low, DWORD& high) noexcept
 {
     // Convert time_point from nanoseconds since Unix epoch to 100-nanosecond intervals since 1601-01-01
-    uint64_t wtime = static_cast<uint64_t>((t.as_nanoseconds() / 100) + DELTA_EPOCH_1601_100NS);
+    uint64_t wtime = static_cast<uint64_t>((t.time_since_epoch().as_nanoseconds() / 100) + DELTA_EPOCH_1601_100NS);
 
     // Split the 64-bit ticks into two 32-bit parts for FILETIME
     low = static_cast<DWORD>(wtime);
@@ -57,15 +57,21 @@ inline constexpr void time_point_to_file_time(time::time_point t, DWORD& low, DW
 
 #undef DELTA_EPOCH_1601_100NS
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // helpers
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 const char* check_default_args(int* pargc, char*** pargv, void** pallocated);
 
-///////////////////////////////////////////////////////////////////////////////
+// NTSTATUS success check: non-negative means success
+constexpr bool nt_success(LONG status) noexcept
+{
+    return status >= 0;
+}
+
+//=============================================================================
 // Scoped Manager
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 template <typename T>
 class scoped_manager
@@ -85,9 +91,9 @@ private:
     T m_initializer;
 };
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // COM
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 class com_initializer
 {
@@ -110,9 +116,9 @@ private:
 
 using com_scoped_initializer = scoped_manager<com_initializer>;
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // OLE
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 class ole_initializer
 {

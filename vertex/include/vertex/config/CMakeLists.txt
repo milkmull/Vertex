@@ -3,6 +3,7 @@ file(GLOB VX_SYSTEM_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/architecture.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/assert.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/compiler.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/endian.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/language.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/language_config.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/os.hpp"

@@ -14,7 +14,7 @@
 #include "vertex/config/architecture.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/simd.hpp"
-#include "vertex/util/bit/bit.hpp"
+#include "vertex/std/bit.hpp"
 
 #if !defined(VX_DEBUG)
 

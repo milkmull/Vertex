@@ -294,19 +294,6 @@ inline void deallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexce
 //=========================================================================
 
 template <typename T, typename... Args>
-void construct_in_place(T& obj, Args&&... args)
-{
-    VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
-    {
-        ::new (static_cast<void*>(std::addressof(obj))) T;
-    }
-    else
-    {
-        ::new (static_cast<void*>(std::addressof(obj))) T(std::forward<Args>(args)...);
-    }
-}
-
-template <typename T, typename... Args>
 void construct_in_place(T* ptr, Args&&... args)
 {
     VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
@@ -316,19 +303,6 @@ void construct_in_place(T* ptr, Args&&... args)
     else
     {
         ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T(std::forward<Args>(args)...);
-    }
-}
-
-template <typename T, typename... Args>
-void construct_in_place_maybe_trivial(T& obj, Args&&... args)
-{
-    VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
-    {
-        ::new (static_cast<void*>(std::addressof(obj))) T;
-    }
-    else
-    {
-        construct_in_place(obj, std::forward<Args>(args)...);
     }
 }
 

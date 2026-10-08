@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <forward_list>
 #include <initializer_list>
 
 #include "vertex/config/language_config.hpp"
@@ -9,6 +8,7 @@
 #include "vertex/std/_tools/invoke.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/expected.hpp"
+#include "vertex/std/functional.hpp"
 #include "vertex/std/iterator.hpp"
 #include "vertex/std/memory.hpp"
 #include "vertex/std/util.hpp"
@@ -278,7 +278,7 @@ public:
             VX_RET_ERR_IF(!ptr, err::out_of_memory);
 
             mem::construct_in_place(std::addressof(ptr->value), args...);
-            mem::construct_in_place(m_tail->next, ptr);
+            mem::construct_in_place(&m_tail->next, ptr);
             m_tail = ptr;
         }
 
@@ -328,6 +328,12 @@ public:
     // Frees whatever chain is currently held
     void discard() noexcept
     {
+        if (m_tail)
+        {
+            // tail->next was never constructed; terminate before freeing
+            m_tail->next = nullptr;
+        }
+
         pointer n = m_head;
         while (n)
         {
@@ -517,7 +523,7 @@ private:
 
     void take_head(single_linked_list& other) noexcept
     {
-        m_data().head = mem::exchange(other.m_data().head, nullptr);
+        m_data().head = vx::exchange(other.m_data().head, nullptr);
     }
 
     struct uninitialized_tag
@@ -566,8 +572,7 @@ public:
     single_linked_list(std::initializer_list<T> init, const allocator_type& alloc = allocator_type())
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
-        const auto ok = insert_after(before_begin(), init.begin(), init.end());
-        VX_VERIFY(ok);
+        insert_after(before_begin(), init.begin(), init.end());
     }
 
     //=========================================================================
@@ -596,23 +601,10 @@ public:
         take_head(other);
     }
 
-    single_linked_list(single_linked_list&& other, const allocator_type& alloc) noexcept(mem::allocator_traits<allocator_type>::is_always_equal::value)
+    single_linked_list(single_linked_list&& other, const allocator_type& alloc)
         : m_storage(_priv::one_then_variadic_args_tag{}, alloc)
     {
-        VX_IF_CONSTEXPR (!mem::allocator_traits<allocator_type>::is_always_equal::value)
-        {
-            if (m_allocator() != other.m_allocator())
-            {
-                // allocators differ: can't steal other's node chain (it was allocated
-                // with a different allocator instance), so move-construct element-wise
-                insert_op op(m_allocator());
-                const auto ok = op.append_range(vx::make_move_iterator(other.begin()), other.end());
-                VX_VERIFY(ok);
-                op.attach_after(m_data().before_head());
-                return;
-            }
-        }
-
+        VX_PRIV_ASSERT_ALLOCATORS_EQUAL(other.m_allocator(), alloc);
         take_head(other);
     }
 
@@ -680,23 +672,15 @@ public:
         return list;
     }
 
+    static expected<single_linked_list, error> create(single_linked_list&& other)
+    {
+        single_linked_list list(std::move(other));
+        return list;
+    }
+
     static expected<single_linked_list, error> create(single_linked_list&& other, const allocator_type& alloc = allocator_type())
     {
-        single_linked_list list(uninitialized_tag{}, alloc);
-
-        VX_IF_CONSTEXPR (!mem::allocator_traits<allocator_type>::is_always_equal::value)
-        {
-            if (list.m_allocator() != other.m_allocator())
-            {
-                insert_op op(list.m_allocator());
-                const auto ok = op.append_range(vx::make_move_iterator(other.begin()), other.end());
-                VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
-                op.attach_after(list.m_data().before_head());
-                return list;
-            }
-        }
-
-        list.take_head(other);
+        single_linked_list list(std::move(other), alloc);
         return list;
     }
 
@@ -758,7 +742,7 @@ private:
             head_node = next_node;
         }
 
-        for (auto del_node = mem::exchange(head_node->next, nullptr); del_node;)
+        for (auto del_node = vx::exchange(head_node->next, nullptr); del_node;)
         {
             const auto next_node = del_node->next;
             node::free_node(m_allocator(), del_node);
@@ -831,7 +815,7 @@ public:
     success assign(size_type count, const T& value)
     {
         clear();
-        const auto ok = insert_after(before_begin(), count, value);
+        const auto ok = insert_after_checked(before_begin(), count, value);
         VX_RET_ERR_IF(!ok, ok.error());
         return success{};
     }
@@ -935,7 +919,7 @@ public:
     {
         auto& alloc = m_allocator();
 
-        node_ptr node = mem::exchange(m_data().head, nullptr);
+        node_ptr node = vx::exchange(m_data().head, nullptr);
         node_ptr next;
 
         for (; node; node = next)
@@ -969,19 +953,68 @@ private:
 
 public:
 
-    expected<iterator, error> insert_after(const_iterator pos, const T& value)
+    //=========================================================================
+
+    iterator insert_after(const_iterator pos, const T& value)
+    {
+        auto ptr = insert_after_impl(pos.m_ptr, value);
+        VX_VERIFY(ptr);
+        return iterator(ptr);
+    }
+
+    iterator insert_after(const_iterator pos, T&& value)
+    {
+        return emplace_after(pos, std::move(value));
+    }
+
+    iterator insert_after(const_iterator pos, const size_t count, const T& value)
+    {
+        if (count != 0)
+        {
+            insert_op op(m_allocator());
+            const auto ok = op.append_n(count, value);
+            VX_VERIFY(ok);
+            pos.m_ptr = op.attach_after(pos.m_ptr);
+        }
+
+        return iterator(pos.m_ptr);
+    }
+
+    iterator insert_after(const_iterator pos, std::initializer_list<T> init)
+    {
+        return insert_after(pos, init.begin(), init.end());
+    }
+
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    iterator insert_after(const_iterator pos, IT first, IT last)
+    {
+        if (first == last)
+        {
+            return iterator(pos.m_ptr);
+        }
+
+        insert_op op(m_allocator());
+        const auto ok = op.append_range(std::move(first), last);
+        VX_VERIFY(ok);
+        return iterator(op.attach_after(pos.m_ptr));
+    }
+
+    //=========================================================================
+    //=========================================================================
+
+    expected<iterator, error> insert_after_checked(const_iterator pos, const T& value)
     {
         auto ptr = insert_after_impl(pos.m_ptr, value);
         VX_RET_UNEXPECTED_ERR_IF(!ptr, err::out_of_memory);
         return iterator(ptr);
     }
 
-    expected<iterator, error> insert_after(const_iterator pos, T&& value)
+    expected<iterator, error> insert_after_checked(const_iterator pos, T&& value)
     {
         return emplace_after(pos, std::move(value));
     }
 
-    expected<iterator, error> insert_after(const_iterator pos, const size_t count, const T& value)
+    expected<iterator, error> insert_after_checked(const_iterator pos, const size_t count, const T& value)
     {
         if (count != 0)
         {
@@ -994,13 +1027,13 @@ public:
         return iterator(pos.m_ptr);
     }
 
-    expected<iterator, error> insert_after(const_iterator pos, std::initializer_list<T> init)
+    expected<iterator, error> insert_after_checked(const_iterator pos, std::initializer_list<T> init)
     {
         return insert_after(pos, init.begin(), init.end());
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    expected<iterator, error> insert_after(const_iterator pos, IT first, IT last)
+    expected<iterator, error> insert_after_checked(const_iterator pos, IT first, IT last)
     {
         if (first == last)
         {
@@ -1018,7 +1051,17 @@ public:
     //=========================================================================
 
     template <typename... Args>
-    expected<iterator, error> emplace_after(const_iterator pos, Args&&... args)
+    iterator emplace_after(const_iterator pos, Args&&... args)
+    {
+        auto ptr = insert_after_impl(pos.m_ptr, std::forward<Args>(args)...);
+        VX_VERIFY(ptr);
+        return iterator(ptr);
+    }
+
+    //=========================================================================
+
+    template <typename... Args>
+    expected<iterator, error> emplace_after_checked(const_iterator pos, Args&&... args)
     {
         auto ptr = insert_after_impl(pos.m_ptr, std::forward<Args>(args)...);
         VX_RET_UNEXPECTED_ERR_IF(!ptr, err::out_of_memory);
@@ -1281,13 +1324,13 @@ public:
     // merge in elements from other, both ordered by operator<
     void merge(single_linked_list& other)
     {
-        merge_impl(other, std::less<>{});
+        merge_impl(other, vx::less<>{});
     }
 
     // merge in elements from other, both ordered by operator<
     void merge(single_linked_list&& other)
     {
-        merge_impl(other, std::less<>{});
+        merge_impl(other, vx::less<>{});
     }
 
     // merge in elements from other, both ordered by pred
@@ -1329,8 +1372,7 @@ private:
     }
 
     // splice other (first, last) just after pos
-    template <class _Sentinel>
-    void splice_after_impl(const_iterator pos, single_linked_list& other, const_iterator first, _Sentinel last) noexcept
+    void splice_after_impl(const_iterator pos, single_linked_list& other, const_iterator first, const_iterator last) noexcept
     {
         VX_ASSERT(m_allocator() == other.m_allocator());
 
@@ -1504,7 +1546,7 @@ public:
     // erase each element matching previous
     size_type unique()
     {
-        return unique(std::equal_to<>{});
+        return unique(vx::equal_to<>{});
     }
 
     // erase each element satisfying pred with previous
@@ -1545,7 +1587,7 @@ public:
     // order sequence
     void sort()
     {
-        list_value::sort(m_data().before_head(), std::less<>{});
+        list_value::sort(m_data().before_head(), vx::less<>{});
     }
 
     // order sequence
@@ -1585,6 +1627,16 @@ public:
         }
     }
 };
+
+//=========================================================================
+// swap
+//=========================================================================
+
+template <typename T, typename Allocator>
+void swap(single_linked_list<T, Allocator>& a, single_linked_list<T, Allocator>& b) noexcept
+{
+    a.swap(b);
+}
 
 //=========================================================================
 // comparison

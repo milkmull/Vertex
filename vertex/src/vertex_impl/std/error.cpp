@@ -1,7 +1,9 @@
 #include "vertex/std/error.hpp"
 #include "vertex/os/error.hpp"
+#include "vertex/os/io.hpp"
 #include "vertex/os/thread.hpp"
-#include "vertex_impl/os/_platform/platform_io.hpp"
+#include "vertex/std/char_traits.hpp"
+#include "vertex/std/string_convert.hpp"
 
 #if !defined(VX_ERR_BUFFER_MAX_SIZE)
     #define VX_ERR_BUFFER_MAX_SIZE 1024
@@ -47,7 +49,7 @@ struct error_formatter
 
     void append_cstr(const char* data)
     {
-        append(data, str::length(data));
+        append(data, traits::length(data));
     }
 
     template <typename I>
@@ -161,7 +163,7 @@ static error_hook_t s_hook = nullptr;
 
 static void safe_print_impl(const char* data, const size_t count) noexcept
 {
-    os::write_raw_impl(os::stream::err, data, count, false);
+    os::_os_io_priv::write_stream_impl(os::stream::err, data, count, false);
 }
 
 void safe_print(const char* data, const size_t count)

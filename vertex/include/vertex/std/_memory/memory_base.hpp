@@ -5,6 +5,14 @@
 
 #include "vertex/config/language_config.hpp"
 
+#if defined(min)
+    #undef min
+#endif
+
+#if defined(max)
+    #undef max
+#endif
+
 namespace vx {
 namespace mem {
 

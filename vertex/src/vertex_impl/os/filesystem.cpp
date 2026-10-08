@@ -107,7 +107,7 @@ path canonical(const path& p)
 {
     if (!exists(p))
     {
-        VX_ERR(err::file_open_failed);
+        VX_ERR(err::resource_not_found);
         return {};
     }
 
@@ -231,7 +231,7 @@ static void throw_copy_error(copy_error e, const path& from)
         oss << ((e == copy_error::from_unsupported_type) ? "from" : "to") << " file is unsupported type";
     }
 
-    err::set(err::file_operation_failed, oss.str().c_str());
+    err::set(err::failed, oss.str().c_str());
 }
 
 // https://en.cppreference.com/w/cpp/filesystem/copy_file

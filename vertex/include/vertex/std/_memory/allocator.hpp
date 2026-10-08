@@ -14,6 +14,31 @@ namespace mem {
 template <typename Allocator>
 using allocator_traits = std::allocator_traits<Allocator>;
 
+namespace _mem_allocator_priv {
+
+template <typename Allocator, VX_REQUIRES(allocator_traits<Allocator>::is_always_equal)>
+constexpr bool allocators_equal_impl(const Allocator&, const Allocator&) noexcept
+{
+    return true;
+}
+
+template <typename Allocator>
+bool allocators_equal_impl(const Allocator& a, const Allocator& b) noexcept
+{
+    return a == b;
+}
+
+} // namespace _mem_allocator_priv
+
+template <typename Allocator>
+constexpr bool allocators_equal(const Allocator& a, const Allocator& b) noexcept
+{
+    return _mem_allocator_priv::allocators_equal_impl(a, b);
+}
+
+#define VX_PRIV_ASSERT_ALLOCATORS_EQUAL(a, b) \
+    VX_ASSERT(::vx::mem::allocators_equal(a, b))
+
 //=========================================================================
 // allocator
 //=========================================================================

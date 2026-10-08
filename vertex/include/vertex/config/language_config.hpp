@@ -49,12 +49,12 @@
 //=========================================================================
 
 #if defined(_WIN32)
-    #define VX_PRIV_TEXT(x) L##x
+    #define VX_PRIV_OS_TEXT(x) L##x
 #else
-    #define VX_PRIV_TEXT(x) x
+    #define VX_PRIV_OS_TEXT(x) x
 #endif
 
-#define VX_TEXT(x) VX_PRIV_TEXT(x)
+#define VX_OS_TEXT(x) VX_PRIV_OS_TEXT(x)
 
 //=========================================================================
 // Source Location

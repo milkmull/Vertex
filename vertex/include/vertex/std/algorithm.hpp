@@ -115,7 +115,7 @@ T* construct_maybe_trivial(T* ptr, size_t count)
     const T* last = ptr + count;
     while (ptr != last)
     {
-        mem::construct_in_place_maybe_trivial(*ptr);
+        mem::construct_in_place_maybe_trivial(ptr);
         ++ptr;
     }
 
@@ -294,7 +294,7 @@ T* copy_uninitialized(T* dst, const T* src, size_t count)
     {
         for (; 0 < count; --count)
         {
-            mem::construct_in_place(*dst, *src);
+            mem::construct_in_place(dst, *src);
             ++src;
             ++dst;
         }
@@ -486,7 +486,7 @@ T* copy_or_move_uninitialized(T* dst, T* src, size_t count)
     {
         for (; 0 < count; --count)
         {
-            mem::construct_in_place(*dst, std::move(*src));
+            mem::construct_in_place(dst, std::move(*src));
             ++src;
             ++dst;
         }
