@@ -201,30 +201,62 @@ constexpr bool assert_not_aliasing_element_pack(const C& container, const Arg& v
 }
 
 //=========================================================================
+// container-explicit versions (usable from nested classes such as unsafe_ops)
+//=========================================================================
+
+#define VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(c, first, last) \
+    VX_ASSERT(!::vx::_dynamic_array_base_priv::assert_contig_overlaps_self((c), (first), (last)))
+
+#define VX_PRIV_ASSERT_CONTIG_CONTAINED_RANGE_IN(c, first, last) \
+    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_contig_contained_range((c), (first), (last)))
+
+#define VX_PRIV_ASSERT_CONTIG_INSERTABLE_POSITION_IN(c, pos) \
+    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_contig_valid_position<true>((c), (pos)))
+
+#define VX_PRIV_ASSERT_CONTIG_ERASABLE_POSITION_IN(c, pos) \
+    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_contig_valid_position<false>((c), (pos)))
+
+#define VX_PRIV_ASSERT_CONTIG_VALID_POSITION_IN(c, pos) \
+    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_contig_valid_position<false>((c), (pos)))
+
+#define VX_PRIV_ASSERT_CONTIG_INVALID_POSITION_IN(c, pos) \
+    VX_ASSERT(!::vx::_dynamic_array_base_priv::assert_contig_valid_position<false>((c), (pos)))
+
+#define VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT_IN(c, value) \
+    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_not_aliasing_element((c), (value)))
+
+// The container is the first element of __VA_ARGS__, so an empty pack never
+// leaves a dangling comma.
+#define VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT_PACK_IN(...) \
+    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_not_aliasing_element_pack(__VA_ARGS__))
+
+//=========================================================================
+// member-context versions (unchanged call sites)
+//=========================================================================
 
 #define VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last) \
-    VX_ASSERT(!::vx::_dynamic_array_base_priv::assert_contig_overlaps_self(*this, (first), (last)))
+    VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(*this, first, last)
 
 #define VX_PRIV_ASSERT_CONTIG_CONTAINED_RANGE(first, last) \
-    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_contig_contained_range(*this, (first), (last)))
+    VX_PRIV_ASSERT_CONTIG_CONTAINED_RANGE_IN(*this, first, last)
 
 #define VX_PRIV_ASSERT_CONTIG_INSERTABLE_POSITION(pos) \
-    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_contig_valid_position<true>(*this, (pos)))
+    VX_PRIV_ASSERT_CONTIG_INSERTABLE_POSITION_IN(*this, pos)
 
 #define VX_PRIV_ASSERT_CONTIG_ERASABLE_POSITION(pos) \
-    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_contig_valid_position<false>(*this, (pos)))
+    VX_PRIV_ASSERT_CONTIG_ERASABLE_POSITION_IN(*this, pos)
 
 #define VX_PRIV_ASSERT_CONTIG_VALID_POSITION(pos) \
-    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_contig_valid_position<false>(*this, (pos)))
+    VX_PRIV_ASSERT_CONTIG_VALID_POSITION_IN(*this, pos)
 
 #define VX_PRIV_ASSERT_CONTIG_INVALID_POSITION(pos) \
-    VX_ASSERT(!::vx::_dynamic_array_base_priv::assert_contig_valid_position<false>(*this, (pos)))
+    VX_PRIV_ASSERT_CONTIG_INVALID_POSITION_IN(*this, pos)
 
 #define VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT(value) \
-    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_not_aliasing_element(*this, (value)))
+    VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT_IN(*this, value)
 
 #define VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT_PACK(...) \
-    VX_ASSERT(::vx::_dynamic_array_base_priv::assert_not_aliasing_element_pack(*this, ##__VA_ARGS__))
+    VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT_PACK_IN(*this, ##__VA_ARGS__)
 
 } // namespace _dynamic_array_base_priv
 } // namespace vx

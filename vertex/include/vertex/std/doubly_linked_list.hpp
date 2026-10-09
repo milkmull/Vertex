@@ -9,6 +9,7 @@
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/_tools/compressed_pair.hpp"
 #include "vertex/std/_tools/invoke.hpp"
+#include "vertex/std/algorithm.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/expected.hpp"
 #include "vertex/std/functional.hpp"
@@ -1664,7 +1665,7 @@ bool operator!=(const doubly_linked_list<T, Allocator>& lhs, const doubly_linked
 template <typename T, typename Allocator>
 bool operator<(const doubly_linked_list<T, Allocator>& lhs, const doubly_linked_list<T, Allocator>& rhs)
 {
-    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+    return range::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
 template <typename T, typename Allocator>

@@ -218,12 +218,12 @@ public:
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
+            const size_type count = static_cast<size_type>(vx::distance(first, last));
             ok = construct_n<construct_method::copy_range>(count, first.ptr());
         }
         else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
         {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
+            const size_type count = static_cast<size_type>(vx::distance(first, last));
             ok = construct_n<construct_method::copy_range>(count, first);
         }
         else
@@ -298,12 +298,12 @@ public:
         success ok;
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
+            const size_type count = static_cast<size_type>(vx::distance(first, last));
             ok = v.template construct_n<construct_method::copy_range>(count, first.ptr());
         }
         else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
         {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
+            const size_type count = static_cast<size_type>(vx::distance(first, last));
             ok = v.template construct_n<construct_method::copy_range>(count, first);
         }
         else
@@ -324,18 +324,14 @@ private:
     void destroy_range()
     {
         auto& ptr = m_data().ptr;
-        auto& size = m_data().size;
-        auto& capacity = m_data().capacity;
+        const auto size = m_data().size;
+        const auto capacity = m_data().capacity;
 
         if (ptr)
         {
             range::destroy(ptr, size);
             m_allocator().deallocate(ptr, capacity);
         }
-
-        ptr = nullptr;
-        size = 0;
-        capacity = 0;
     }
 
 public:
@@ -377,8 +373,7 @@ private:
             pointer new_ptr = m_allocator().allocate(count);
             VX_RET_ERR_IF(!new_ptr, err::out_of_memory);
 
-            range::destroy(ptr, size);
-            m_allocator().deallocate(ptr, capacity);
+            destroy_range();
 
             ptr = new_ptr;
             capacity = count;
@@ -531,12 +526,12 @@ public:
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
+            const size_type count = static_cast<size_type>(vx::distance(first, last));
             return assign_from<construct_method::copy_range>(count, first.ptr());
         }
         else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
         {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
+            const size_type count = static_cast<size_type>(vx::distance(first, last));
             return assign_from<construct_method::copy_range>(count, first);
         }
         else
@@ -686,7 +681,15 @@ public:
 
     void clear_and_deallocate()
     {
+        auto& ptr = m_data().ptr;
+        auto& size = m_data().size;
+        auto& capacity = m_data().capacity;
+
         destroy_range();
+
+        ptr = nullptr;
+        size = 0;
+        capacity = 0;
     }
 
     success shrink_to_fit()
@@ -757,8 +760,7 @@ private:
         VX_RET_ERR_IF(!new_ptr, err::out_of_memory);
 
         range::copy_or_move_uninitialized(new_ptr, ptr, size);
-        range::destroy(ptr, size);
-        m_allocator().deallocate(ptr, capacity);
+        destroy_range();
 
         ptr = new_ptr;
         capacity = new_capacity;
@@ -815,9 +817,7 @@ private:
 
         // use copy_or_move since we have a brand new buffer
         range::copy_or_move_uninitialized(new_ptr, ptr, size);
-
-        range::destroy(ptr, size);
-        m_allocator().deallocate(ptr, capacity);
+        destroy_range();
 
         ptr = new_ptr;
         size = new_size;
@@ -1001,8 +1001,7 @@ private:
         range::copy_or_move_uninitialized(dst + count, pos, size - off);
 
         // destroy original range
-        range::destroy(ptr, size);
-        m_allocator().deallocate(ptr, capacity);
+        destroy_range();
 
         ptr = new_ptr;
         size = new_size;
@@ -1110,12 +1109,12 @@ public:
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
+            const size_type count = static_cast<size_type>(vx::distance(first, last));
             return insert_checked<op_growth_policy, construct_method::copy_range>(off, count, first.ptr());
         }
         else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
         {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
+            const size_type count = static_cast<size_type>(vx::distance(first, last));
             return insert_checked<op_growth_policy, construct_method::copy_range>(off, count, first);
         }
         else
@@ -1163,12 +1162,12 @@ public:
 
         VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
         {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
+            const size_type count = static_cast<size_type>(vx::distance(first, last));
             return insert_no_overlap<op_growth_policy, construct_method::copy_range>(pos, count, first.ptr());
         }
         else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
         {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
+            const size_type count = static_cast<size_type>(vx::distance(first, last));
             return insert_no_overlap<op_growth_policy, construct_method::copy_range>(pos, count, first);
         }
         else
@@ -1297,7 +1296,7 @@ public:
     iterator erase(const_iterator first, const_iterator last)
     {
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
-        VX_PRIV_ASSERT_CONTIG_SELF_RANGE(first, last);
+        VX_PRIV_ASSERT_CONTIG_CONTAINED_RANGE(first, last);
 
         auto ptr = const_cast<pointer>(first.ptr());
         const size_type count = static_cast<size_type>(last.ptr() - first.ptr());
@@ -1338,12 +1337,24 @@ public:
 
         //=========================================================================
 
+        iterator append_assume_capacity(const_pointer src, size_type count)
+        {
+            auto& d = m_data();
+            VX_ASSERT(count <= d.capacity - d.size);
+            pointer dst = d.ptr + d.size;
+            range::copy_uninitialized(dst, src, count);
+            d.size += count;
+            return iterator(dst);
+        }
+
+        //=========================================================================
+
         // requires: size() < capacity()
         template <typename... Args>
         iterator emplace_back_assume_capacity(Args&&... args)
         {
-            VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT_PACK(args...);
-            auto& d = m_vec.m_data();
+            VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT_PACK_IN(m_vec, args...);
+            auto& d = m_data();
             VX_ASSERT(d.size < d.capacity);
 
             pointer dst = d.ptr + d.size;
@@ -1353,14 +1364,14 @@ public:
         }
 
         // requires: size() < capacity()
-        iterator push_back_assume_capacity(const T& value)
+        void push_back_assume_capacity(const T& value)
         {
-            return emplace_back_assume_capacity(value);
+            emplace_back_assume_capacity(value);
         }
 
-        iterator push_back_assume_capacity(T&& value) noexcept
+        void push_back_assume_capacity(T&& value) noexcept
         {
-            return emplace_back_assume_capacity(std::move(value));
+            emplace_back_assume_capacity(std::move(value));
         }
 
         //=========================================================================
@@ -1368,8 +1379,8 @@ public:
         // requires: off <= size() && size() < capacity()
         iterator insert_assume_capacity(size_type off, const T& value)
         {
-            VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT(value);
-            auto& d = m_vec.m_data();
+            VX_PRIV_ASSERT_NOT_ALIASING_ELEMENT_IN(m_vec, value);
+            auto& d = m_data();
             VX_ASSERT(off <= d.size);
             VX_ASSERT(d.size < d.capacity);
 
@@ -1384,10 +1395,24 @@ public:
 
         //=========================================================================
 
+        // requires: off < size(). Does not preserve order.
+        void erase_unordered_assume_in_range(size_type off)
+        {
+            auto& d = m_data();
+            VX_ASSERT(off < d.size);
+            pointer last = d.ptr + d.size - 1;
+            if (d.ptr + off != last) // avoid self-move-assignment
+            {
+                d.ptr[off] = std::move(*last);
+            }
+            --d.size;
+            mem::destroy_in_place(last);
+        }
+
         // requires: !empty()
         void pop_back_assume_nonempty() noexcept
         {
-            auto& d = m_vec.m_data();
+            auto& d = m_data();
             VX_ASSERT(d.size > 0);
             --d.size;
             mem::destroy_in_place(d.ptr + d.size);
@@ -1399,7 +1424,7 @@ public:
         // live object, and any slots dropped from the end were already destroyed.
         void set_size_assume_constructed(size_type new_size) noexcept
         {
-            auto& d = m_vec.m_data();
+            auto& d = m_data();
             VX_ASSERT(new_size <= d.capacity);
             d.size = new_size;
         }
@@ -1415,7 +1440,7 @@ public:
             VX_RET_ERR_IF(count > m_vec.max_size(), err::size_error);
             m_vec.destroy_range();
 
-            auto& d = m_vec.m_data();
+            auto& d = m_data();
             d.ptr = ptr;
             d.size = count;
             d.capacity = count;
@@ -1427,10 +1452,20 @@ public:
         // and must destroy and deallocate it using the correct size and capacity.
         pointer release() noexcept
         {
-            return m_vec.m_data().release().ptr;
+            return m_data().release().ptr;
         }
 
     private:
+
+        data_type& m_data() const noexcept
+        {
+            return m_vec.m_data();
+        }
+
+        allocator_type& m_allocator() const noexcept
+        {
+            return m_vec.m_allocator();
+        }
 
         vector& m_vec;
     };
@@ -1458,7 +1493,7 @@ void swap(vector<T, Allocator>& a, vector<T, Allocator>& b) noexcept
 template <typename T, typename Allocator>
 bool operator==(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
 {
-    return range::compare(lhs.data(), lhs.size(), rhs.data(), rhs.size()) == 0;
+    return range::lexicographical_compare(lhs.data(), lhs.size(), rhs.data(), rhs.size()) == 0;
 }
 
 template <typename T, typename Allocator>
@@ -1470,7 +1505,7 @@ bool operator!=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs
 template <typename T, typename Allocator>
 bool operator<(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
 {
-    return range::compare(lhs.data(), lhs.size(), rhs.data(), rhs.size()) < 0;
+    return range::lexicographical_compare(lhs.data(), lhs.size(), rhs.data(), rhs.size()) < 0;
 }
 
 template <typename T, typename Allocator>

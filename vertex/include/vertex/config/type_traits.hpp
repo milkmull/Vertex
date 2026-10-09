@@ -952,6 +952,89 @@ struct memmove_is_safe : bool_constant<_priv::iter_copy_cat<It1, It2>::is_bitcop
 {};
 
 //==============================================================================
+// memcmp is safe for lexicographical comparison
+//==============================================================================
+
+// Reports whether memcmp's unsigned-byte ordering is equivalent to the
+// value ordering of T1/T2.
+//
+// This is intentionally stricter than is_bitwise_comparable. A type may have
+// a representation suitable for equality-by-memcmp without having a byte
+// representation whose ordering matches operator<.
+//
+// In particular, multi-byte integral types are NOT generally eligible:
+// their object representation is affected by endianness.
+//
+// The ordinary memcmp implementation is therefore restricted to types whose
+// ordering is directly represented by an unsigned byte.
+template <typename T1, typename T2, typename = void>
+struct is_memcmp_lexicographically_safe : std::false_type
+{};
+
+// unsigned char has exactly the ordering required by memcmp.
+template <>
+struct is_memcmp_lexicographically_safe<unsigned char, unsigned char, void> : std::true_type
+{};
+
+#if VX_HAVE_STD_BYTE
+// std::byte's ordering is its underlying unsigned-byte ordering.
+template <>
+struct is_memcmp_lexicographically_safe<std::byte, std::byte, void> : std::true_type
+{};
+#endif // VX_HAVE_STD_BYTE
+
+namespace _priv {
+
+// is_memcmp_lexicographically_safe_with_pred<T1, T2, Pred> reports whether
+// the memcmp optimization is applicable to contiguously stored elements for
+// the specified ordering predicate.
+template <typename T1, typename T2, typename Pred>
+struct is_memcmp_lexicographically_safe_with_pred : std::false_type
+{};
+
+template <typename T1, typename T2>
+struct is_memcmp_lexicographically_safe_with_pred<T1, T2, std::less<>>
+    : is_memcmp_lexicographically_safe<typename std::remove_cv<T1>::type, typename std::remove_cv<T2>::type>
+{};
+
+template <typename T1, typename T2>
+struct is_memcmp_lexicographically_safe_with_pred<T1, T2, std::greater<>>
+    : is_memcmp_lexicographically_safe<typename std::remove_cv<T1>::type, typename std::remove_cv<T2>::type>
+{};
+
+#if (VX_CPP_STANDARD == 20)
+
+template <typename T1, typename T2>
+struct is_memcmp_lexicographically_safe_with_pred<T1, T2, std::ranges::less>
+    : is_memcmp_lexicographically_safe<typename std::remove_cv<T1>::type, typename std::remove_cv<T2>::type>
+{};
+
+template <typename T1, typename T2>
+struct is_memcmp_lexicographically_safe_with_pred<T1, T2, std::ranges::greater>
+    : is_memcmp_lexicographically_safe<typename std::remove_cv<T1>::type, typename std::remove_cv<T2>::type>
+{};
+
+#endif // (VX_CPP_STANDARD == 20)
+
+} // namespace _priv
+
+// memcmp_lexicographical_is_safe reports whether we can activate the memcmp
+// optimization for arbitrary iterators and predicates.
+//
+// It ignores top-level constness on the iterators and on the elements.
+template <typename It1, typename It2, typename Pred = std::less<>>
+struct memcmp_lexicographical_is_safe
+    : bool_constant<
+          iterators_are_continguous<It1, It2>::value &&
+          !iterator_is_volatile<It1>::value &&
+          !iterator_is_volatile<It2>::value &&
+          _priv::is_memcmp_lexicographically_safe_with_pred<
+              _priv::iter_value_t<It1>,
+              _priv::iter_value_t<It2>,
+              typename std::remove_const<Pred>::type>::value>
+{};
+
+//==============================================================================
 // storage
 //==============================================================================
 

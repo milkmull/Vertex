@@ -2,8 +2,8 @@
 
 #include "vertex/std/_memory/memory_core.hpp"
 #include "vertex/std/_simd/simd_algorithms.hpp"
-#include "vertex/std/util.hpp"
 #include "vertex/std/iterator.hpp"
+#include "vertex/std/util.hpp"
 
 namespace vx {
 
@@ -20,7 +20,7 @@ constexpr const T& min(const T& a, const T& b) noexcept(noexcept(b < a))
 template <typename T, typename... Args>
 constexpr const T& min(const T& a, const T& b, const Args&... args)
 {
-    const T& result = min(a, b);
+    const T& result = vx::min(a, b);
     return min(result, args...);
 }
 
@@ -37,7 +37,7 @@ constexpr const T& max(const T& a, const T& b) noexcept(noexcept(a < b))
 template <typename T, typename... Args>
 constexpr const T& max(const T& a, const T& b, const Args&... args)
 {
-    const T& result = max(a, b);
+    const T& result = vx::max(a, b);
     return max(result, args...);
 }
 
@@ -213,7 +213,7 @@ T* fill_uninitialized(T* ptr, size_t count, const U& value)
 
         for (; 0 < count; --count)
         {
-            mem::construct_in_place(*ptr, value);
+            mem::construct_in_place(ptr, value);
             ++ptr;
         }
 
@@ -226,7 +226,7 @@ IT fill(IT first, IT last, const U& value)
 {
     using T = typename type_traits::value_type<IT>::type;
 
-    const size_t count = static_cast<size_t>(std::distance(first, last));
+    const size_t count = static_cast<size_t>(vx::distance(first, last));
     const size_t bytes = count * sizeof(T);
 
     VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<IT, U>::value))
@@ -310,7 +310,7 @@ IT1 copy(IT1 dst, IT2 first, IT2 last)
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
-        const size_t count = static_cast<size_t>(std::distance(first, last));
+        const size_t count = static_cast<size_t>(vx::distance(first, last));
         const size_t bytes = count * sizeof(T);
         mem::copy(dst, first, bytes);
         return dst + count;
@@ -334,7 +334,7 @@ IT1 copy_uninitialized(IT1 dst, IT2 first, IT2 last)
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
-        const size_t count = static_cast<size_t>(std::distance(first, last));
+        const size_t count = static_cast<size_t>(vx::distance(first, last));
         const size_t bytes = count * sizeof(T);
         mem::copy(dst, first, bytes);
         return dst + count;
@@ -406,7 +406,7 @@ IT1 move(IT1 dst, IT2 first, IT2 last)
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
-        const size_t count = static_cast<size_t>(std::distance(first, last));
+        const size_t count = static_cast<size_t>(vx::distance(first, last));
         const size_t bytes = count * sizeof(T);
         mem::move(dst, first, bytes);
         return dst + count;
@@ -502,7 +502,7 @@ IT1 copy_or_move(IT1 dst, IT2 first, IT2 last)
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
-        const size_t count = static_cast<size_t>(std::distance(first, last));
+        const size_t count = static_cast<size_t>(vx::distance(first, last));
         const size_t bytes = count * sizeof(T);
         mem::copy(dst, first, bytes);
         return dst + count;
@@ -526,7 +526,7 @@ IT1 copy_or_move_uninitialized(IT1 dst, IT2 first, IT2 last)
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
-        const size_t count = static_cast<size_t>(std::distance(first, last));
+        const size_t count = static_cast<size_t>(vx::distance(first, last));
         const size_t bytes = count * sizeof(T);
         mem::copy(dst, first, bytes);
         return dst + count;
@@ -647,7 +647,7 @@ IT1 swap(IT1 first1, IT1 last1, IT2 first2)
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
-        const size_t count = static_cast<size_t>(std::distance(first1, last1));
+        const size_t count = static_cast<size_t>(vx::distance(first1, last1));
         ::vx::swap(std::addressof(*first1), std::addressof(*first2), count);
         return first1 + count;
     }
@@ -666,19 +666,19 @@ IT1 swap(IT1 first1, IT1 last1, IT2 first2)
 //=========================================================================
 
 template <typename T>
-int compare(const T* a, const T* b, size_t count)
+int lexicographical_compare(const T* a, const T* b, size_t count)
 {
     return mem::compare(a, b, count * sizeof(T));
 }
 
 template <typename T>
-int compare(const T* a, size_t count_a, const T* b, size_t count_b)
+int lexicographical_compare(const T* a, size_t count_a, const T* b, size_t count_b)
 {
-    size_t min_count = min(count_a, count_b);
+    size_t min_count = vx::min(count_a, count_b);
 
-    VX_IF_CONSTEXPR ((type_traits::is_bitwise_comparable<T, T>::value))
+    VX_IF_CONSTEXPR ((type_traits::memcmp_lexicographical_is_safe<const T*, const T*>::value))
     {
-        const int res = compare(a, b, min_count);
+        const int res = lexicographical_compare(a, b, min_count);
         if (res != 0)
         {
             return res;
@@ -712,11 +712,11 @@ int compare(const T* a, size_t count_a, const T* b, size_t count_b)
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-int compare(IT1 first1, IT1 last1, IT2 first2, IT2 last2)
+int lexicographical_compare(IT1 first1, IT1 last1, IT2 first2, IT2 last2)
 {
-    const size_t count1 = static_cast<size_t>(std::distance(first1, last1));
-    const size_t count2 = static_cast<size_t>(std::distance(first2, last2));
-    size_t min_count = min(count1, count2);
+    const size_t count1 = static_cast<size_t>(vx::distance(first1, last1));
+    const size_t count2 = static_cast<size_t>(vx::distance(first2, last2));
+    size_t min_count = vx::min(count1, count2);
 
     for (; 0 < min_count; --min_count)
     {

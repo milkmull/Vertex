@@ -369,23 +369,6 @@ public:
     {
         return !base::m_has_value ? error_traits::get(base::m_storage) : static_cast<E>(std::forward<U>(default_error));
     }
-
-private:
-
-    void destroy() noexcept
-    {
-        if (m_has_value)
-        {
-            value_traits::destroy(m_storage);
-        }
-        else
-        {
-            error_traits::destroy(m_storage);
-        }
-    }
-
-    storage_type m_storage;
-    bool m_has_value;
 };
 
 } // namespace vx

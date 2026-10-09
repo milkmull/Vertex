@@ -432,24 +432,27 @@ constexpr bool assert_valid_iterator_range(const IT1& first, const IT2& last)
 
 namespace _priv {
 
-template <typename IT, VX_REQUIRES(std::is_same<typename type_traits::iterator_cat<IT>::type, std::random_access_iterator_tag>::value)>
-constexpr typename std::iterator_traits<IT>::difference_type distance_impl(IT first, IT last)
-{
-    return last - first;
-}
-
 template <typename IT>
-constexpr typename std::iterator_traits<IT>::difference_type distance_impl(IT first, IT last)
+constexpr auto distance_impl(IT first, IT last) -> typename std::iterator_traits<IT>::difference_type
 {
     using difference_type = typename std::iterator_traits<IT>::difference_type;
-    difference_type n = 0;
+    constexpr bool is_random_access = std::is_same<typename type_traits::iterator_cat<IT>::type, std::random_access_iterator_tag>::value;
 
-    for (; first != last; ++first)
+    VX_IF_CONSTEXPR (is_random_access)
     {
-        ++n;
+        return last - first;
     }
+    else
+    {
+        difference_type n = 0;
 
-    return n;
+        for (; first != last; ++first)
+        {
+            ++n;
+        }
+
+        return n;
+    }
 }
 
 } // namespace _priv

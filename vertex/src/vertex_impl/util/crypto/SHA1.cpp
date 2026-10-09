@@ -2,7 +2,7 @@
 #include <iomanip>
 
 #include "vertex/util/crypto/SHA1.hpp"
-#include "vertex/util/bit.hpp"
+#include "vertex/std/bit.hpp"
 
 namespace vx {
 namespace crypto {

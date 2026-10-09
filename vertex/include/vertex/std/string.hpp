@@ -26,7 +26,6 @@ class basic_string
 private:
 
     VX_STATIC_ASSERT_MSG(type_traits::is_char<T>::value, "T must be character type");
-    VX_STATIC_ASSERT_MSG(std::is_trivial<T>::value, "T must be a trivial type");
     VX_STATIC_ASSERT_MSG(
         (std::is_same<T, typename Allocator::value_type>::value),
         "Allocator value type must match T");
@@ -743,7 +742,7 @@ private:
 
     // checked + unsafe (no overlap)
     template <construct_method M, typename... Args>
-    success assign_from_no_overlap(const size_type count, Args&&... args)
+    success assign_from_assume_no_alias(const size_type count, Args&&... args)
     {
         if (count > m_data().capacity)
         {
@@ -756,14 +755,14 @@ private:
 
     // unchecked + safe (may overlap; caller guarantees count <= capacity)
     template <construct_method M, typename... Args>
-    void assign_from_reserved(const size_type count, Args&&... args)
+    void assign_from_assume_capacity(const size_type count, Args&&... args)
     {
         assign_from_reuse<M, false>(count, std::forward<Args>(args)...);
     }
 
     // unchecked + unsafe (no overlap; caller guarantees count <= capacity)
     template <construct_method M, typename... Args>
-    void assign_from_no_overlap_reserved(const size_type count, Args&&... args)
+    void assign_from_assume_assume_capacity_no_alias(const size_type count, Args&&... args)
     {
         assign_from_reuse<M, true>(count, std::forward<Args>(args)...);
     }
@@ -846,24 +845,6 @@ public:
         return assign_from<construct_method::from_string>(other.size(), other.data());
     }
 
-    success assign_no_overlap(const basic_string& other)
-    {
-        VX_ASSERT(this != &other);
-        return assign_from_no_overlap<construct_method::from_string>(other.size(), other.data());
-    }
-
-    void assign_reserved(const basic_string& other)
-    {
-        VX_ASSERT(this != &other);
-        assign_from_reserved<construct_method::from_string>(other.size(), other.data());
-    }
-
-    void assign_no_overlap_reserved(const basic_string& other)
-    {
-        VX_ASSERT(this != &other);
-        assign_from_no_overlap_reserved<construct_method::from_string>(other.size(), other.data());
-    }
-
     //=========================================================================
 
     success assign(basic_string&& other) noexcept
@@ -881,33 +862,6 @@ public:
         return assign_from<construct_method::from_pointer>(count, other.data() + off);
     }
 
-    success assign_no_overlap(const basic_string& other, size_type off, size_type count = npos)
-    {
-        VX_ASSERT(this != &other);
-        VX_RET_ERR_IF(!_char_traits_priv::check_offset(other.size(), off), err::out_of_range);
-
-        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
-        return assign_from_no_overlap<construct_method::from_pointer>(count, other.data() + off);
-    }
-
-
-    void assign_reserved(const basic_string& other, size_type off, size_type count = npos)
-    {
-        VX_ASSERT(this != &other);
-        VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
-        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
-        assign_from_reserved<construct_method::from_pointer>(count, other.data() + off);
-    }
-
-    void assign_no_overlap_reserved(const basic_string& other, size_type off, size_type count = npos)
-    {
-        VX_ASSERT(this != &other);
-        VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
-        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
-        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(other.data() + off, other.data() + off + count);
-        assign_from_no_overlap_reserved<construct_method::from_pointer>(count, other.data() + off);
-    }
-
     //=========================================================================
 
     success assign(const T c)
@@ -915,21 +869,11 @@ public:
         return assign_from<construct_method::from_char>(1, c);
     }
 
-    void assign_reserved(const T c)
-    {
-        assign_from_reserved<construct_method::from_char>(1, c);
-    }
-
     //=========================================================================
 
     success assign(const size_type count, const T c)
     {
         return assign_from<construct_method::from_char_count>(count, c);
-    }
-
-    void assign_reserved(const size_type count, const T c)
-    {
-        assign_from_reserved<construct_method::from_char_count>(count, c);
     }
 
     //=========================================================================
@@ -940,48 +884,11 @@ public:
         return assign_from<construct_method::from_pointer>(count, ptr);
     }
 
-    success assign_no_overlap(const T* const ptr)
-    {
-        const size_type count = static_cast<size_type>(traits_type::length(ptr));
-        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(ptr, ptr + count);
-        return assign_from_no_overlap<construct_method::from_pointer>(count, ptr);
-    }
-
-    void assign_reserved(const T* const ptr)
-    {
-        const size_type count = static_cast<size_type>(traits_type::length(ptr));
-        assign_from_reserved<construct_method::from_pointer>(count, ptr);
-    }
-
-    void assign_no_overlap_reserved(const T* const ptr)
-    {
-        const size_type count = static_cast<size_type>(traits_type::length(ptr));
-        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(ptr, ptr + count);
-        assign_from_no_overlap_reserved<construct_method::from_pointer>(count, ptr);
-    }
-
     //=========================================================================
 
     success assign(const T* const ptr, size_type count)
     {
         return assign_from<construct_method::from_pointer>(count, ptr);
-    }
-
-    success assign_no_overlap(const T* const ptr, size_type count)
-    {
-        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(ptr, ptr + count);
-        return assign_from_no_overlap<construct_method::from_pointer>(count, ptr);
-    }
-
-    void assign_reserved(const T* const ptr, size_type count)
-    {
-        assign_from_reserved<construct_method::from_pointer>(count, ptr);
-    }
-
-    void assign_no_overlap_reserved(const T* const ptr, size_type count)
-    {
-        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(ptr, ptr + count);
-        assign_from_no_overlap_reserved<construct_method::from_pointer>(count, ptr);
     }
 
     //=========================================================================
@@ -990,12 +897,6 @@ public:
     {
         const size_type count = static_cast<size_type>(init.size());
         return assign_from<construct_method::from_pointer>(count, init.begin());
-    }
-
-    void assign_reserved(std::initializer_list<T> init)
-    {
-        const size_type count = static_cast<size_type>(init.size());
-        assign_from_reserved<construct_method::from_pointer>(count, init.begin());
     }
 
     //=========================================================================
@@ -1022,77 +923,6 @@ public:
         }
     }
 
-    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    success assign_no_overlap(IT first, IT last)
-    {
-        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
-
-        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
-        {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
-            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
-            return assign_from_no_overlap<construct_method::from_pointer>(count, first.ptr());
-        }
-        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
-        {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
-            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
-            return assign_from_no_overlap<construct_method::from_pointer>(count, first);
-        }
-        else
-        {
-            // materialized copy can never alias -- no _no_overlap distinction needed here
-            const basic_string tmp(first, last, get_allocator());
-            return assign_from_no_overlap<construct_method::from_pointer>(tmp.size(), tmp.data());
-        }
-    }
-
-    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    void assign_reserved(IT first, IT last)
-    {
-        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
-
-        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
-        {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
-            assign_from_reserved<construct_method::from_pointer>(count, first.ptr());
-        }
-        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
-        {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
-            assign_from_reserved<construct_method::from_pointer>(count, first);
-        }
-        else
-        {
-            const basic_string tmp(first, last, get_allocator());
-            assign_from_reserved<construct_method::from_pointer>(tmp.size(), tmp.data());
-        }
-    }
-
-    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    void assign_no_overlap_reserved(IT first, IT last)
-    {
-        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
-
-        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
-        {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
-            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
-            assign_from_no_overlap_reserved<construct_method::from_pointer>(count, first.ptr());
-        }
-        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
-        {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
-            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(first, last);
-            assign_from_no_overlap_reserved<construct_method::from_pointer>(count, first);
-        }
-        else
-        {
-            const basic_string tmp(first, last, get_allocator());
-            assign_from_no_overlap_reserved<construct_method::from_pointer>(tmp.size(), tmp.data());
-        }
-    }
-
     //=========================================================================
 
     template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
@@ -1100,29 +930,6 @@ public:
     {
         const size_type count = static_cast<size_type>(other.size());
         return assign_from<construct_method::from_pointer>(count, other.data());
-    }
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    success assign_no_overlap(const S& other)
-    {
-        const size_type count = static_cast<size_type>(other.size());
-        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(other.data(), other.data() + other.size());
-        return assign_from_no_overlap<construct_method::from_pointer>(count, other.data());
-    }
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    void assign_reserved(const S& other)
-    {
-        const size_type count = static_cast<size_type>(other.size());
-        assign_from_reserved<construct_method::from_pointer>(count, other.data());
-    }
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    void assign_no_overlap_reserved(const S& other)
-    {
-        const size_type count = static_cast<size_type>(other.size());
-        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(other.data(), other.data() + count);
-        assign_from_no_overlap_reserved<construct_method::from_pointer>(count, other.data());
     }
 
     //=========================================================================
@@ -1133,32 +940,6 @@ public:
         VX_RET_ERR_IF(!_char_traits_priv::check_offset(other.size(), off), err::out_of_range);
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
         return assign_from<construct_method::from_pointer>(count, other.data() + off);
-    }
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    success assign_no_overlap(const S& other, size_type off, size_type count = npos)
-    {
-        VX_RET_ERR_IF(!_char_traits_priv::check_offset(other.size(), off), err::out_of_range);
-        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
-        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(other.data() + off, other.data() + off + count);
-        return assign_from_no_overlap<construct_method::from_pointer>(count, other.data() + off);
-    }
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    void assign_reserved(const S& other, size_type off, size_type count = npos)
-    {
-        VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
-        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
-        assign_from_reserved<construct_method::from_pointer>(count, other.data() + off);
-    }
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    void assign_no_overlap_reserved(const S& other, size_type off, size_type count = npos)
-    {
-        VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
-        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
-        VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(other.data() + off, other.data() + off + count);
-        assign_from_no_overlap_reserved<construct_method::from_pointer>(count, other.data() + off);
     }
 
     //=========================================================================
@@ -1403,7 +1184,7 @@ private:
     }
 
     template <construct_method M, typename... Args>
-    void append_n_reserved(const size_type count, Args&&... args)
+    void append_n_assume_capacity(const size_type count, Args&&... args)
     {
         VX_ASSERT(count <= m_data().capacity - m_data().size);
         append_capacity<M>(count, std::forward<Args>(args)...);
@@ -1421,11 +1202,6 @@ public:
         return append_n<op_growth_policy, construct_method::from_pointer>(other.size(), other.data());
     }
 
-    void append_reserved(const basic_string& other)
-    {
-        append_n_reserved<construct_method::from_pointer>(other.size(), other.data());
-    }
-
     //=========================================================================
 
     template <typename op_growth_policy = growth_policy>
@@ -1436,13 +1212,6 @@ public:
         return append_n<op_growth_policy, construct_method::from_pointer>(count, other.data() + off);
     }
 
-    void append_reserved(const basic_string& other, size_type off, size_type count = npos)
-    {
-        VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
-        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
-        append_n_reserved<construct_method::from_pointer>(count, other.data() + off);
-    }
-
     //=========================================================================
 
     template <typename op_growth_policy = growth_policy>
@@ -1451,22 +1220,12 @@ public:
         return append_n<op_growth_policy, construct_method::from_char>(1, c);
     }
 
-    void append_reserved(const T c)
-    {
-        append_n_reserved<construct_method::from_char>(1, c);
-    }
-
     //=========================================================================
 
     template <typename op_growth_policy = growth_policy>
     success append(size_type count, const T c)
     {
         return append_n<op_growth_policy, construct_method::from_char_count>(count, c);
-    }
-
-    void append_reserved(size_type count, const T c)
-    {
-        append_n_reserved<construct_method::from_char_count>(count, c);
     }
 
     //=========================================================================
@@ -1478,23 +1237,12 @@ public:
         return append_n<op_growth_policy, construct_method::from_pointer>(count, s);
     }
 
-    void append_reserved(const T* const s)
-    {
-        const size_type count = static_cast<size_type>(traits_type::length(s));
-        append_n_reserved<construct_method::from_pointer>(count, s);
-    }
-
     //=========================================================================
 
     template <typename op_growth_policy = growth_policy>
     success append(const T* const s, const size_type count)
     {
         return append_n<op_growth_policy, construct_method::from_pointer>(count, s);
-    }
-
-    void append_reserved(const T* const s, const size_type count)
-    {
-        append_n_reserved<construct_method::from_pointer>(count, s);
     }
 
     //=========================================================================
@@ -1504,12 +1252,6 @@ public:
     {
         const size_type count = static_cast<size_type>(init.size());
         return append_n<op_growth_policy, construct_method::from_pointer>(count, init.begin());
-    }
-
-    void append_reserved(std::initializer_list<T> init)
-    {
-        const size_type count = static_cast<size_type>(init.size());
-        append_n_reserved<construct_method::from_pointer>(count, init.begin());
     }
 
     //=========================================================================
@@ -1536,28 +1278,6 @@ public:
         }
     }
 
-    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    void append_reserved(IT first, IT last)
-    {
-        VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
-
-        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
-        {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
-            append_n_reserved<construct_method::from_pointer>(count, first.ptr());
-        }
-        else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
-        {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
-            append_n_reserved<construct_method::from_pointer>(count, first);
-        }
-        else
-        {
-            const basic_string tmp(first, last, get_allocator());
-            append_n_reserved<construct_method::from_pointer>(tmp.size(), tmp.data());
-        }
-    }
-
     //=========================================================================
 
     template <typename op_growth_policy = growth_policy, typename S, VX_REQUIRES(is_compatible_string<S>::value)>
@@ -1565,13 +1285,6 @@ public:
     {
         const size_type count = static_cast<size_type>(other.size());
         return append_n<op_growth_policy, construct_method::from_pointer>(count, other.data());
-    }
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    void append_reserved(const S& other)
-    {
-        const size_type count = static_cast<size_type>(other.size());
-        append_n_reserved<construct_method::from_pointer>(count, other.data());
     }
 
     //=========================================================================
@@ -1582,14 +1295,6 @@ public:
         VX_RET_ERR_IF(!_char_traits_priv::check_offset(other.size(), off), err::out_of_range);
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
         return append_n<op_growth_policy, construct_method::from_pointer>(count, other.data() + off);
-    }
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    void append_reserved(const S& other, size_type off, size_type count = npos)
-    {
-        VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
-        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
-        append_n_reserved<construct_method::from_pointer>(count, other.data() + off);
     }
 
     //=========================================================================
@@ -1651,7 +1356,7 @@ private:
     }
 
     template <construct_method M, typename... Args>
-    T* insert_capacity_no_overlap(T* pos, size_type count, Args&&... args)
+    T* insert_capacity_no_alias(T* pos, size_type count, Args&&... args)
     {
         insert_shift_tail(pos, count);
 
@@ -1729,7 +1434,7 @@ private:
         }
         else
         {
-            return insert_capacity_no_overlap<M>(pos, count, std::forward<Args>(args)...);
+            return insert_capacity_no_alias<M>(pos, count, std::forward<Args>(args)...);
         }
     }
 
@@ -2082,36 +1787,6 @@ public:
         return success{};
     }
 
-    T* release() noexcept
-    {
-        if (is_static_buffer())
-        {
-            return nullptr;
-        }
-
-        T* old_ptr = m_data().ptr;
-        construct_empty();
-        return old_ptr;
-    }
-
-    success acquire(T* new_ptr)
-    {
-        auto& ptr = m_data().ptr;
-        auto& size = m_data().size;
-        auto& capacity = m_data().capacity;
-
-        const size_type count = static_cast<size_type>(traits_type::length(new_ptr));
-        VX_RET_ERR_IF(count > max_size(), err::size_error);
-
-        destroy_and_deallocate(ptr, size, capacity);
-
-        ptr = new_ptr;
-        size = count;
-        capacity = count;
-
-        return success{};
-    }
-
     // swap keeps allocator and buffer_type glued together, same reasoning as move:
     // each buffer_type must stay paired with the allocator that produced it
     void swap(basic_string& other) noexcept
@@ -2225,32 +1900,6 @@ public:
         return append_n<ratio_growth_policy<1, 1>, construct_method::from_char_count>(count, c);
     }
 
-    void resize_capacity(size_type new_size, const T c = T())
-    {
-        VX_ASSERT(new_size <= m_data().capacity);
-
-        auto& ptr = m_data().ptr;
-        auto& size = m_data().size;
-
-        if (new_size == size)
-        {
-            return;
-        }
-
-        if (new_size < size)
-        {
-            const size_type shrink_count = size - new_size;
-            pointer end_ptr = ptr + new_size;
-            range::destroy(end_ptr + 1, shrink_count);
-            traits_type::assign(*end_ptr, T());
-            m_data().size = new_size;
-            return;
-        }
-
-        const size_type count = new_size - size;
-        append_capacity<construct_method::from_char_count>(count, c);
-    }
-
     //=========================================================================
     // push back
     //=========================================================================
@@ -2287,12 +1936,6 @@ public:
         return append_reallocate<op_growth_policy, construct_method::from_char>(1, c);
     }
 
-    void push_back_capacity(const T c)
-    {
-        VX_ASSERT(m_data().size < m_data().capacity);
-        push_back_unchecked(c);
-    }
-
     //=========================================================================
     // erase
     //=========================================================================
@@ -2326,15 +1969,6 @@ private:
     }
 
 public:
-
-    expected<iterator, error> erase_in_range(size_type off, size_type count)
-    {
-        VX_ASSERT(off <= size());
-        VX_ASSERT(count <= size() - off);
-        auto ptr = m_data().ptr + off;
-        ptr = erase_n(ptr, count);
-        return iterator(ptr);
-    }
 
     expected<iterator, error> erase(size_type off = 0, size_type count = npos)
     {
@@ -2379,16 +2013,6 @@ public:
         }
     }
 
-    void pop_back_capacity()
-    {
-        VX_ASSERT(m_data().size > 0);
-        auto& ptr = m_data().ptr;
-        auto& size = m_data().size;
-        mem::destroy_in_place(ptr + size);
-        --size;
-        traits_type::assign(ptr[size], T());
-    }
-
     //=========================================================================
     // copy
     //=========================================================================
@@ -2399,14 +2023,6 @@ public:
         {
             return 0;
         }
-        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
-        traits_type::copy(dst, m_data().ptr + off, count);
-        return count;
-    }
-
-    size_type copy_in_range(T* dst, size_type count, size_type off = 0) const
-    {
-        VX_ASSERT(_char_traits_priv::check_offset(size(), off));
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
         traits_type::copy(dst, m_data().ptr + off, count);
         return count;
@@ -2426,13 +2042,6 @@ public:
         return basic_string(m_data().ptr + off, count, m_allocator());
     }
 
-    basic_string substr_in_range(size_type off, size_type count) const
-    {
-        VX_ASSERT(_char_traits_priv::check_offset(size(), off));
-        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
-        return basic_string(m_data().ptr + off, count, m_allocator());
-    }
-
     //=========================================================================
     // views
     //=========================================================================
@@ -2443,13 +2052,6 @@ public:
         {
             return basic_string_view<T>();
         }
-        count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
-        return basic_string_view<T>(m_data().ptr + off, count);
-    }
-
-    basic_string_view<T> view_in_range(size_type off, size_type count) const noexcept
-    {
-        VX_ASSERT(_char_traits_priv::check_offset(size(), off));
         count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(size(), off, count));
         return basic_string_view<T>(m_data().ptr + off, count);
     }
@@ -2490,7 +2092,7 @@ private:
     }
 
     template <construct_method M, typename... Args>
-    void replace_capacity_no_overlap(pointer pos, size_type in_count, size_type out_count, Args&&... args)
+    void replace_capacity_no_alias(pointer pos, size_type in_count, size_type out_count, Args&&... args)
     {
         replace_shift_tail(pos, in_count, out_count);
 
@@ -2571,7 +2173,7 @@ private:
         }
         else
         {
-            replace_capacity_no_overlap<M>(pos, in_count, out_count, std::forward<Args>(args)...);
+            replace_capacity_no_alias<M>(pos, in_count, out_count, std::forward<Args>(args)...);
         }
     }
 
@@ -3176,6 +2778,528 @@ public:
             m_data().ptr + off1, count1,
             other.data() + off2, count2);
     }
+
+public:
+
+    //=========================================================================
+    // bonus ops
+    //=========================================================================
+
+    class unsafe_ops
+    {
+    public:
+
+        explicit unsafe_ops(basic_string& s) noexcept
+            : m_str(s)
+        {}
+
+        unsafe_ops(const unsafe_ops&) = default;
+        unsafe_ops& operator=(const unsafe_ops&) = delete;
+
+        //=========================================================================
+        // assign
+        //=========================================================================
+
+        success assign_assume_no_alias(const basic_string& other)
+        {
+            VX_ASSERT(&m_str != &other);
+            return m_str.assign_from_assume_no_alias<construct_method::from_string>(other.size(), other.data());
+        }
+
+        void assign_assume_capacity(const basic_string& other)
+        {
+            VX_ASSERT(&m_str != &other);
+            m_str.assign_from_assume_capacity<construct_method::from_string>(other.size(), other.data());
+        }
+
+        void assign_assume_no_alias_and_capacity(const basic_string& other)
+        {
+            VX_ASSERT(&m_str != &other);
+            m_str.assign_from_assume_assume_capacity_no_alias<construct_method::from_string>(other.size(), other.data());
+        }
+
+        //=========================================================================
+
+        success assign_assume_no_alias(const basic_string& other, size_type off, size_type count = npos)
+        {
+            VX_ASSERT(&m_str != &other);
+            VX_RET_ERR_IF(!_char_traits_priv::check_offset(other.size(), off), err::out_of_range);
+
+            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+            return m_str.assign_from_assume_no_alias<construct_method::from_pointer>(count, other.data() + off);
+        }
+
+
+        void assign_assume_capacity(const basic_string& other, size_type off, size_type count = npos)
+        {
+            VX_ASSERT(&m_str != &other);
+            VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
+            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+            m_str.assign_from_assume_capacity<construct_method::from_pointer>(count, other.data() + off);
+        }
+
+        void assign_assume_no_alias_and_capacity(const basic_string& other, size_type off, size_type count = npos)
+        {
+            VX_ASSERT(&m_str != &other);
+            VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
+            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE(other.data() + off, other.data() + off + count);
+            m_str.assign_from_assume_assume_capacity_no_alias<construct_method::from_pointer>(count, other.data() + off);
+        }
+
+        //=========================================================================
+
+        void assign_assume_capacity(const T c)
+        {
+            m_str.assign_from_assume_capacity<construct_method::from_char>(1, c);
+        }
+
+        //=========================================================================
+
+        void assign_assume_capacity(const size_type count, const T c)
+        {
+            m_str.assign_from_assume_capacity<construct_method::from_char_count>(count, c);
+        }
+
+        //=========================================================================
+
+        success assign_assume_no_alias(const T* const ptr)
+        {
+            const size_type count = static_cast<size_type>(traits_type::length(ptr));
+            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, ptr, ptr + count);
+            return m_str.assign_from_assume_no_alias<construct_method::from_pointer>(count, ptr);
+        }
+
+        void assign_assume_capacity(const T* const ptr)
+        {
+            const size_type count = static_cast<size_type>(traits_type::length(ptr));
+            m_str.assign_from_assume_capacity<construct_method::from_pointer>(count, ptr);
+        }
+
+        void assign_assume_no_alias_and_capacity(const T* const ptr)
+        {
+            const size_type count = static_cast<size_type>(traits_type::length(ptr));
+            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, ptr, ptr + count);
+            m_str.assign_from_assume_assume_capacity_no_alias<construct_method::from_pointer>(count, ptr);
+        }
+
+        //=========================================================================
+
+        success assign_assume_no_alias(const T* const ptr, size_type count)
+        {
+            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, ptr, ptr + count);
+            return m_str.assign_from_assume_no_alias<construct_method::from_pointer>(count, ptr);
+        }
+
+        void assign_assume_capacity(const T* const ptr, size_type count)
+        {
+            m_str.assign_from_assume_capacity<construct_method::from_pointer>(count, ptr);
+        }
+
+        void assign_assume_no_alias_and_capacity(const T* const ptr, size_type count)
+        {
+            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, ptr, ptr + count);
+            m_str.assign_from_assume_assume_capacity_no_alias<construct_method::from_pointer>(count, ptr);
+        }
+
+        //=========================================================================
+
+        void assign_assume_capacity(std::initializer_list<T> init)
+        {
+            const size_type count = static_cast<size_type>(init.size());
+            m_str.assign_from_assume_capacity<construct_method::from_pointer>(count, init.begin());
+        }
+
+        //=========================================================================
+
+        template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+        success assign_assume_no_alias(IT first, IT last)
+        {
+            VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
+            VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
+            {
+                const size_type count = static_cast<size_type>(std::distance(first, last));
+                VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, first, last);
+                return m_str.assign_from_assume_no_alias<construct_method::from_pointer>(count, first.ptr());
+            }
+            else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+            {
+                const size_type count = static_cast<size_type>(std::distance(first, last));
+                VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, first, last);
+                return m_str.assign_from_assume_no_alias<construct_method::from_pointer>(count, first);
+            }
+            else
+            {
+                // materialized copy can never alias -- no _no_alias distinction needed here
+                const basic_string tmp(first, last, get_allocator());
+                return m_str.assign_from_assume_no_alias<construct_method::from_pointer>(tmp.size(), tmp.data());
+            }
+        }
+
+        template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+        void assign_assume_capacity(IT first, IT last)
+        {
+            VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
+            VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
+            {
+                const size_type count = static_cast<size_type>(std::distance(first, last));
+                m_str.assign_from_assume_capacity<construct_method::from_pointer>(count, first.ptr());
+            }
+            else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+            {
+                const size_type count = static_cast<size_type>(std::distance(first, last));
+                m_str.assign_from_assume_capacity<construct_method::from_pointer>(count, first);
+            }
+            else
+            {
+                const basic_string tmp(first, last, get_allocator());
+                m_str.assign_from_assume_capacity<construct_method::from_pointer>(tmp.size(), tmp.data());
+            }
+        }
+
+        template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+        void assign_assume_no_alias_and_capacity(IT first, IT last)
+        {
+            VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
+            VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
+            {
+                const size_type count = static_cast<size_type>(std::distance(first, last));
+                VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, first, last);
+                m_str.assign_from_assume_assume_capacity_no_alias<construct_method::from_pointer>(count, first.ptr());
+            }
+            else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+            {
+                const size_type count = static_cast<size_type>(std::distance(first, last));
+                VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, first, last);
+                m_str.assign_from_assume_assume_capacity_no_alias<construct_method::from_pointer>(count, first);
+            }
+            else
+            {
+                const basic_string tmp(first, last, get_allocator());
+                m_str.assign_from_assume_assume_capacity_no_alias<construct_method::from_pointer>(tmp.size(), tmp.data());
+            }
+        }
+
+        //=========================================================================
+
+        template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+        success assign_assume_no_alias(const S& other)
+        {
+            const size_type count = static_cast<size_type>(other.size());
+            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, other.data(), other.data() + other.size());
+            return m_str.assign_from_assume_no_alias<construct_method::from_pointer>(count, other.data());
+        }
+
+        template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+        void assign_assume_capacity(const S& other)
+        {
+            const size_type count = static_cast<size_type>(other.size());
+            m_str.assign_from_assume_capacity<construct_method::from_pointer>(count, other.data());
+        }
+
+        template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+        void assign_assume_no_alias_and_capacity(const S& other)
+        {
+            const size_type count = static_cast<size_type>(other.size());
+            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, other.data(), other.data() + count);
+            m_str.assign_from_assume_assume_capacity_no_alias<construct_method::from_pointer>(count, other.data());
+        }
+
+        //=========================================================================
+
+        template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+        success assign_assume_no_alias(const S& other, size_type off, size_type count = npos)
+        {
+            VX_RET_ERR_IF(!_char_traits_priv::check_offset(other.size(), off), err::out_of_range);
+            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, other.data() + off, other.data() + off + count);
+            return m_str.assign_from_assume_no_alias<construct_method::from_pointer>(count, other.data() + off);
+        }
+
+        template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+        void assign_assume_capacity(const S& other, size_type off, size_type count = npos)
+        {
+            VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
+            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+            m_str.assign_from_assume_capacity<construct_method::from_pointer>(count, other.data() + off);
+        }
+
+        template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+        void assign_assume_no_alias_and_capacity(const S& other, size_type off, size_type count = npos)
+        {
+            VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
+            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+            VX_PRIV_ASSERT_CONTIG_NOT_SELF_RANGE_IN(m_str, other.data() + off, other.data() + off + count);
+            m_str.assign_from_assume_assume_capacity_no_alias<construct_method::from_pointer>(count, other.data() + off);
+        }
+
+        //=========================================================================
+        // append
+        //=========================================================================
+
+        void append_assume_capacity(const basic_string& other)
+        {
+            m_str.append_n_assume_capacity<construct_method::from_pointer>(other.size(), other.data());
+        }
+
+        //=========================================================================
+
+        void append_assume_capacity(const basic_string& other, size_type off, size_type count = npos)
+        {
+            VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
+            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+            m_str.append_n_assume_capacity<construct_method::from_pointer>(count, other.data() + off);
+        }
+
+        //=========================================================================
+
+        void append_assume_capacity(const T c)
+        {
+            m_str.append_n_assume_capacity<construct_method::from_char>(1, c);
+        }
+
+        //=========================================================================
+
+        void append_assume_capacity(size_type count, const T c)
+        {
+            m_str.append_n_assume_capacity<construct_method::from_char_count>(count, c);
+        }
+
+        //=========================================================================
+
+        void append_assume_capacity(const T* const s)
+        {
+            const size_type count = static_cast<size_type>(traits_type::length(s));
+            m_str.append_n_assume_capacity<construct_method::from_pointer>(count, s);
+        }
+
+        //=========================================================================
+
+        void append_assume_capacity(const T* const s, const size_type count)
+        {
+            m_str.append_n_assume_capacity<construct_method::from_pointer>(count, s);
+        }
+
+        //=========================================================================
+
+        void append_assume_capacity(std::initializer_list<T> init)
+        {
+            const size_type count = static_cast<size_type>(init.size());
+            m_str.append_n_assume_capacity<construct_method::from_pointer>(count, init.begin());
+        }
+
+        //=========================================================================
+
+        template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+        void append_assume_capacity(IT first, IT last)
+        {
+            VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
+
+            VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator_of<IT, T>::value)
+            {
+                const size_type count = static_cast<size_type>(std::distance(first, last));
+                m_str.append_n_assume_capacity<construct_method::from_pointer>(count, first.ptr());
+            }
+            else VX_IF_CONSTEXPR (type_traits::is_pointer_to<IT, T>::value)
+            {
+                const size_type count = static_cast<size_type>(std::distance(first, last));
+                m_str.append_n_assume_capacity<construct_method::from_pointer>(count, first);
+            }
+            else
+            {
+                const basic_string tmp(first, last, get_allocator());
+                m_str.append_n_assume_capacity<construct_method::from_pointer>(tmp.size(), tmp.data());
+            }
+        }
+
+        //=========================================================================
+
+        template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+        void append_assume_capacity(const S& other)
+        {
+            const size_type count = static_cast<size_type>(other.size());
+            m_str.append_n_assume_capacity<construct_method::from_pointer>(count, other.data());
+        }
+
+        //=========================================================================
+
+        template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+        void append_assume_capacity(const S& other, size_type off, size_type count = npos)
+        {
+            VX_ASSERT(_char_traits_priv::check_offset(other.size(), off));
+            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(other.size(), off, count));
+            m_str.append_n_assume_capacity<construct_method::from_pointer>(count, other.data() + off);
+        }
+
+        //=========================================================================
+
+        pointer release() noexcept
+        {
+            if (m_str.is_static_buffer())
+            {
+                return nullptr;
+            }
+
+            pointer old_ptr = m_data().ptr;
+            m_str.construct_empty();
+            return old_ptr;
+        }
+
+        success acquire(pointer new_ptr)
+        {
+            auto& ptr = m_data().ptr;
+            auto& size = m_data().size;
+            auto& capacity = m_data().capacity;
+
+            const size_type count = static_cast<size_type>(traits_type::length(new_ptr));
+            VX_RET_ERR_IF(count > m_str.max_size(), err::size_error);
+
+            m_str.destroy_and_deallocate(ptr, size, capacity);
+
+            ptr = new_ptr;
+            size = count;
+            capacity = count;
+
+            return success{};
+        }
+
+        success acquire(pointer new_ptr, size_type count)
+        {
+            auto& ptr = m_data().ptr;
+            auto& size = m_data().size;
+            auto& capacity = m_data().capacity;
+
+            VX_RET_ERR_IF(count > m_str.max_size(), err::size_error);
+            m_str.destroy_and_deallocate(ptr, size, capacity);
+
+            ptr = new_ptr;
+            size = count;
+            capacity = count;
+
+            return success{};
+        }
+
+        //=========================================================================
+        // resize
+        //=========================================================================
+
+        void resize_assume_capacity(size_type new_size, const T c = T())
+        {
+            VX_ASSERT(new_size <= m_data().capacity);
+
+            auto& ptr = m_data().ptr;
+            auto& size = m_data().size;
+
+            if (new_size == size)
+            {
+                return;
+            }
+
+            if (new_size < size)
+            {
+                const size_type shrink_count = size - new_size;
+                pointer end_ptr = ptr + new_size;
+                range::destroy(end_ptr + 1, shrink_count);
+                traits_type::assign(*end_ptr, T());
+                m_data().size = new_size;
+                return;
+            }
+
+            const size_type count = new_size - size;
+            m_str.append_capacity<construct_method::from_char_count>(count, c);
+        }
+
+        //=========================================================================
+        // push back
+        //=========================================================================
+
+        void push_back_assume_capacity(const T c)
+        {
+            VX_ASSERT(m_data().size < m_data().capacity);
+            m_str.push_back_unchecked(c);
+        }
+
+        //=========================================================================
+        // erase
+        //=========================================================================
+
+        iterator erase_assume_in_range(size_type off, size_type count)
+        {
+            VX_ASSERT(off <= m_str.size());
+            VX_ASSERT(count <= m_str.size() - off);
+            return iterator(m_str.erase_n(m_data().ptr + off, count));
+        }
+
+        //=========================================================================
+        // pop_back
+        //=========================================================================
+
+        void pop_back_assume_nonempty()
+        {
+            VX_ASSERT(m_data().size > 0);
+            auto& ptr = m_data().ptr;
+            auto& size = m_data().size;
+            mem::destroy_in_place(ptr + size);
+            --size;
+            traits_type::assign(ptr[size], T());
+        }
+
+        //=========================================================================
+        // copy
+        //=========================================================================
+
+        size_type copy_assume_in_range(T* dst, size_type count, size_type off = 0) const
+        {
+            VX_ASSERT(_char_traits_priv::check_offset(m_str.size(), off));
+            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(m_str.size(), off, count));
+            traits_type::copy(dst, m_data().ptr + off, count);
+            return count;
+        }
+
+        //=========================================================================
+        // substr
+        //=========================================================================
+
+        basic_string substr_assume_in_range(size_type off, size_type count) const
+        {
+            VX_ASSERT(_char_traits_priv::check_offset(m_str.size(), off));
+            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(m_str.size(), off, count));
+            return basic_string(m_data().ptr + off, count, m_allocator());
+        }
+
+        //=========================================================================
+        // views
+        //=========================================================================
+
+        basic_string_view<T> view_assume_in_range(size_type off, size_type count) const noexcept
+        {
+            VX_ASSERT(_char_traits_priv::check_offset(m_str.size(), off));
+            count = static_cast<size_type>(_char_traits_priv::clamp_suffix_size(m_str.size(), off, count));
+            return basic_string_view<T>(m_data().ptr + off, count);
+        }
+
+    private:
+
+        data_type& m_data() const noexcept
+        {
+            return m_str.m_data();
+        }
+
+        allocator_type& m_allocator() const noexcept
+        {
+            return m_str.m_allocator();
+        }
+
+        basic_string& m_str;
+    };
+
+    unsafe_ops unsafe() noexcept
+    {
+        return unsafe_ops(*this);
+    }
 };
 
 //=========================================================================
@@ -3198,8 +3322,11 @@ basic_string<T, Allocator> operator+(const basic_string<T, Allocator>& lhs, cons
     basic_string<T, Allocator> result(lhs.get_allocator());
     const auto r = result.reserve(lhs.size() + rhs.size());
     VX_VERIFY(r);
-    result.append_reserved(lhs);
-    result.append_reserved(rhs);
+
+    auto ops = result.unsafe();
+    ops.append_assume_capacity(lhs);
+    ops.append_assume_capacity(rhs);
+
     return result;
 }
 

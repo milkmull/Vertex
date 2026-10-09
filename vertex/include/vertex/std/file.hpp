@@ -32,10 +32,9 @@ public:
     file& operator=(const file&) = delete;
 
     file(file&& other) noexcept
-        : m_mode(other.m_mode)
+        : m_mode(vx::exchange(other.m_mode, mode::none))
         , m_handle(std::move(other.m_handle))
     {
-        other.m_mode = mode::none;
     }
 
     file& operator=(file&& other) noexcept
@@ -47,9 +46,8 @@ public:
 
         close();
 
-        m_mode = other.m_mode;
+        m_mode = vx::exchange(other.m_mode, mode::none);
         m_handle = std::move(other.m_handle);
-        other.m_mode = mode::none;
 
         return *this;
     }
