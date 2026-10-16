@@ -11,20 +11,23 @@
 namespace vx {
 namespace bit {
 
+namespace _bit_priv {
+
+template <typename T>
+struct is_bit_unsigned : std::integral_constant<bool, std::is_integral<T>::value && std::is_unsigned<T>::value && !std::is_same<T, bool>::value>
+{};
+
+} // namespace _bit_priv
+
 //=============================================================================
 // byteswap
 //=============================================================================
 
 namespace _bit_priv {
 
-constexpr uint8_t byteswap_8_generic(uint8_t x) noexcept
-{
-    return x;
-}
-
 constexpr uint16_t byteswap_16_generic(uint16_t x) noexcept
 {
-    return (x << 8) | (x >> 8);
+    return static_cast<uint16_t>((x << 8) | (x >> 8));
 }
 
 constexpr uint32_t byteswap_32_generic(uint32_t x) noexcept
@@ -40,498 +43,643 @@ constexpr uint64_t byteswap_64_generic(uint64_t x) noexcept
     return x;
 }
 
-} // namespace _bit_priv
-
-/**
- * @brief Byte-swaps a 1-byte (8-bit) unsigned integer.
- *
- * No actual byte swapping is performed since the value is a single byte.
- *
- * @param x The 8-bit unsigned integer to convert.
- * @return The input value, unchanged.
- */
-constexpr uint8_t byteswap(uint8_t x) noexcept
+constexpr uint8_t byteswap_8_impl(uint8_t x) noexcept
 {
-    return _bit_priv::byteswap_8_generic(x);
+    return x;
 }
 
-/**
- * @brief Byte-swaps a 2-byte (16-bit) unsigned integer.
- *
- * Converts between little-endian and big-endian representations.
- * Uses compiler intrinsics if available for optimal performance.
- *
- * @param x The 16-bit unsigned integer to convert.
- * @return The byte-swapped result.
- */
-constexpr uint16_t byteswap(uint16_t x) noexcept
+constexpr uint16_t byteswap_16_impl(uint16_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_bswap16)
 
     return __builtin_bswap16(x);
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return _bit_priv::byteswap_16_generic(x);
+        return byteswap_16_generic(x);
     }
     return _byteswap_ushort(x);
 
 #else
 
-    return _bit_priv::byteswap_16_generic(x);
+    return byteswap_16_generic(x);
 
 #endif
 }
 
-/**
- * @brief Byte-swaps a 4-byte (32-bit) unsigned integer.
- *
- * Converts between little-endian and big-endian formats.
- * Utilizes compiler intrinsics when available, falling back to a manual implementation otherwise.
- *
- * @param x The 32-bit unsigned integer to convert.
- * @return The byte-swapped result.
- */
-constexpr uint32_t byteswap(uint32_t x) noexcept
+constexpr uint32_t byteswap_32_impl(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_bswap32)
 
     return __builtin_bswap32(x);
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return _bit_priv::byteswap_32_generic(x);
+        return byteswap_32_generic(x);
     }
-    return _byteswap_ulong(x);
+    return static_cast<uint32_t>(_byteswap_ulong(x));
 
 #else
 
-    return _bit_priv::byteswap_32_generic(x);
+    return byteswap_32_generic(x);
 
 #endif
 }
 
-/**
- * @brief Byte-swaps an 8-byte (64-bit) unsigned integer.
- *
- * Efficiently reverses the byte order of a 64-bit value.
- * Uses platform intrinsics where supported.
- *
- * @param x The 64-bit unsigned integer to convert.
- * @return The byte-swapped result.
- */
-constexpr uint64_t byteswap(uint64_t x) noexcept
+constexpr uint64_t byteswap_64_impl(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_bswap64)
 
     return __builtin_bswap64(x);
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return _bit_priv::byteswap_64_generic(x);
+        return byteswap_64_generic(x);
     }
     return _byteswap_uint64(x);
 
 #else
 
-    return _bit_priv::byteswap_64_generic(x);
+    return byteswap_64_generic(x);
 
 #endif
+}
+
+template <typename T>
+constexpr T byteswap_impl(T x) noexcept
+{
+    VX_STATIC_ASSERT_MSG(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8,
+        "Unsupported type size for byteswap");
+
+    VX_IF_CONSTEXPR (sizeof(T) == 1)
+    {
+        return static_cast<T>(byteswap_8_impl(static_cast<uint8_t>(x)));
+    }
+    else VX_IF_CONSTEXPR (sizeof(T) == 2)
+    {
+        return static_cast<T>(byteswap_16_impl(static_cast<uint16_t>(x)));
+    }
+    else VX_IF_CONSTEXPR (sizeof(T) == 4)
+    {
+        return static_cast<T>(byteswap_32_impl(static_cast<uint32_t>(x)));
+    }
+    else // VX_IF_CONSTEXPR (sizeof(T) == 8)
+    {
+        return static_cast<T>(byteswap_64_impl(static_cast<uint64_t>(x)));
+    }
+}
+
+} // namespace _bit_priv
+
+/**
+ * @brief Reverses the byte order of an integer (like C++23 std::byteswap).
+ *
+ * Accepts any integral type except bool, signed or unsigned, of size 1, 2, 4 or 8.
+ * Uses compiler/platform intrinsics at run time and a portable constexpr
+ * implementation during constant evaluation.
+ *
+ * @tparam T An integral type (not bool).
+ * @param x The value to byte-swap.
+ * @return The value with its bytes in reverse order.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr T byteswap(T x) noexcept
+{
+    using U = typename std::make_unsigned<T>::type;
+    return static_cast<T>(_bit_priv::byteswap_impl(static_cast<U>(x)));
 }
 
 //=============================================================================
 // rotl
 //=============================================================================
 
-/**
- * @brief Performs a left bitwise rotation on an unsigned integral value.
- *
- * This is a generic fallback implementation, used when no platform-specific
- * intrinsics are available.
- *
- * @tparam T An unsigned integral type.
- * @param x The value to rotate.
- * @param shift Number of bits to rotate left by.
- * @return The result of left-rotating `x` by `shift` bits.
- */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
-constexpr T rotl(T x, unsigned int shift) noexcept
+namespace _bit_priv {
+
+// `r` must already be reduced to [0, digits - 1].
+template <typename T>
+constexpr T rotl_generic(T x, unsigned int r) noexcept
 {
-    constexpr auto mask = (CHAR_BIT * sizeof(T) - 1);
-    shift &= mask;
-    return static_cast<T>((x << shift) | (x >> ((mask + 1 - shift) & mask)));
+    constexpr unsigned int mask = static_cast<unsigned int>(std::numeric_limits<T>::digits) - 1u;
+    return static_cast<T>((x << r) | (x >> ((0u - r) & mask)));
 }
 
-/**
- * @brief Performs a left bitwise rotation on an 8-bit unsigned integer.
- *
- * Uses `_rotl8` on MSVC; otherwise falls back to the generic implementation.
- *
- * @param x The 8-bit value to rotate.
- * @param shift Number of bits to rotate left by.
- * @return The rotated result.
- */
-constexpr uint8_t rotl(uint8_t x, unsigned int shift) noexcept
+constexpr uint8_t rotl_8_impl(uint8_t x, unsigned int r) noexcept
 {
-#if defined(_MSC_VER)
+#if VX_HAS_BUILTIN(__builtin_rotateleft8)
+
+    return __builtin_rotateleft8(x, static_cast<uint8_t>(r));
+
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return rotl<uint8_t>(x, shift);
+        return rotl_generic<uint8_t>(x, r);
     }
-    return _rotl8(x, static_cast<unsigned char>(shift));
+    return _rotl8(x, static_cast<unsigned char>(r));
 
 #else
 
-    return rotl<uint8_t>(x, shift);
+    return rotl_generic<uint8_t>(x, r);
 
 #endif
 }
 
-/**
- * @brief Performs a left bitwise rotation on a 16-bit unsigned integer.
- *
- * Uses `_rotl16` on MSVC; otherwise uses the generic template.
- *
- * @param x The 16-bit value to rotate.
- * @param shift Number of bits to rotate left by.
- * @return The rotated result.
- */
-constexpr uint16_t rotl(uint16_t x, unsigned int shift) noexcept
+constexpr uint16_t rotl_16_impl(uint16_t x, unsigned int r) noexcept
 {
-#if defined(_MSC_VER)
+#if VX_HAS_BUILTIN(__builtin_rotateleft16)
+
+    return __builtin_rotateleft16(x, static_cast<uint16_t>(r));
+
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return rotl<uint16_t>(x, shift);
+        return rotl_generic<uint16_t>(x, r);
     }
-    return _rotl16(x, static_cast<unsigned char>(shift));
+    return _rotl16(x, static_cast<unsigned char>(r));
 
 #else
 
-    return rotl<uint16_t>(x, shift);
+    return rotl_generic<uint16_t>(x, r);
 
 #endif
 }
 
-/**
- * @brief Performs a left bitwise rotation on a 32-bit unsigned integer.
- *
- * Uses compiler intrinsics if available (`__builtin_rotateleft32` or `_rotl`),
- * otherwise falls back to the generic implementation.
- *
- * @param x The 32-bit value to rotate.
- * @param shift Number of bits to rotate left by.
- * @return The rotated result.
- */
-constexpr uint32_t rotl(uint32_t x, unsigned int shift) noexcept
+constexpr uint32_t rotl_32_impl(uint32_t x, unsigned int r) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateleft32)
 
-    return __builtin_rotateleft32(x, shift);
+    return __builtin_rotateleft32(x, r);
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return rotl<uint32_t>(x, shift);
+        return rotl_generic<uint32_t>(x, r);
     }
-    return _rotl(x, static_cast<int>(shift));
+    return static_cast<uint32_t>(_rotl(x, static_cast<int>(r)));
 
 #else
 
-    return rotl<uint32_t>(x, shift);
+    return rotl_generic<uint32_t>(x, r);
 
 #endif
 }
 
-/**
- * @brief Performs a left bitwise rotation on a 64-bit unsigned integer.
- *
- * Uses compiler intrinsics (`__builtin_rotateleft64` or `_rotl64`) if available,
- * otherwise falls back to the generic version.
- *
- * @param x The 64-bit value to rotate.
- * @param shift Number of bits to rotate left by.
- * @return The rotated result.
- */
-constexpr uint64_t rotl(uint64_t x, unsigned int shift) noexcept
+constexpr uint64_t rotl_64_impl(uint64_t x, unsigned int r) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateleft64)
 
-    return __builtin_rotateleft64(x, shift);
+    return __builtin_rotateleft64(x, r);
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return rotl<uint64_t>(x, shift);
+        return rotl_generic<uint64_t>(x, r);
     }
-    return _rotl64(x, static_cast<int>(shift));
+    return _rotl64(x, static_cast<int>(r));
 
 #else
 
-    return rotl<uint64_t>(x, shift);
+    return rotl_generic<uint64_t>(x, r);
 
 #endif
+}
+
+template <typename T>
+constexpr T rotl_impl(T x, unsigned int r) noexcept
+{
+    VX_STATIC_ASSERT_MSG(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8,
+        "Unsupported type size for rotl");
+
+    VX_IF_CONSTEXPR (sizeof(T) == 1)
+    {
+        return static_cast<T>(rotl_8_impl(static_cast<uint8_t>(x), r));
+    }
+    else VX_IF_CONSTEXPR (sizeof(T) == 2)
+    {
+        return static_cast<T>(rotl_16_impl(static_cast<uint16_t>(x), r));
+    }
+    else VX_IF_CONSTEXPR (sizeof(T) == 4)
+    {
+        return static_cast<T>(rotl_32_impl(static_cast<uint32_t>(x), r));
+    }
+    else
+    {
+        return static_cast<T>(rotl_64_impl(static_cast<uint64_t>(x), r));
+    }
+}
+
+} // namespace _bit_priv
+
+/**
+ * @brief Rotates the bits of an unsigned integer to the left (like C++20 std::rotl).
+ *
+ * The shift is taken modulo the bit width, so any `int` is valid.
+ * A negative shift rotates to the right.
+ *
+ * @tparam T An unsigned integral type (not bool).
+ * @param x The value to rotate.
+ * @param shift Number of bits to rotate left by.
+ * @return The rotated value.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr T rotl(T x, int shift) noexcept
+{
+    constexpr unsigned int mask = static_cast<unsigned int>(std::numeric_limits<T>::digits) - 1u;
+    return _bit_priv::rotl_impl<T>(x, static_cast<unsigned int>(shift) & mask);
+}
+
+//=============================================================================
+// rotl_assume_valid_shift
+//=============================================================================
+
+/**
+ * @brief rotl without the shift reduction.
+ * @pre `0 <= shift < std::numeric_limits<T>::digits`.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr T rotl_assume_valid_shift(T x, unsigned int shift) noexcept
+{
+    VX_ASSERT(shift < static_cast<unsigned int>(std::numeric_limits<T>::digits));
+    return _bit_priv::rotl_impl<T>(x, shift);
 }
 
 //=============================================================================
 // rotr
 //=============================================================================
 
-/**
- * @brief Performs a right bitwise rotation on an unsigned integral value.
- *
- * Generic fallback implementation used when intrinsics are not available.
- *
- * @tparam T An unsigned integral type.
- * @param x The value to rotate.
- * @param shift Number of bits to rotate right by.
- * @return The result of right-rotating `x` by `shift` bits.
- */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
-constexpr T rotr(T x, unsigned int shift) noexcept
+namespace _bit_priv {
+
+template <typename T>
+constexpr T rotr_generic(T x, unsigned int r) noexcept
 {
-    constexpr auto mask = std::numeric_limits<T>::digits - 1;
-    shift &= mask;
-    return static_cast<T>((x >> shift) | (x << ((mask + 1 - shift) & mask)));
+    constexpr unsigned int mask = static_cast<unsigned int>(std::numeric_limits<T>::digits) - 1u;
+    return static_cast<T>((x >> r) | (x << ((0u - r) & mask)));
 }
 
-/**
- * @brief Performs a right bitwise rotation on an 8-bit unsigned integer.
- *
- * Uses `_rotr8` on MSVC; otherwise falls back to the generic implementation.
- *
- * @param x The 8-bit value to rotate.
- * @param shift Number of bits to rotate right by.
- * @return The rotated result.
- */
-constexpr uint8_t rotr(uint8_t x, unsigned int shift) noexcept
+constexpr uint8_t rotr_8_impl(uint8_t x, unsigned int r) noexcept
 {
-#if defined(_MSC_VER)
+#if VX_HAS_BUILTIN(__builtin_rotateright8)
+
+    return __builtin_rotateright8(x, static_cast<uint8_t>(r));
+
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return rotr<uint8_t>(x, shift);
+        return rotr_generic<uint8_t>(x, r);
     }
-    return _rotr8(x, static_cast<unsigned char>(shift));
+    return _rotr8(x, static_cast<unsigned char>(r));
 
 #else
 
-    return rotr<uint8_t>(x, shift);
+    return rotr_generic<uint8_t>(x, r);
 
 #endif
 }
 
-/**
- * @brief Performs a right bitwise rotation on a 16-bit unsigned integer.
- *
- * Uses `_rotr16` on MSVC; otherwise uses the generic template.
- *
- * @param x The 16-bit value to rotate.
- * @param shift Number of bits to rotate right by.
- * @return The rotated result.
- */
-constexpr uint16_t rotr(uint16_t x, unsigned int shift) noexcept
+constexpr uint16_t rotr_16_impl(uint16_t x, unsigned int r) noexcept
 {
-#if defined(_MSC_VER)
+#if VX_HAS_BUILTIN(__builtin_rotateright16)
+
+    return __builtin_rotateright16(x, static_cast<uint16_t>(r));
+
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return rotr<uint16_t>(x, shift);
+        return rotr_generic<uint16_t>(x, r);
     }
-    return _rotr16(x, static_cast<unsigned char>(shift));
+    return _rotr16(x, static_cast<unsigned char>(r));
 
 #else
 
-    return rotr<uint16_t>(x, shift);
+    return rotr_generic<uint16_t>(x, r);
 
 #endif
 }
 
-/**
- * @brief Performs a right bitwise rotation on a 32-bit unsigned integer.
- *
- * Uses `__builtin_rotateright32` or `_rotr` if available, or falls back to the generic version.
- *
- * @param x The 32-bit value to rotate.
- * @param shift Number of bits to rotate right by.
- * @return The rotated result.
- */
-constexpr uint32_t rotr(uint32_t x, unsigned int shift) noexcept
+constexpr uint32_t rotr_32_impl(uint32_t x, unsigned int r) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateright32)
 
-    return __builtin_rotateright32(x, shift);
+    return __builtin_rotateright32(x, r);
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return rotr<uint32_t>(x, shift);
+        return rotr_generic<uint32_t>(x, r);
     }
-    return _rotr(x, static_cast<int>(shift));
+    return static_cast<uint32_t>(_rotr(x, static_cast<int>(r)));
 
 #else
 
-    return rotr<uint32_t>(x, shift);
+    return rotr_generic<uint32_t>(x, r);
 
 #endif
 }
 
-/**
- * @brief Performs a right bitwise rotation on a 64-bit unsigned integer.
- *
- * Uses `__builtin_rotateright64` or `_rotr64` when available.
- *
- * @param x The 64-bit value to rotate.
- * @param shift Number of bits to rotate right by.
- * @return The rotated result.
- */
-constexpr uint64_t rotr(uint64_t x, unsigned int shift) noexcept
+constexpr uint64_t rotr_64_impl(uint64_t x, unsigned int r) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateright64)
 
-    return __builtin_rotateright64(x, shift);
+    return __builtin_rotateright64(x, r);
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return rotr<uint64_t>(x, shift);
+        return rotr_generic<uint64_t>(x, r);
     }
-    return _rotr64(x, static_cast<int>(shift));
+    return _rotr64(x, static_cast<int>(r));
 
 #else
 
-    return rotr<uint64_t>(x, shift);
+    return rotr_generic<uint64_t>(x, r);
 
 #endif
+}
+
+template <typename T>
+constexpr T rotr_impl(T x, unsigned int r) noexcept
+{
+    VX_STATIC_ASSERT_MSG(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8,
+        "Unsupported type size for rotr");
+
+    VX_IF_CONSTEXPR (sizeof(T) == 1)
+    {
+        return static_cast<T>(rotr_8_impl(static_cast<uint8_t>(x), r));
+    }
+    else VX_IF_CONSTEXPR (sizeof(T) == 2)
+    {
+        return static_cast<T>(rotr_16_impl(static_cast<uint16_t>(x), r));
+    }
+    else VX_IF_CONSTEXPR (sizeof(T) == 4)
+    {
+        return static_cast<T>(rotr_32_impl(static_cast<uint32_t>(x), r));
+    }
+    else
+    {
+        return static_cast<T>(rotr_64_impl(static_cast<uint64_t>(x), r));
+    }
+}
+
+} // namespace _bit_priv
+
+/**
+ * @brief Rotates the bits of an unsigned integer to the right (like C++20 std::rotr).
+ *
+ * The shift is taken modulo the bit width, so any `int` is valid.
+ * A negative shift rotates to the left.
+ *
+ * @tparam T An unsigned integral type (not bool).
+ * @param x The value to rotate.
+ * @param shift Number of bits to rotate right by.
+ * @return The rotated value.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr T rotr(T x, int shift) noexcept
+{
+    constexpr unsigned int mask = static_cast<unsigned int>(std::numeric_limits<T>::digits) - 1u;
+    return _bit_priv::rotr_impl<T>(x, static_cast<unsigned int>(shift) & mask);
+}
+
+//=============================================================================
+// rotr_assume_valid_shift
+//=============================================================================
+
+/**
+ * @brief rotr without the shift reduction.
+ * @pre `0 <= shift < std::numeric_limits<T>::digits`.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr T rotr_assume_valid_shift(T x, unsigned int shift) noexcept
+{
+    VX_ASSERT(shift < static_cast<unsigned int>(std::numeric_limits<T>::digits));
+    return _bit_priv::rotr_impl<T>(x, shift);
 }
 
 //=============================================================================
 // countl_zero
 //=============================================================================
 
-/**
- * @brief Counts the number of leading zero bits in an unsigned integer.
- *
- * This generic fallback implementation performs a manual bit scan
- * from the most significant bit (MSB) toward the least significant bit (LSB).
- *
- * @tparam T An unsigned integral type.
- * @param x The value to count leading zeros in.
- * @return The number of consecutive zero bits starting from the MSB.
- * Returns `std::numeric_limits<T>::digits` if `x == 0`.
- *
- * @note This version is selected if no platform-specific intrinsic is available.
- * @note Requires T to be an unsigned integral type.
- */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
-constexpr int countl_zero(T x) noexcept
+namespace _bit_priv {
+
+// Log-step scan: 5 iterations for 32-bit, 6 for 64-bit.
+template <typename T>
+constexpr int countl_zero_generic(T x) noexcept
 {
-    constexpr int bits = static_cast<int>(std::numeric_limits<T>::digits);
+    constexpr int digits = std::numeric_limits<T>::digits;
 
     if (x == 0)
     {
-        return bits;
+        return digits;
     }
 
-    constexpr T mask = static_cast<T>(1) << (bits - 1);
-
     int n = 0;
-    while ((x & mask) == 0)
+    for (int s = digits / 2; s != 0; s /= 2)
     {
-        ++n;
-        x <<= 1;
+        if ((x >> (digits - s)) == 0)
+        {
+            n += s;
+            x = static_cast<T>(x << s);
+        }
     }
 
     return n;
 }
 
-/**
- * @brief Counts the number of leading zero bits in a 32-bit unsigned integer.
- *
- * Uses platform intrinsics when available:
- * - GCC/Clang: `__builtin_clz`
- * - MSVC: `_BitScanReverse`
- * Falls back to generic implementation otherwise.
- *
- * @param x 32-bit unsigned integer.
- * @return The number of leading zeros. Returns 32 if `x == 0`.
- */
-constexpr int countl_zero(uint32_t x) noexcept
+constexpr int countl_zero_32_impl(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_clz)
 
-    return __builtin_clz(x);
+    // __builtin_clz(0) is undefined. Compilers fold the branch away
+    // when the target has LZCNT / ARM clz.
+    return x ? __builtin_clz(static_cast<unsigned int>(x)) : 32;
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return countl_zero<uint32_t>(x);
+        return countl_zero_generic<uint32_t>(x);
     }
 
     unsigned long index{};
-    if (_BitScanReverse(&index, x))
-    {
-        return 31 - index;
-    }
-
-    return 32;
+    return _BitScanReverse(&index, x) ? (31 - static_cast<int>(index)) : 32;
 
 #else
 
-    return countl_zero<uint32_t>(x);
+    return countl_zero_generic<uint32_t>(x);
 
 #endif
 }
 
-/**
- * @brief Counts the number of leading zero bits in a 64-bit unsigned integer.
- *
- * Uses platform intrinsics when available:
- * - GCC/Clang: `__builtin_clzll`
- * - MSVC: `_BitScanReverse64`
- * Falls back to generic implementation otherwise.
- *
- * @param x 64-bit unsigned integer.
- * @return The number of leading zeros. Returns 64 if `x == 0`.
- */
-constexpr int countl_zero(uint64_t x) noexcept
+constexpr int countl_zero_64_impl(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_clzll)
 
-    return __builtin_clzll(x);
+    return x ? __builtin_clzll(static_cast<unsigned long long>(x)) : 64;
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return countl_zero<uint64_t>(x);
+        return countl_zero_generic<uint64_t>(x);
     }
+
+    #if defined(_M_X64) || defined(_M_ARM64) || defined(_M_ARM64EC)
 
     unsigned long index{};
-    if (_BitScanReverse64(&index, x))
-    {
-        return 63 - index;
-    }
+    return _BitScanReverse64(&index, x) ? (63 - static_cast<int>(index)) : 64;
 
-    return 64;
+    #else // 32-bit MSVC: no 64-bit scan intrinsic
+
+    const uint32_t hi = static_cast<uint32_t>(x >> 32);
+    return (hi != 0) ? countl_zero_32_impl(hi) : 32 + countl_zero_32_impl(static_cast<uint32_t>(x));
+
+    #endif
 
 #else
 
-    return countl_zero<uint64_t>(x);
+    return countl_zero_generic<uint64_t>(x);
 
 #endif
+}
+
+template <typename T>
+constexpr int countl_zero_impl(T x) noexcept
+{
+    VX_STATIC_ASSERT_MSG(sizeof(T) <= 8, "Unsupported type size for countl_zero");
+
+    constexpr int digits = std::numeric_limits<T>::digits;
+
+    VX_IF_CONSTEXPR (sizeof(T) <= 4)
+    {
+        // Zero-extension adds (32 - digits) phantom leading zeros; remove them.
+        // x == 0 gives 32 - (32 - digits) == digits.
+        return countl_zero_32_impl(static_cast<uint32_t>(x)) - (32 - digits);
+    }
+    else
+    {
+        return countl_zero_64_impl(static_cast<uint64_t>(x));
+    }
+}
+
+} // namespace _bit_priv
+
+/**
+ * @brief Counts consecutive 0 bits starting from the most significant bit (like C++20 std::countl_zero).
+ *
+ * @tparam T An unsigned integral type (not bool).
+ * @param x The value to analyze.
+ * @return The number of leading zero bits; `std::numeric_limits<T>::digits` if `x == 0`.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr int countl_zero(T x) noexcept
+{
+    return _bit_priv::countl_zero_impl<T>(x);
+}
+
+//=============================================================================
+// countl_zero_assume_nonzero
+//=============================================================================
+
+namespace _bit_priv {
+
+constexpr int countl_zero_nz_32_impl(uint32_t x) noexcept
+{
+#if VX_HAS_BUILTIN(__builtin_clz)
+
+    return __builtin_clz(static_cast<unsigned int>(x));
+
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
+
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return countl_zero_generic<uint32_t>(x);
+    }
+
+    unsigned long index{};
+    _BitScanReverse(&index, x); // return value ignored: x != 0
+    return 31 - static_cast<int>(index);
+
+#else
+
+    return countl_zero_generic<uint32_t>(x);
+
+#endif
+}
+
+constexpr int countl_zero_nz_64_impl(uint64_t x) noexcept
+{
+#if VX_HAS_BUILTIN(__builtin_clzll)
+
+    return __builtin_clzll(static_cast<unsigned long long>(x));
+
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
+
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return countl_zero_generic<uint64_t>(x);
+    }
+
+    #if defined(_M_X64) || defined(_M_ARM64) || defined(_M_ARM64EC)
+
+    unsigned long index{};
+    _BitScanReverse64(&index, x);
+    return 63 - static_cast<int>(index);
+
+    #else // 32-bit MSVC: the hi != 0 test is inherent to the split
+
+    const uint32_t hi = static_cast<uint32_t>(x >> 32);
+    return (hi != 0) ? countl_zero_nz_32_impl(hi) : 32 + countl_zero_nz_32_impl(static_cast<uint32_t>(x));
+
+    #endif
+
+#else
+
+    return countl_zero_generic<uint64_t>(x);
+
+#endif
+}
+
+template <typename T>
+constexpr int countl_zero_nz_impl(T x) noexcept
+{
+    VX_STATIC_ASSERT_MSG(sizeof(T) <= 8, "Unsupported type size for countl_zero_assume_nonzero");
+
+    constexpr int digits = std::numeric_limits<T>::digits;
+
+    VX_IF_CONSTEXPR (sizeof(T) <= 4)
+    {
+        return countl_zero_nz_32_impl(static_cast<uint32_t>(x)) - (32 - digits);
+    }
+    else
+    {
+        return countl_zero_nz_64_impl(static_cast<uint64_t>(x));
+    }
+}
+
+} // namespace _bit_priv
+
+/**
+ * @brief countl_zero without the zero check.
+ * @pre `x != 0`. Violation is UB (compile error in constant evaluation, assert in debug).
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr int countl_zero_assume_nonzero(T x) noexcept
+{
+    VX_ASSERT(x != 0);
+    return _bit_priv::countl_zero_nz_impl<T>(x);
 }
 
 //=============================================================================
@@ -539,137 +687,229 @@ constexpr int countl_zero(uint64_t x) noexcept
 //=============================================================================
 
 /**
- * @brief Counts the number of consecutive 1-bits starting from the most significant bit (MSB).
+ * @brief Counts consecutive 1 bits starting from the most significant bit (like C++20 std::countl_one).
  *
- * Computes the number of leading one bits by inverting the bits of `x` and applying `countl_zero`.
- *
- * @tparam T An unsigned integral type.
+ * @tparam T An unsigned integral type (not bool).
  * @param x The value to analyze.
- * @return The number of consecutive one bits starting from the MSB.
- * Returns `std::numeric_limits<T>::digits` if `x == ~T(0)` (i.e., all bits are 1).
- *
- * @note Requires T to be an unsigned integral type.
+ * @return The number of leading one bits; `std::numeric_limits<T>::digits` if all bits are set.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
 constexpr int countl_one(T x) noexcept
 {
-    return countl_zero(static_cast<T>(~x));
+    return _bit_priv::countl_zero_impl<T>(static_cast<T>(~x));
 }
 
 //=============================================================================
 // countr_zero
 //=============================================================================
 
-/**
- * @brief Counts the number of consecutive 0-bits starting from the least significant bit (LSB).
- *
- * Computes the number of trailing zeros in the binary representation of `x`.
- *
- * @tparam T An unsigned integral type.
- * @param x The value to analyze.
- * @return The number of trailing zero bits.
- *         Returns `std::numeric_limits<T>::digits` if `x == 0`.
- *
- * @note Requires T to be an unsigned integral type.
- */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
-constexpr int countr_zero(T x) noexcept
+namespace _bit_priv {
+
+template <typename T>
+constexpr int countr_zero_generic(T x) noexcept
 {
-    constexpr int bits = static_cast<int>(std::numeric_limits<T>::digits);
+    constexpr int digits = std::numeric_limits<T>::digits;
 
     if (x == 0)
     {
-        return bits;
+        return digits;
     }
 
     int n = 0;
-    while ((x & 0x01) == 0)
+    for (int s = digits / 2; s != 0; s /= 2)
     {
-        ++n;
-        x >>= 1;
+        if ((x & ((static_cast<T>(1) << s) - 1)) == 0)
+        {
+            n += s;
+            x = static_cast<T>(x >> s);
+        }
     }
-
     return n;
 }
 
-/**
- * @brief Counts the number of consecutive 0-bits starting from the least significant bit (LSB) in a 32-bit unsigned integer.
- *
- * This overload uses platform-specific intrinsics for optimal performance:
- * - On compilers with `__builtin_ctz`, this intrinsic is used.
- * - On MSVC, `_BitScanForward` is used.
- * - If neither is available, it falls back to a portable implementation.
- *
- * @param x The 32-bit unsigned integer value.
- * @return The number of trailing zeros in the binary representation of `x`.
- *         Returns 32 if `x == 0`.
- */
-constexpr int countr_zero(uint32_t x) noexcept
+constexpr int countr_zero_32_impl(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_ctz)
 
-    return __builtin_ctz(x);
+    return x ? __builtin_ctz(static_cast<unsigned int>(x)) : 32;
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return countr_zero<uint32_t>(x);
+        return countr_zero_generic<uint32_t>(x);
     }
 
     unsigned long index{};
-    if (_BitScanForward(&index, x))
-    {
-        return index;
-    }
-
-    return 32;
+    return _BitScanForward(&index, x) ? static_cast<int>(index) : 32;
 
 #else
 
-    return countr_zero<uint32_t>(x);
+    return countr_zero_generic<uint32_t>(x);
 
 #endif
 }
 
-/**
- * @brief Counts the number of consecutive 0-bits starting from the least significant bit (LSB) in a 64-bit unsigned integer.
- *
- * This overload uses platform-specific intrinsics for optimal performance:
- * - On compilers with `__builtin_ctzll`, this intrinsic is used.
- * - On MSVC, `_BitScanForward64` is used.
- * - If neither is available, it falls back to a portable implementation.
- *
- * @param x The 64-bit unsigned integer value.
- * @return The number of trailing zeros in the binary representation of `x`.
- *         Returns 64 if `x == 0`.
- */
-constexpr int countr_zero(uint64_t x) noexcept
+constexpr int countr_zero_64_impl(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_ctzll)
 
-    return __builtin_ctzll(x);
+    return x ? __builtin_ctzll(static_cast<unsigned long long>(x)) : 64;
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return countr_zero<uint64_t>(x);
+        return countr_zero_generic<uint64_t>(x);
     }
+
+    #if defined(_M_X64) || defined(_M_ARM64) || defined(_M_ARM64EC)
 
     unsigned long index{};
-    if (_BitScanForward64(&index, x))
-    {
-        return index;
-    }
+    return _BitScanForward64(&index, x) ? static_cast<int>(index) : 64;
 
-    return 64;
+    #else // 32-bit MSVC
+
+    const uint32_t lo = static_cast<uint32_t>(x);
+    return (lo != 0) ? countr_zero_32_impl(lo) : 32 + countr_zero_32_impl(static_cast<uint32_t>(x >> 32));
+
+    #endif
 
 #else
 
-    return countr_zero<uint64_t>(x);
+    return countr_zero_generic<uint64_t>(x);
 
 #endif
+}
+
+template <typename T>
+constexpr int countr_zero_impl(T x) noexcept
+{
+    VX_STATIC_ASSERT_MSG(sizeof(T) <= 8, "Unsupported type size for countr_zero");
+
+    constexpr int digits = std::numeric_limits<T>::digits;
+
+    VX_IF_CONSTEXPR (sizeof(T) < 4)
+    {
+        // Sentinel bit just above the value: x == 0 yields `digits`,
+        // and a zero-check inside the impl folds away.
+        return countr_zero_32_impl(static_cast<uint32_t>(x) | (static_cast<uint32_t>(1) << digits));
+    }
+    else VX_IF_CONSTEXPR (sizeof(T) == 4)
+    {
+        return countr_zero_32_impl(static_cast<uint32_t>(x));
+    }
+    else
+    {
+        return countr_zero_64_impl(static_cast<uint64_t>(x));
+    }
+}
+
+} // namespace _bit_priv
+
+/**
+ * @brief Counts consecutive 0 bits starting from the least significant bit (like C++20 std::countr_zero).
+ *
+ * @tparam T An unsigned integral type (not bool).
+ * @param x The value to analyze.
+ * @return The number of trailing zero bits; `std::numeric_limits<T>::digits` if `x == 0`.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr int countr_zero(T x) noexcept
+{
+    return _bit_priv::countr_zero_impl<T>(x);
+}
+
+//=============================================================================
+// countr_zero_assume_nonzero
+//=============================================================================
+
+namespace _bit_priv {
+
+constexpr int countr_zero_nz_32_impl(uint32_t x) noexcept
+{
+#if VX_HAS_BUILTIN(__builtin_ctz)
+
+    return __builtin_ctz(static_cast<unsigned int>(x));
+
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
+
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return countr_zero_generic<uint32_t>(x);
+    }
+
+    unsigned long index{};
+    _BitScanForward(&index, x);
+    return static_cast<int>(index);
+
+#else
+
+    return countr_zero_generic<uint32_t>(x);
+
+#endif
+}
+
+constexpr int countr_zero_nz_64_impl(uint64_t x) noexcept
+{
+#if VX_HAS_BUILTIN(__builtin_ctzll)
+
+    return __builtin_ctzll(static_cast<unsigned long long>(x));
+
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED
+
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return countr_zero_generic<uint64_t>(x);
+    }
+
+    #if defined(_M_X64) || defined(_M_ARM64) || defined(_M_ARM64EC)
+
+    unsigned long index{};
+    _BitScanForward64(&index, x);
+    return static_cast<int>(index);
+
+    #else
+
+    const uint32_t lo = static_cast<uint32_t>(x);
+    return (lo != 0) ? countr_zero_nz_32_impl(lo) : 32 + countr_zero_nz_32_impl(static_cast<uint32_t>(x >> 32));
+
+    #endif
+
+#else
+
+    return countr_zero_generic<uint64_t>(x);
+
+#endif
+}
+
+template <typename T>
+constexpr int countr_zero_nz_impl(T x) noexcept
+{
+    VX_STATIC_ASSERT_MSG(sizeof(T) <= 8, "Unsupported type size for countr_zero_assume_nonzero");
+
+    VX_IF_CONSTEXPR (sizeof(T) <= 4)
+    {
+        // No sentinel bit needed: zero is excluded, so widening is exact.
+        return countr_zero_nz_32_impl(static_cast<uint32_t>(x));
+    }
+    else
+    {
+        return countr_zero_nz_64_impl(static_cast<uint64_t>(x));
+    }
+}
+
+} // namespace _bit_priv
+
+/**
+ * @brief countr_zero without the zero check.
+ * @pre `x != 0`.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr int countr_zero_assume_nonzero(T x) noexcept
+{
+    VX_ASSERT(x != 0);
+    return _bit_priv::countr_zero_nz_impl<T>(x);
 }
 
 //=============================================================================
@@ -677,111 +917,139 @@ constexpr int countr_zero(uint64_t x) noexcept
 //=============================================================================
 
 /**
- * @brief Counts the number of consecutive 1-bits starting from the least significant bit (LSB).
+ * @brief Counts consecutive 1 bits starting from the least significant bit (like C++20 std::countr_one).
  *
- * This is implemented by inverting the input and passing it to `countr_zero`.
- * For example, `0b00011111` has 5 trailing ones.
- *
- * @tparam T An unsigned integral type.
+ * @tparam T An unsigned integral type (not bool).
  * @param x The value to analyze.
- * @return The number of trailing 1s in the binary representation of `x`.
+ * @return The number of trailing one bits; `std::numeric_limits<T>::digits` if all bits are set.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
 constexpr int countr_one(T x) noexcept
 {
-    return countr_zero(static_cast<T>(~x));
+    return _bit_priv::countr_zero_impl<T>(static_cast<T>(~x));
 }
 
 //=============================================================================
 // popcount
 //=============================================================================
 
-/**
- * @brief Counts the number of 1-bits (population count) in the binary representation of a value.
- *
- * This generic version uses a simple loop and bitmask to count bits.
- * Platform-specific intrinsics are used in specialized overloads for optimal performance.
- *
- * @tparam T An unsigned integral type.
- * @param x The value to analyze.
- * @return The number of 1s in the binary representation of `x`.
- */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
-constexpr int popcount(T x) noexcept
+namespace _bit_priv {
+
+// SWAR: no loops, no hardware requirement, fine in constexpr.
+constexpr int popcount_32_generic(uint32_t x) noexcept
 {
-    int n = 0;
-
-    while (x)
-    {
-        n += x & 0x01;
-        x >>= 1;
-    }
-
-    return n;
+    x = x - ((x >> 1) & 0x55555555u);
+    x = (x & 0x33333333u) + ((x >> 2) & 0x33333333u);
+    x = (x + (x >> 4)) & 0x0F0F0F0Fu;
+    return static_cast<int>((x * 0x01010101u) >> 24);
 }
 
-/**
- * @brief Counts the number of 1-bits in a 32-bit unsigned integer.
- *
- * Uses compiler intrinsics where available:
- * - GCC/Clang: `__builtin_popcount`
- * - MSVC: `__popcnt`
- * Falls back to the generic `popcount<uint32_t>` otherwise.
- *
- * @param x The 32-bit unsigned integer.
- * @return The number of set bits in `x`.
- */
-constexpr int popcount(uint32_t x) noexcept
+constexpr int popcount_64_generic(uint64_t x) noexcept
+{
+    x = x - ((x >> 1) & 0x5555555555555555ull);
+    x = (x & 0x3333333333333333ull) + ((x >> 2) & 0x3333333333333333ull);
+    x = (x + (x >> 4)) & 0x0F0F0F0F0F0F0F0Full;
+    return static_cast<int>((x * 0x0101010101010101ull) >> 56);
+}
+
+constexpr int popcount_32_impl(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_popcount)
 
-    return __builtin_popcount(x);
+    return __builtin_popcount(static_cast<unsigned int>(x));
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED && (defined(_M_X64) || defined(_M_IX86))
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return popcount<uint32_t>(x);
+        return popcount_32_generic(x);
     }
-    return __popcnt(x);
+    return static_cast<int>(__popcnt(x));
 
 #else
 
-    return popcount<uint32_t>(x);
+    return popcount_32_generic(x);
 
 #endif
 }
 
-/**
- * @brief Counts the number of 1-bits in a 64-bit unsigned integer.
- *
- * Uses compiler intrinsics where available:
- * - GCC/Clang: `__builtin_popcountll`
- * - MSVC: `__popcnt64`
- * Falls back to the generic `popcount<uint64_t>` otherwise.
- *
- * @param x The 64-bit unsigned integer.
- * @return The number of set bits in `x`.
- */
-constexpr int popcount(uint64_t x) noexcept
+constexpr int popcount_64_impl(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_popcountll)
 
-    return __builtin_popcountll(x);
+    return __builtin_popcountll(static_cast<unsigned long long>(x));
 
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && VX_HAS_IS_CONSTANT_EVALUATED && (defined(_M_X64) || defined(_M_IX86))
 
     if (VX_IS_CONSTANT_EVALUATED())
     {
-        return popcount<uint64_t>(x);
+        return popcount_64_generic(x);
     }
+
+    #if defined(_M_X64)
+
     return static_cast<int>(__popcnt64(x));
+
+    #else // 32-bit x86: no __popcnt64
+
+    return static_cast<int>(__popcnt(static_cast<uint32_t>(x)) + __popcnt(static_cast<uint32_t>(x >> 32)));
+
+    #endif
 
 #else
 
-    return popcount<uint64_t>(x);
+    return popcount_64_generic(x);
 
 #endif
+}
+
+template <typename T>
+constexpr int popcount_impl(T x) noexcept
+{
+    VX_STATIC_ASSERT_MSG(sizeof(T) <= 8, "Unsupported type size for popcount");
+
+    VX_IF_CONSTEXPR (sizeof(T) <= 4)
+    {
+        return popcount_32_impl(static_cast<uint32_t>(x)); // zero-extension adds no set bits
+    }
+    else
+    {
+        return popcount_64_impl(static_cast<uint64_t>(x));
+    }
+}
+
+} // namespace _bit_priv
+
+/**
+ * @brief Counts the number of set bits (like C++20 std::popcount).
+ *
+ * @tparam T An unsigned integral type (not bool).
+ * @param x The value to analyze.
+ * @return The number of 1 bits in `x`.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr int popcount(T x) noexcept
+{
+    return _bit_priv::popcount_impl<T>(x);
+}
+
+//=============================================================================
+// log2_floor
+//=============================================================================
+
+/**
+ * @brief Index of the highest set bit, i.e. floor(log2(x)).
+ *
+ * `log2_floor(1) == 0`, `log2_floor(8) == 3`, `log2_floor(0xFF) == 7`.
+ * Equals `bit_width(x) - 1`. On x86 this compiles to a bare `bsr`.
+ *
+ * @pre `x != 0`.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr int log2_floor(T x) noexcept
+{
+    VX_ASSERT(x != 0);
+    return std::numeric_limits<T>::digits - 1 - _bit_priv::countl_zero_nz_impl<T>(x);
 }
 
 //=============================================================================
@@ -789,19 +1057,31 @@ constexpr int popcount(uint64_t x) noexcept
 //=============================================================================
 
 /**
- * @brief Checks whether the value has exactly one bit set (i.e., is a power of two).
+ * @brief Checks whether `x` is an integral power of two (like C++20 std::has_single_bit).
  *
- * Equivalent to: `(x != 0) && ((x & (x - 1)) == 0)`
- * This implementation uses `popcount(x) == 1` for clarity and consistency.
- *
- * @tparam T An unsigned integral type.
+ * @tparam T An unsigned integral type (not bool).
  * @param x The value to check.
- * @return True if `x` has a single bit set; otherwise false.
+ * @return True if exactly one bit is set.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
 constexpr bool has_single_bit(T x) noexcept
 {
-    return (popcount(x) == 1);
+    return x != 0 && (x & static_cast<T>(x - 1)) == 0;
+}
+
+//=============================================================================
+// has_single_bit_assume_nonzero
+//=============================================================================
+
+/**
+ * @brief has_single_bit without the zero test.
+ * @pre `x != 0`.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr bool has_single_bit_assume_nonzero(T x) noexcept
+{
+    VX_ASSERT(x != 0);
+    return (x & static_cast<T>(x - 1)) == 0;
 }
 
 //=============================================================================
@@ -809,23 +1089,18 @@ constexpr bool has_single_bit(T x) noexcept
 //=============================================================================
 
 /**
- * @brief Computes the number of bits needed to represent a non-zero value in binary.
+ * @brief Minimum number of bits needed to represent `x` (like C++20 std::bit_width).
  *
- * For example:
- * - `bit_width(1)` returns 1
- * - `bit_width(8)` returns 4
- * - `bit_width(0)` returns 0
+ * `bit_width(0) == 0`, `bit_width(1) == 1`, `bit_width(8) == 4`.
  *
- * Internally, this is defined as: `digits - countl_zero(x)`.
- *
- * @tparam T An unsigned integral type.
- * @param x The value whose bit width is to be computed.
- * @return The minimum number of bits required to represent `x`.
+ * @tparam T An unsigned integral type (not bool).
+ * @param x The value to measure.
+ * @return `digits - countl_zero(x)`.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
 constexpr int bit_width(T x) noexcept
 {
-    return static_cast<int>(std::numeric_limits<T>::digits - countl_zero(x));
+    return std::numeric_limits<T>::digits - countl_zero(x);
 }
 
 //=============================================================================
@@ -833,17 +1108,19 @@ constexpr int bit_width(T x) noexcept
 //=============================================================================
 
 /**
- * @brief Returns the smallest power of two that is greater than or equal to the given value.
+ * @brief Smallest power of two >= `x` (like C++20 std::bit_ceil).
  *
- * If `x <= 1`, the result is 1.
- * If `x` is already a power of two, it is returned as-is.
- * Otherwise, it returns `1 << bit_width(x - 1)`.
+ * `bit_ceil(0) == bit_ceil(1) == 1`.
  *
- * @tparam T An unsigned integral type.
+ * @note If the result is not representable in `T` (i.e. `x` exceeds the largest
+ *       power of two in `T`), this returns 0 instead of invoking undefined behavior.
+ *       The standard version makes this a precondition violation.
+ *
+ * @tparam T An unsigned integral type (not bool).
  * @param x The input value.
- * @return The smallest power of two >= `x`.
+ * @return The smallest power of two >= `x`, or 0 on overflow.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
 constexpr T bit_ceil(T x) noexcept
 {
     if (x <= static_cast<T>(1))
@@ -851,12 +1128,33 @@ constexpr T bit_ceil(T x) noexcept
         return static_cast<T>(1);
     }
 
-    if ((x & (x - 1)) == static_cast<T>(0))
+    const int n = bit_width(static_cast<T>(x - 1));
+    if (n >= std::numeric_limits<T>::digits)
     {
-        return x;
+        return static_cast<T>(0); // 1 << digits is not representable
     }
 
-    return static_cast<T>(1) << bit_width(static_cast<T>(x - 1));
+    return static_cast<T>(static_cast<T>(1) << n);
+}
+
+//=============================================================================
+// bit_ceil_assume_valid_shift
+//=============================================================================
+
+/**
+ * @brief bit_ceil without the `x <= 1` and overflow checks.
+ *
+ * Uses the identity `bit_ceil(x) == 2 << log2_floor(x - 1)` for x >= 2.
+ *
+ * @pre `x >= 2` and `x <= (1 << (digits - 1))` (the result is representable).
+ *      For inputs that may be 0 or 1, use the checked `bit_ceil`.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr T bit_ceil_assume_valid_shift(T x) noexcept
+{
+    VX_ASSERT(x >= 2);
+    VX_ASSERT(x <= static_cast<T>(static_cast<T>(1) << (std::numeric_limits<T>::digits - 1)));
+    return static_cast<T>(static_cast<T>(2) << log2_floor(static_cast<T>(x - 1)));
 }
 
 //=============================================================================
@@ -864,16 +1162,15 @@ constexpr T bit_ceil(T x) noexcept
 //=============================================================================
 
 /**
- * @brief Returns the largest power of two less than or equal to the given value.
+ * @brief Largest power of two <= `x` (like C++20 std::bit_floor).
  *
- * If `x == 0`, the result is 0.
- * Otherwise, it returns `1 << bit_width(x >> 1)`.
+ * `bit_floor(0) == 0`.
  *
- * @tparam T An unsigned integral type.
+ * @tparam T An unsigned integral type (not bool).
  * @param x The input value.
- * @return The largest power of two <= `x`.
+ * @return The largest power of two <= `x`, or 0 if `x == 0`.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
 constexpr T bit_floor(T x) noexcept
 {
     if (x == static_cast<T>(0))
@@ -881,7 +1178,22 @@ constexpr T bit_floor(T x) noexcept
         return static_cast<T>(0);
     }
 
-    return static_cast<T>(1) << bit_width(static_cast<T>(x >> 1));
+    return static_cast<T>(static_cast<T>(1) << (bit_width(x) - 1));
+}
+
+//=============================================================================
+// bit_floor_assume_nonzero
+//=============================================================================
+
+/**
+ * @brief bit_floor without the zero test.
+ * @pre `x != 0`.
+ */
+template <typename T, VX_REQUIRES(_bit_priv::is_bit_unsigned<T>::value)>
+constexpr T bit_floor_assume_nonzero(T x) noexcept
+{
+    VX_ASSERT(x != 0);
+    return static_cast<T>(static_cast<T>(1) << log2_floor(x));
 }
 
 //=============================================================================

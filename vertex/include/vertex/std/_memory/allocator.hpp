@@ -49,13 +49,10 @@ enum class alignment_policy
     exact,
 };
 
-template <typename T, size_t Alignment = alignof(T), alignment_policy Policy = alignment_policy::at_least>
+template <typename T, size_t Alignment = 0, alignment_policy Policy = alignment_policy::at_least>
 class default_allocator
 {
 public:
-
-    VX_STATIC_ASSERT_MSG(Alignment >= alignof(T), "Alignment must be at alignof(T)");
-    VX_STATIC_ASSERT_MSG(_mem_priv::is_pow_2(Alignment), "Alignment must be power of 2");
 
     using value_type = T;
     using pointer_type = value_type*;
@@ -63,21 +60,16 @@ public:
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    static constexpr size_t alignment = Alignment;
+    static constexpr size_t alignment = (Alignment == 0) ? alignof(T) : Alignment;
     static constexpr alignment_policy policy = Policy;
+
+    VX_STATIC_ASSERT_MSG(alignment >= alignof(T), "Alignment must be at least alignof(T)");
+    VX_STATIC_ASSERT_MSG(_mem_priv::is_pow_2(alignment), "Alignment must be power of 2");
 
     template <typename U>
     struct rebind
     {
-        // If Alignment matches T's natural alignment (the common/default case),
-        // recompute it for U so Alignment >= alignof(U) still holds.
-        // If the caller picked an explicit, non-default alignment, preserve it
-        // as-is — if that's now invalid for U, the static_assert in the new
-        // default_allocator<U, ...> instantiation will say so clearly.
-        static constexpr size_t rebound_alignment =
-            (Alignment == alignof(T)) ? alignof(U) : Alignment;
-
-        using other = default_allocator<U, rebound_alignment, Policy>;
+        using other = default_allocator<U, Alignment, Policy>;
     };
 
     default_allocator() noexcept = default;

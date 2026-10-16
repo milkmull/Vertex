@@ -18,6 +18,7 @@ namespace _string_traits_priv {
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr const C* empty_string() noexcept
 {
+    // this may cause problems accross dlls on Windows...
     static constexpr C s[1] = { C() };
     return s;
 }

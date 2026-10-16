@@ -339,7 +339,7 @@ VX_ALLOCATOR VX_NO_DISCARD T* construct(Args&&... args)
     }
 
     T* ptr = static_cast<T*>(raw_ptr);
-    construct_in_place(*ptr, std::forward<Args>(args)...);
+    construct_in_place(ptr, std::forward<Args>(args)...);
     return ptr;
 }
 
@@ -425,7 +425,7 @@ VX_ALLOCATOR VX_NO_DISCARD T* construct_array(const size_t count)
     T* ptr = static_cast<T*>(raw_ptr);
     for (size_t i = 0; i < count; ++i)
     {
-        mem::construct_in_place(ptr[i]);
+        mem::construct_in_place(ptr + i);
     }
 
     return static_cast<T*>(ptr);
@@ -454,7 +454,7 @@ VX_ALLOCATOR VX_NO_DISCARD T* construct_array(const size_t count, const T& value
     T* ptr = static_cast<T*>(raw_ptr);
     for (size_t i = 0; i < count; ++i)
     {
-        mem::construct_in_place(ptr[i], value);
+        mem::construct_in_place(ptr + i, value);
     }
 
     return ptr;

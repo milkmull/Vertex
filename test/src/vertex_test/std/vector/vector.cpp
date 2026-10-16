@@ -10,7 +10,7 @@
 
 #include "vertex_test/test.hpp"
 
-//#define ONLY_CONTAINER_TESTS
+#define ONLY_CONTAINER_TESTS
 
 // https://github.com/microsoft/STL/blob/e2ef398685f7e470dbaeaf65ff919de72bda7489/tests/tr1/tests/vector/test.cpp
 

@@ -248,14 +248,14 @@
 //=========================================================================
 
 #if defined(__GNUC__) || defined(__clang__)
-    #define VX_LIKELY(expr)        (__builtin_expect(!!(expr), 1))
-    #define VX_UNLIKELY(expr)      (__builtin_expect(!!(expr), 0))
+    #define VX_LIKELY(expr)   (__builtin_expect(!!(expr), 1))
+    #define VX_UNLIKELY(expr) (__builtin_expect(!!(expr), 0))
 #elif VX_CPP_STANDARD >= 20
-    #define VX_LIKELY(expr)        (expr) [[likely]]
-    #define VX_UNLIKELY(expr)      (expr) [[unlikely]]
+    #define VX_LIKELY(expr)   (expr) [[likely]]
+    #define VX_UNLIKELY(expr) (expr) [[unlikely]]
 #else
-    #define VX_LIKELY(expr)        (expr)
-    #define VX_UNLIKELY(expr)      (expr)
+    #define VX_LIKELY(expr)   (expr)
+    #define VX_UNLIKELY(expr) (expr)
 #endif
 
 //=========================================================================
@@ -465,16 +465,28 @@
     #define VX_NULL_WHILE_LOOP_CONDITION (0)
 #endif
 
-#if VX_CPP_STANDARD >= 20
-    #define VX_IS_CONSTANT_EVALUATED() std::is_constant_evaluated()
-#elif VX_CPP_STANDARD >= 17
-    #if defined(__GNUC__) || defined(__clang__) || defined(_MSC_VER)
-        #define VX_IS_CONSTANT_EVALUATED() __builtin_is_constant_evaluated()
-    #else
-        #define VX_IS_CONSTANT_EVALUATED() false
-    #endif
+// VX_HAS_IS_CONSTANT_EVALUATED: 1 if VX_IS_CONSTANT_EVALUATED() is a real check, else 0.
+#if defined(__cpp_lib_is_constant_evaluated) && (__cpp_lib_is_constant_evaluated >= 201811L)
+
+    #define VX_IS_CONSTANT_EVALUATED()   std::is_constant_evaluated()
+    #define VX_HAS_IS_CONSTANT_EVALUATED 1
+
+#elif defined(__clang__) && VX_HAS_BUILTIN(__builtin_is_constant_evaluated) // includes clang-cl
+
+    #define VX_IS_CONSTANT_EVALUATED()   __builtin_is_constant_evaluated()
+    #define VX_HAS_IS_CONSTANT_EVALUATED 1
+
+#elif (defined(__GNUC__) && !defined(__clang__) && (__GNUC__ >= 9)) || \
+    (defined(_MSC_VER) && !defined(__clang__) && (_MSC_VER >= 1925))
+
+    #define VX_IS_CONSTANT_EVALUATED()   __builtin_is_constant_evaluated()
+    #define VX_HAS_IS_CONSTANT_EVALUATED 1
+
 #else
-    #define VX_IS_CONSTANT_EVALUATED() false
+
+    #define VX_IS_CONSTANT_EVALUATED()   false
+    #define VX_HAS_IS_CONSTANT_EVALUATED 0
+
 #endif
 
 //=========================================================================

@@ -8,6 +8,17 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_memory/deleter.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"
 
+    # Hash Utils
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_group.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_common.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_storage.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_open.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_chain.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_table.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_functions.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_traits.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_map_policy.hpp"
+
     # Core
     "${CMAKE_CURRENT_SOURCE_DIR}/array.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/bit.hpp"
@@ -27,6 +38,8 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/unique_ptr.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/weak_ptr.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/shared_ptr.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/hash_set.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/hash_map.hpp"
 
     # System
     "${CMAKE_CURRENT_SOURCE_DIR}/path.hpp"
