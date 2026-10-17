@@ -18,7 +18,7 @@ struct is_transparent_fn : std::false_type
 {};
 
 template <typename T>
-struct is_transparent_fn<T, typename make_void<typename T::is_transparent>::type> : std::true_type
+struct is_transparent_fn<T, type_traits::void_t<typename T::is_transparent>> : std::true_type
 {};
 
 template <typename P, typename = void>
@@ -28,7 +28,7 @@ struct policy_mapped : std::false_type
 };
 
 template <typename P>
-struct policy_mapped<P, typename make_void<typename P::mapped_type>::type> : std::true_type
+struct policy_mapped<P, type_traits::void_t<typename P::mapped_type>> : std::true_type
 {
     using type = typename P::mapped_type;
 };

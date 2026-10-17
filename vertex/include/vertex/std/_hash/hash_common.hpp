@@ -20,26 +20,40 @@ namespace _hash_priv {
 // growth policy
 //=========================================================================
 
-// Required:
-//   static constexpr bool is_valid_capacity(size_t cap);
-//   static constexpr size_t max_size(size_t cap);          // max_size(0) == 0
-//   static size_t next_capacity(size_t current, size_t required_size, size_t max_capacity);
-//       Returns C with is_valid_capacity(C), C > current, max_size(C) >= required_size,
-//       C <= max_capacity. Returns 0 if none exists. current == 0 means unallocated.
-//
-// Optional (inherit growth_defaults<Self>): cleanup_limit
-
-inline size_t default_cleanup_limit(size_t m) noexcept
-{
-    return (m / 32) * 25 + ((m % 32) * 25) / 32;
-}
+// Required of a growth policy:
+//   static constexpr size_t min_capacity;
+//   static constexpr size_t max_size(size_t cap);           // load factor, max_size(0) == 0, monotonic
+//   static size_t next_capacity(size_t current, size_t required, size_t max_cap);
+//       current: slots now (0 = unallocated). required: elements that must fit.
+//       max_cap: raw ceiling in slots (need not be a valid capacity).
+//       Returns C > current with max_size(C) >= required and C <= max_cap, or 0.
+//   static constexpr size_t wrap(size_t x, size_t cap);      // any x -> [0, cap]
+//   static constexpr size_t wrap_lane(size_t x, size_t cap); // x < 2 * (cap + 1) -> [0, cap]
+//   static constexpr size_t advance(size_t offset, size_t index, size_t cap);
+//   static size_t cleanup_limit(size_t max_load);            // inherit growth_defaults
 
 template <typename Self>
 struct growth_defaults
 {
     static size_t cleanup_limit(size_t max_load) noexcept
     {
-        return default_cleanup_limit(max_load);
+        return (max_load / 32) * 25 + ((max_load % 32) * 25) / 32;
+    }
+
+    // General probing, valid for any capacity
+    static constexpr size_t wrap(size_t x, size_t cap) noexcept
+    {
+        return x % (cap + 1);
+    }
+
+    static constexpr size_t wrap_lane(size_t x, size_t cap) noexcept
+    {
+        return x >= cap + 1 ? x - (cap + 1) : x;
+    }
+
+    static constexpr size_t advance(size_t offset, size_t, size_t cap) noexcept
+    {
+        return Self::wrap_lane(offset + group_width, cap);
     }
 };
 
@@ -59,19 +73,18 @@ constexpr size_t round_up_to_mask(size_t x) noexcept
 }
 
 //-------------------------------------------------------------------------
-// pow2_growth: capacities 2^n - 1, load 7/8, triangular probing. Default.
+// pow2_growth: capacities 2^n - 1, load 7/8, mask wrap, triangular probing.
 //-------------------------------------------------------------------------
 struct pow2_growth : growth_defaults<pow2_growth>
 {
     static constexpr size_t min_capacity = 3;
 
-    // for asserts
     static constexpr bool is_valid_capacity(size_t cap) noexcept
     {
         return (cap & (cap + 1)) == 0;
     }
 
-    // number of elements that fit before the next growth, 0 for cap == 0
+    // Elements that fit in cap slots (7/8), 0 for cap == 0.
     static constexpr size_t max_size(size_t cap) noexcept
     {
         const size_t g = cap - cap / 8;
@@ -79,143 +92,107 @@ struct pow2_growth : growth_defaults<pow2_growth>
         return (g >= cap && cap >= group_width - 1) ? cap - 1 : g;
     }
 
-    // Contract: max_cap is a valid capacity (for pow2, 2^k - 1), computed once by the table.
-    // Never returns 0. If the request can't be met it returns max_cap, so the table
-    // checks `required > max_size(max_cap)` for length_error before calling.
     static size_t next_capacity(size_t current, size_t required, size_t max_cap) noexcept
     {
-        // Fast path: the next capacity up, which is what a normal grow needs
+        // 1) normal grow: the next capacity up
         size_t cap = min_capacity;
         if (current >= min_capacity)
         {
-            if (current > max_cap / 2)
+            if (current > (SIZE_MAX - 1) / 2)
             {
-                return max_cap;
+                return 0;
             }
             cap = current * 2 + 1;
         }
 
-        if (max_size(cap) >= required)
-        {
-            return cap;
-        }
-
-        // Big jump (reserve): ~9/8 * required, rounded up to 2^k - 1
-        if (required > max_size(max_cap))
-        {
-            return max_cap;
-        }
-
-        cap = round_up_to_mask(required + (required >> 3)); // required <= max_cap, no overflow
-        if (cap > max_cap)
-        {
-            cap = max_cap;
-        }
-
-        // 9/8 is a bit under 8/7, so this can be one power short
-        while (max_size(cap) < required)
-        {
-            cap = cap * 2 + 1; // can't pass max_cap: max_size(max_cap) >= required
-        }
-
-        return cap;
-    }
-};
-
-//-------------------------------------------------------------------------
-// factor_growth: any capacity, grows by GrowNum/GrowDen, load LoadNum/LoadDen,
-// linear probing + modulo wrap. Trades speed for memory use.
-//-------------------------------------------------------------------------
-template <size_t GrowNum = 3, size_t GrowDen = 2, size_t LoadNum = 7, size_t LoadDen = 8>
-struct factor_growth : growth_defaults<factor_growth<GrowNum, GrowDen, LoadNum, LoadDen>>
-{
-    VX_STATIC_ASSERT_MSG(GrowNum > GrowDen && GrowDen > 0, "growth factor must be > 1");
-    VX_STATIC_ASSERT_MSG(LoadNum > 0 && LoadNum < LoadDen, "load factor must be in (0, 1)");
-
-    static constexpr size_t min_capacity = 7;
-
-    VX_STATIC_ASSERT_MSG(min_capacity + group_width < 2 * (min_capacity + 1),
-        "wrap_lane's single subtract needs cap + group_width - 1 < 2 * (cap + 1) for every capacity");
-
-    static constexpr bool is_valid_capacity(size_t cap) noexcept
-    {
-        return cap == 0 || cap >= min_capacity;
-    }
-
-    static constexpr size_t max_size(size_t cap) noexcept
-    {
-        // cap - floor(cap * (LoadDen - LoadNum) / LoadDen), overflow-safe
-        constexpr size_t spare = LoadDen - LoadNum;
-        const size_t g = cap - ((cap / LoadDen) * spare + ((cap % LoadDen) * spare) / LoadDen);
-
-        return (g >= cap && cap >= group_width - 1) ? cap - 1 : g;
-    }
-
-    static size_t next_capacity(size_t current, size_t required, size_t max_cap) noexcept
-    {
-        // keep room for the cloned group bytes
-        const size_t limit = max_cap < SIZE_MAX - group_width ? max_cap : SIZE_MAX - group_width;
-
-        // 1) geometric step from the current capacity
-        size_t cap = min_capacity;
-        if (current != 0)
-        {
-            constexpr size_t grow = GrowNum - GrowDen;
-            const size_t q = current / GrowDen;
-            if (q >= SIZE_MAX / grow)
-            {
-                return 0;
-            }
-            size_t extra = q * grow + ((current % GrowDen) * grow) / GrowDen;
-            if (extra == 0)
-            {
-                extra = 1;
-            }
-            if (extra > limit || current > limit - extra)
-            {
-                return 0;
-            }
-            cap = current + extra;
-        }
-
-        // 2) if that isn't enough, jump to ceil(required * LoadDen / LoadNum)
+        // 2) not enough (reserve, or a big jump): smallest 2^k - 1 that holds `required`
         if (max_size(cap) < required)
         {
-            const size_t q = required / LoadNum;
-            if (q > SIZE_MAX / LoadDen)
-            {
-                return 0;
-            }
-            const size_t hi = q * LoadDen;
-            const size_t lo = ((required % LoadNum) * LoadDen + LoadNum - 1) / LoadNum;
-            if (lo > SIZE_MAX - hi)
+            // max_size(c) <= c, so nothing under max_cap can hold this
+            if (required > max_cap)
             {
                 return 0;
             }
 
-            cap = hi + lo;
-            if (cap < min_capacity)
+            cap = round_up_to_mask(required);
+
+            // round_up_to_mask(required) can be one power short because of the load factor
+            while (max_size(cap) < required)
             {
-                cap = min_capacity;
-            }
-            while (max_size(cap) < required) // estimate may be one short
-            {
-                ++cap;
+                if (cap > max_cap)
+                {
+                    return 0;
+                }
+                cap = cap * 2 + 1; // cap <= max_cap, so no overflow
             }
         }
 
-        return cap <= limit ? cap : 0;
+        return cap <= max_cap ? cap : 0;
+    }
+
+    // mask instead of modulo: valid because cap + 1 is a power of two
+    static constexpr size_t wrap(size_t x, size_t cap) noexcept
+    {
+        return x & cap;
+    }
+
+    static constexpr size_t wrap_lane(size_t x, size_t cap) noexcept
+    {
+        return x & cap;
+    }
+
+    // triangular: group starts at 0, W, 3W, 6W, ... which visits every group on a power of two ring
+    static constexpr size_t advance(size_t offset, size_t index, size_t cap) noexcept
+    {
+        return (offset + index) & cap;
     }
 };
 
 using default_growth = pow2_growth;
 
-template <typename G>
-size_t cleanup_limit_of(size_t max_load) noexcept
+template <typename Growth>
+size_t cleanup_limit_of(size_t cap) noexcept
 {
+    const size_t max_load = Growth::max_size(cap);
     VX_ASSERT(max_load > 0);
-    const size_t limit = G::cleanup_limit(max_load);
-    return limit < max_load ? limit : max_load - 1;
+    const size_t limit = Growth::cleanup_limit(max_load);
+    VX_ASSERT(limit < max_load); // otherwise cleanup would never be chosen
+    return limit;
+}
+
+//=========================================================================
+// cleanup limit
+//=========================================================================
+
+template <typename Growth, typename = void>
+struct has_cleanup_limit : std::false_type
+{};
+
+template <typename Growth>
+struct has_cleanup_limit<Growth, type_traits::void_t<decltype(Growth::cleanup_limit(size_t{}))>> : std::true_type
+{};
+
+// clamped so cleanup is only chosen when it can free at least one slot
+template <typename Growth>
+size_t cleanup_limit_of(size_t cap) noexcept
+{
+    const size_t max_load = Growth::max_size(cap);
+    VX_ASSERT(max_load > 0);
+
+    size_t limit;
+
+    VX_IF_CONSTEXPR (has_cleanup_limit<Growth>::value)
+    {
+        limit = Growth::cleanup_limit(max_load);
+    }
+    else
+    {
+        limit = default_cleanup_limit(max_load);
+    }
+
+    // limit must be < max load or cleanup will never happen
+    VX_ASSERT(limit < max_load);
+    return limit;
 }
 
 //=========================================================================
@@ -227,7 +204,7 @@ struct is_avalanching : std::false_type
 {};
 
 template <typename H>
-struct is_avalanching<H, typename make_void<typename H::is_avalanching>::type> : std::true_type
+struct is_avalanching<H, type_traits::void_t<typename H::is_avalanching>> : std::true_type
 {};
 
 // Cheap finalizer: multiply, then fold the high half down. The multiply
@@ -257,7 +234,6 @@ inline h2_t h2_of(size_t hash) noexcept
 {
     return static_cast<h2_t>(hash & 0x7F);
 }
-
 
 //=========================================================================
 // slot policies
@@ -308,7 +284,6 @@ struct set_policy
         destroy(src);
     }
 };
-
 
 } // namespace _hash_priv
 } // namespace vx

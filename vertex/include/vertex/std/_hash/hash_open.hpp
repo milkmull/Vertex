@@ -11,10 +11,10 @@
 #include <utility>
 
 #include "vertex/config/language_config.hpp"
-#include "vertex/std/aligned_storage.hpp"
 #include "vertex/std/bit.hpp" // path is a guess
 #include "vertex/std/expected.hpp"
 #include "vertex/std/memory.hpp" // path is a guess
+#include "vertex/std/variant_storage.hpp"
 
 #include "hash_common.hpp"
 #include "hash_group.hpp"
@@ -35,44 +35,6 @@ struct layout
     size_t alloc_align;
 };
 
-// Returns false if the total size overflows size_t.
-inline bool compute_layout(size_t cap, size_t slot_size, size_t slot_align, layout& out) noexcept
-{
-    VX_ASSERT(cap != 0);
-    VX_ASSERT(bit::has_single_bit(slot_align));
-
-    // ctrl bytes = cap slots + 1 sentinel + (width - 1) clones = cap + group_width.
-    // The round-up below adds up to slot_align - 1 more, so check for both
-    // before doing either addition.
-    if (cap > SIZE_MAX - group_width - (slot_align - 1))
-    {
-        return false;
-    }
-
-    const size_t ctrl_bytes = cap + group_width;
-    const size_t offset = (ctrl_bytes + slot_align - 1) & ~(slot_align - 1);
-
-    // offset + cap * slot_size must fit
-    if (slot_size != 0 && cap > (SIZE_MAX - offset) / slot_size)
-    {
-        return false;
-    }
-
-    out.slots_offset = offset;
-    out.alloc_size = offset + cap * slot_size;
-    out.alloc_align = slot_align > group_width ? slot_align : group_width;
-
-    if (out.alloc_size > SIZE_MAX - (out.alloc_align - 1))
-    {
-        return false;
-    }
-
-    // multiple of alloc_align, so the block allocator's unit count is exact
-    out.alloc_size = (out.alloc_size + out.alloc_align - 1) & ~(out.alloc_align - 1);
-
-    return true;
-}
-
 // Known layout should not overflow
 inline void compute_safe_layout(size_t cap, size_t slot_size, size_t slot_align, layout& out) noexcept
 {
@@ -85,6 +47,12 @@ inline void compute_safe_layout(size_t cap, size_t slot_size, size_t slot_align,
     // multiple of alloc_align, so the block allocator's unit count is exact
     out.alloc_size = (out.alloc_size + out.alloc_align - 1) & ~(out.alloc_align - 1);
 }
+
+template <size_t Align>
+struct alignas(Align) block_unit
+{
+    unsigned char bytes[Align];
+};
 
 //=========================================================================
 // ctrl array
@@ -161,48 +129,9 @@ inline void set_ctrl(ctrl_t* ctrl, size_t cap, size_t i, ctrl_t value) noexcept
 //=========================================================================
 
 template <typename Growth>
-class probe_traits
-{
-    static size_t wrap(size_t x, size_t cap) noexcept
-    {
-        return x % (cap + 1);
-    }
-
-    static size_t wrap_lane(size_t x, size_t cap) noexcept
-    {
-        const size_t r = cap + 1;
-        return (x >= r) ? x - r : x;
-    }
-
-    static size_t advance(size_t offset, size_t, size_t cap) noexcept
-    {
-        return wrap_lane(offset + group_width, cap);
-    }
-};
-
-template <>
-class probe_traits<pow2_growth>
-{
-    static size_t wrap(size_t x, size_t cap) noexcept
-    {
-        return x & cap;
-    }
-    static size_t wrap_lane(size_t x, size_t cap) noexcept
-    {
-        return x & cap;
-    }
-    static size_t advance(size_t offset, size_t index, size_t cap) noexcept
-    {
-        return (offset + index) & cap;
-    }
-};
-
-template <typename Growth>
-class probe_seq : public probe_traits<Growth>
+class probe_seq
 {
 public:
-
-    using base = probe_traits<Growth>;
 
     probe_seq(size_t h1, size_t cap) noexcept
         : m_cap(cap)
@@ -222,7 +151,7 @@ public:
     size_t slot_at(size_t lane) const noexcept
     {
         VX_ASSERT(m_offset + lane < 2 * (m_cap + 1));
-        return base::wrap_lane(m_offset + lane, m_cap);
+        return Growth::wrap_lane(m_offset + lane, m_cap);
     }
 
     // Number of ctrl bytes walked past so far (a multiple of W).
@@ -239,7 +168,7 @@ public:
         VX_ASSERT(m_index <= m_cap);
 
         m_index += group_width;
-        m_offset = base::advance(m_offset, m_index, m_cap);
+        m_offset = Growth::advance(m_offset, m_index, m_cap);
     }
 
 private:
@@ -428,8 +357,6 @@ private:
     using table_data = open_data<slot_type>;
     using growth = Growth;
 
-    using block_allocator = typename Allocator::template rebind<unsigned char>::other;
-
     //=========================================================================
     // implementation constants
     //=========================================================================
@@ -441,40 +368,11 @@ private:
         ? alignof(slot_type)
         : group_width;
 
+    using block_type = block_unit<block_align>;
+    using block_allocator = typename Allocator::template rebind<block_type>::other;
+
     // Above this size, avoid using a temporary slot on the stack.
     static constexpr size_t max_in_place_slot_size = 256;
-
-    //=========================================================================
-    // compile-time validation
-    //=========================================================================
-
-    VX_STATIC_ASSERT_MSG(
-        (growth::is_valid_capacity(0)),
-        "growth must accept capacity 0");
-
-    VX_STATIC_ASSERT_MSG(
-        (growth::is_valid_capacity(growth::min_capacity)),
-        "min_capacity must be valid");
-
-    VX_STATIC_ASSERT_MSG(
-        (growth::next_capacity(0) == growth::min_capacity),
-        "next_capacity(0) must be min_capacity");
-
-    VX_STATIC_ASSERT_MSG(
-        (growth::next_capacity(growth::min_capacity) > growth::min_capacity),
-        "next_capacity must increase");
-
-    VX_STATIC_ASSERT_MSG(
-        (load::max_size(0) == 0),
-        "max_size(0) must be 0");
-
-    VX_STATIC_ASSERT_MSG(
-        (load::max_size(growth::min_capacity) >= 1),
-        "load slot_traits leaves no room in min_capacity");
-
-    VX_STATIC_ASSERT_MSG(
-        (validate_traits<Traits>::value),
-        "invalid table traits");
 
 public:
 
@@ -579,15 +477,15 @@ private:
 
     unsigned char* allocate_block(size_t bytes) noexcept
     {
-        return m_allocator().allocate(bytes);
+        block_type* p = m_allocator().allocate(bytes / block_align);
+        return reinterpret_cast<unsigned char*>(p);
     }
 
     void release_block(size_t cap) noexcept
     {
         layout l;
-        const bool ok = compute_safe_layout(cap, sizeof(slot_type), alignof(slot_type), l);
-        VX_ASSERT(ok);
-        m_allocator().deallocate(m_data().ctrl, l.alloc_size);
+        compute_safe_layout(cap, sizeof(slot_type), alignof(slot_type), l);
+        m_allocator().deallocate(reinterpret_cast<block_type*>(m_data().ctrl), l.alloc_size / block_align);
     }
 
     //=========================================================================
@@ -599,7 +497,7 @@ private:
         ctrl_t* ctrl;
         slot_type* slots;
 
-        explicit operator bool() const noexcept
+        bool ok() const noexcept
         {
             return ctrl != nullptr;
         }
@@ -650,14 +548,14 @@ private:
         }
 
         const auto ptrs = allocate_and_copy_from(src);
-        VX_RET_ERR_IF(!ctrl, err::out_of_memory);
+        VX_RET_ERR_IF(!ptrs.ok(), err::out_of_memory);
 
         d.ctrl = ptrs.ctrl;
         d.slots = ptrs.slots;
 
-        d.capacity = src.m_data().capacity;
-        d.size = src.m_data().size;
-        d.growth_left = src.m_data().growth_left;
+        d.capacity = src.capacity;
+        d.size = src.size;
+        d.growth_left = src.growth_left;
 
         return success{};
     }
@@ -807,14 +705,14 @@ private:
         }
 
         const auto ptrs = allocate_and_copy_from(src);
-        VX_RET_ERR_IF(!ptrs, err::out_of_memory);
+        VX_RET_ERR_IF(!ptrs.ok(), err::out_of_memory);
 
         d.ctrl = ptrs.ctrl;
         d.slots = ptrs.slots;
 
-        d.capacity = src.m_data().capacity;
-        d.size = src.m_data().size;
-        d.growth_left = src.m_data().growth_left;
+        d.capacity = src.capacity;
+        d.size = src.size;
+        d.growth_left = src.growth_left;
 
         return success{};
     }
@@ -936,10 +834,27 @@ public:
         return m_data().size;
     }
 
-    // Conservative: rehash_to still reports size_error on layout overflow.
-    static constexpr size_t max_size() noexcept
+private:
+
+    // Allocator limit in bytes. block_allocator counts block_type units, so convert,
+    // clamping first so the multiply can't overflow, then cap at PTRDIFF_MAX.
+    constexpr size_t max_bytes() const noexcept
     {
-        return (SIZE_MAX / 2) / (sizeof(slot_type) + 1);
+        const size_t units = mem::allocator_traits<block_allocator>::max_size(m_allocator());
+        constexpr size_t limit = static_cast<size_t>(PTRDIFF_MAX) / block_align;
+        return (units < limit ? units : limit) * block_align;
+    }
+
+public:
+
+    // Loose upper bound on slots (not elements: the element limit is lower by the
+    // load factor). Allocation can still fail below this, with size_error or out_of_memory.
+    constexpr size_t max_size() const noexcept
+    {
+        // worst case: group_width clone bytes, padding before the slots, final round-up
+        constexpr size_t overhead = group_width + 2 * block_align;
+        const size_t bytes = max_bytes();
+        return bytes > overhead ? (bytes - overhead) / (sizeof(slot_type) + 1) : 0;
     }
 
     //=========================================================================
@@ -949,19 +864,15 @@ public:
     // number of elements the table can hold before it must grow
     size_t capacity() const noexcept
     {
-        return growth::max_size(m_data().capacity);
+        const auto& d = m_data();
+        return growth::max_size(d.capacity);
     }
 
     // raw ring size (slots), 0 or a capacity produced by the growth slot_traits
     size_t slot_count() const noexcept
     {
-        return m_data().capacity;
-    }
-
-    // Capacity needed to hold n elements without growing (0 on n == 0 or overflow).
-    static constexpr size_t capacity_for_size(size_t n) noexcept
-    {
-        return _hash_priv::capacity_for_size<growth, load>(n);
+        const auto& d = m_data();
+        return d.capacity;
     }
 
     // Tombstones are the budget that erase left behind. Derived, so no extra field.
@@ -974,9 +885,7 @@ public:
     bool needs_cleanup() const noexcept
     {
         const auto& d = m_data();
-        // if there are some slots that can be reclaimed and the table is at it's limit,
-        // then the next insert will trigger a cleanup instead of a grow
-        return d.capacity != 0 && tombstone_count() != 0 && d.size <= cleanup_limit_of < ;
+        return d.capacity != 0 && tombstone_count() != 0 && d.size <= cleanup_limit_of<Growth>(d.capacity);
     }
 
     //=========================================================================
@@ -994,22 +903,26 @@ public:
     // lookup
     //=========================================================================
 
+private:
+
     // Returns the slot index of the key, or npos.
     template <typename Q>
     size_t find_index_with_hash(const Q& key, size_t hash) const noexcept
     {
+        const auto& d = m_data();
+
         const h2_t h2 = h2_of(hash);
-        probe_seq<growth> seq(h1_of(hash), m_data().capacity);
+        probe_seq<growth> seq(h1_of(hash), d.capacity);
 
         while (true)
         {
-            const group g(m_data().ctrl + seq.offset());
+            const group g(d.ctrl + seq.offset());
 
             // candidates: lanes whose ctrl byte equals H2
             for (uint32_t lane : g.match(h2))
             {
                 const size_t i = seq.slot_at(lane);
-                if (eq()(key, slot_traits::key(m_data().slots[i])))
+                if (eq()(key, slot_traits::key(d.slots[i])))
                 {
                     return i;
                 }
@@ -1024,6 +937,8 @@ public:
             seq.next();
         }
     }
+
+public:
 
     template <typename Q>
     size_t find_index(const Q& key) const noexcept
@@ -1065,30 +980,26 @@ public:
         return find_index(key) != npos;
     }
 
-    template <typename Q>
-    size_t count(const Q& key) const noexcept
-    {
-        return contains(key) ? 1 : 0;
-    }
-
 private:
 
     //=========================================================================
     // rehash
     //=========================================================================
 
-    // Capacity to grow into so that `needed` elements fit. The growth slot_traits picks
-    // the sequence, so this can step more than once (reserve, tiny load factors).
-    // Always steps at least once. Returns 0 on overflow. After allocating:
-    //     m_data().growth_left = load::max_size(new_cap) - m_data().size;
+    // Capacity to grow into so that `needed` elements fit. Returns 0 if no valid capacity
+    // satisfies it under the allocator ceiling (report size_error). After allocating:
+    //     m_data().growth_left = growth::max_size(new_cap) - m_data().size;
     size_t grown_capacity(size_t needed) const noexcept
     {
-        size_t cap = growth::next_capacity(m_data().capacity);
-        while (cap != 0 && load::max_size(cap) < needed)
-        {
-            cap = growth::next_capacity(cap);
-        }
+        const size_t cap = growth::next_capacity(m_data().capacity, needed, max_size());
+        VX_ASSERT(cap == 0 || (cap > m_data().capacity && growth::max_size(cap) >= needed && cap <= max_size()));
         return cap;
+    }
+
+    // Smallest valid slot count that holds n elements. 0 if n == 0 or nothing fits under max_size().
+    size_t slots_for(size_t n) const noexcept
+    {
+        return n == 0 ? 0 : growth::next_capacity(0, n, max_size());
     }
 
     // Allocates a block of new_cap slots, relocates every element into it by
@@ -1097,7 +1008,7 @@ private:
     success rehash_to(size_t new_cap)
     {
         layout l;
-        VX_RET_ERR_IF(!compute_layout(new_cap, sizeof(slot_type), alignof(slot_type), l), err::size_error);
+        compute_safe_layout(new_cap, sizeof(slot_type), alignof(slot_type), l);
 
         unsigned char* block = allocate_block(l.alloc_size);
         VX_RET_ERR_IF(!block, err::out_of_memory);
@@ -1123,99 +1034,16 @@ private:
                 set_ctrl(new_ctrl, new_cap, t, static_cast<ctrl_t>(h2_of(hash)));
                 slot_traits::relocate(new_slots + t, d.slots + i);
             }
+
             release_block(d.capacity);
         }
 
         d.ctrl = new_ctrl;
         d.slots = new_slots;
         d.capacity = new_cap;
-        d.growth_left = load::max_size(new_cap) - d.size;
+        d.growth_left = growth::max_size(new_cap) - d.size;
+
         return success{};
-    }
-
-    // Re-places every element at the first free slot on its probe path without
-    // allocating. Elements in their first probe window stay put. Others move into
-    // EMPTY slots, or swap with another pending element (one temp slot).
-    void rehash_in_place() noexcept
-    {
-        auto& d = m_data();
-        const size_t cap = d.capacity;
-        ctrl_t* ctrl = d.ctrl;
-        slot_type* slots = d.slots;
-        VX_ASSERT(cap != 0 && !fits_in_one_group(cap));
-
-        // 1. FULL -> DELETED ("pending"), everything else -> EMPTY. Groups may
-        //    write past the ring into the clone bytes, which the next call rewrites.
-        for (size_t pos = 0; pos < cap + 1; pos += group_width)
-        {
-            group(ctrl + pos).convert_special_to_empty_and_full_to_deleted(ctrl + pos);
-        }
-        restore_ctrl_clones(ctrl, cap); // sentinel + clones, before any probing
-
-        // 2. Re-place each pending element.
-        aligned_storage<sizeof(slot_type), alignof(slot_type)> tmp;
-
-        for (size_t i = 0; i < cap; ++i)
-        {
-            while (ctrl[i] == ctrl_deleted)
-            {
-                const size_t hash = hash_of(slot_traits::key(slots[i]));
-                const h2_t h2 = h2_of(hash);
-                const size_t offset = growth::wrap(h1_of(hash), cap);
-
-                // In the first probe window: every lookup examines it, so the
-                // element is already findable. Just mark it full.
-                if (growth::wrap_lane(i + (cap + 1) - offset, cap) < group_width)
-                {
-                    set_ctrl(ctrl, cap, i, static_cast<ctrl_t>(h2));
-                    break;
-                }
-
-                const size_t t = find_first_non_full<growth>(ctrl, cap, hash);
-
-                if (t == i)
-                {
-                    set_ctrl(ctrl, cap, i, static_cast<ctrl_t>(h2));
-                    break;
-                }
-
-                const bool was_empty = (ctrl[t] == ctrl_empty);
-                set_ctrl(ctrl, cap, t, static_cast<ctrl_t>(h2));
-
-                if (was_empty)
-                {
-                    slot_traits::relocate(slots + t, slots + i);
-                    set_ctrl(ctrl, cap, i, ctrl_empty);
-                    break;
-                }
-
-                // t holds another pending element: swap through tmp, then retry
-                // slot i, which now holds that displaced element.
-                slot_type* s = tmp.template ptr<slot_type>();
-                slot_traits::relocate(s, slots + i);
-                slot_traits::relocate(slots + i, slots + t);
-                slot_traits::relocate(slots + t, s);
-            }
-        }
-
-        d.growth_left = load::max_size(cap) - d.size;
-    }
-
-    success cleanup_tombstones_impl(std::true_type) noexcept
-    {
-        rehash_in_place();
-        return success{};
-    }
-
-    success cleanup_tombstones_impl(std::false_type)
-    {
-        return rehash_to(m_data().capacity);
-    }
-
-    // tag dispatch, so the untaken overload is never instantiated
-    success cleanup_tombstones()
-    {
-        return cleanup_tombstones_impl(std::integral_constant<bool, (sizeof(slot_type) <= max_in_place_slot_size)>{});
     }
 
     // Called when an insert finds growth_left == 0: clean in place if tombstones
@@ -1223,12 +1051,6 @@ private:
     success grow_for_insert()
     {
         auto& d = m_data();
-
-        if (d.capacity != 0 && d.size <= cleanup_limit_of<load>(load::max_size(d.capacity)))
-        {
-            return cleanup_tombstones();
-        }
-
         const size_t new_cap = grown_capacity(d.size + 1);
         VX_RET_ERR_IF(new_cap == 0, err::size_error);
         return rehash_to(new_cap);
@@ -1252,7 +1074,7 @@ public:
         destroy_slots();
         reset_ctrl(d.ctrl, d.capacity);
         d.size = 0;
-        d.growth_left = load::max_size(d.capacity);
+        d.growth_left = growth::max_size(d.capacity);
     }
 
     void clear_and_deallocate() noexcept
@@ -1273,16 +1095,9 @@ public:
             return success{};
         }
 
-        VX_RET_ERR_IF(n > max_size(), err::size_error);
-
-        // the capacity is big enough, tombstones are the problem: reclaim them
-        if (d.capacity != 0 && n <= load::max_size(d.capacity))
-        {
-            return cleanup_tombstones();
-        }
-
         const size_t new_cap = grown_capacity(n);
         VX_RET_ERR_IF(new_cap == 0, err::size_error);
+
         return rehash_to(new_cap);
     }
 
@@ -1296,9 +1111,10 @@ public:
             return success{};
         }
 
-        const size_t target = capacity_for_size(d.size);
-        VX_RET_ERR_IF(target == 0, err::size_error);
+        const size_t target = slots_for(d.size);
+        VX_ASSERT(target != 0); // the current capacity already holds size, so something valid fits
 
+        // Only rebuild if it actually shrinks. Equal capacity would just be a cleanup.
         return target < d.capacity ? rehash_to(target) : success{};
     }
 
