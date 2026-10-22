@@ -2,14 +2,16 @@
 
 // Closed-addressing backend: bucket array of head pointers, one allocation per
 // node. Element addresses are stable across rehash, insert and erase of other
-// elements. Same backend interface as open_table (see the roadmap).
+// elements. Exposes the same backend interface as open_table, so it can sit
+// behind hash_table_base unchanged.
 //
 // Layout:
 //   buckets: [ head_0 | head_1 | ... | head_cap | END ]      (cap + 2 pointers)
-//   node:    [ next | (hash, if cache_hash) | slot ]
+//   node:    [ next | (hash, if CacheHash) | slot ]
 //
 // The bucket count is cap + 1, the ring size of the growth policy, so
 // growth::wrap(hash, cap) is the bucket index and every policy works as is.
+// The load limit is growth::max_size(cap), exactly as in open_table.
 //
 // The extra last bucket holds an END node. Iterators advance by scanning for
 // the next non-null bucket, and that scan always stops on END, so no bucket
@@ -19,9 +21,9 @@
 // An unallocated table points at a static two-element array { nullptr, END }:
 //   find   -> bucket 0 is empty, reports a miss (no null check)
 //   begin  == end
-// It is never written: capacity == 0 means max_size == 0, so insert takes the
-// grow path first. Test capacity == 0 before writing, never compare pointers
-// against the static array.
+// It is never written: capacity == 0 means growth::max_size(0) == 0, so insert
+// takes the grow path first. Test capacity == 0 before writing, never compare
+// pointers against the static array.
 //
 // Iterator invalidation: rehash (growth, reserve, shrink_to_fit) invalidates
 // iterators but NOT references or pointers to elements. Erase invalidates only
@@ -36,11 +38,10 @@
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/aligned_storage.hpp"
 #include "vertex/std/expected.hpp"
-#include "vertex/std/memory.hpp" // path is a guess
+#include "vertex/std/memory.hpp"
 
-#include "hash_common.hpp"
-#include "hash_storage.hpp"
-#include "hash_traits.hpp"
+#include "vertex/std/_hash/hash_common.hpp"
+#include "vertex/std/_hash/hash_storage.hpp"
 
 namespace vx {
 namespace _hash_priv {
@@ -66,50 +67,31 @@ inline chain_node_base** chain_empty_buckets() noexcept
     return buckets;
 }
 
-// empty when the hash is not cached
-template <bool Cache>
-struct chain_hash_field
-{
-    size_t get() const noexcept
-    {
-        return 0;
-    }
-
-    void set(size_t) noexcept
-    {}
-};
-
-template <>
-struct chain_hash_field<true>
-{
-    size_t get() const noexcept
-    {
-        return m_hash;
-    }
-
-    void set(size_t h) noexcept
-    {
-        m_hash = h;
-    }
-
-    size_t m_hash;
-};
-
-template <typename Slot, bool Cache>
-struct chain_node : chain_node_base, chain_hash_field<Cache>
+template <typename Slot>
+struct chain_node : chain_node_base
 {
     using slot_type = Slot;
 
-    aligned_storage<sizeof(Slot), alignof(Slot)> storage;
+    // union: no automatic construction, but the debugger sees a real Slot
+    union
+    {
+        Slot m_slot;
+    };
+
+    chain_node() noexcept
+    {}
+
+    ~chain_node()
+    {}
 
     Slot* slot() noexcept
     {
-        return reinterpret_cast<Slot*>(&storage);
+        return &m_slot;
     }
 
     const Slot* slot() const noexcept
     {
-        return reinterpret_cast<const Slot*>(&storage);
+        return &m_slot;
     }
 };
 
@@ -216,6 +198,7 @@ private:
 // table data
 //=========================================================================
 
+template <typename Node>
 struct chain_data
 {
     chain_node_base** buckets = chain_empty_buckets(); // never null
@@ -237,53 +220,84 @@ struct chain_data
 };
 
 //=========================================================================
-// chain_table
+// chain_table (closed addressing backend)
 //=========================================================================
 
-template <typename SlotPolicy, typename Hasher, typename Eq, typename Allocator, typename Traits = default_chain_traits>
+template <
+    typename SlotTraits,
+    typename Hasher,
+    typename Eq,
+    typename Allocator,
+    typename Growth = pow2_growth>
 class chain_table
 {
-    //=========================================================================
-    // member types
-    //=========================================================================
+public:
+
+    using slot_traits = SlotTraits;
 
 private:
 
-    using policy = SlotPolicy;
-    using slot_type = typename policy::slot_type;
-    using growth = typename Traits::growth_policy;
-    using load = typename Traits::load_policy;
+    //=========================================================================
+    // internal types and policies
+    //=========================================================================
+
+    using slot_type = typename slot_traits::slot_type;
+    using growth = Growth;
     using node_base = chain_node_base;
     using bucket_ptr = chain_node_base*;
 
-    static constexpr bool cache = Traits::cache_hash;
-
-    using node_type = chain_node<slot_type, Traits::cache_hash>;
-    using node_allocator = typename Allocator::template rebind<node_type>::other;
-    using bucket_allocator = typename Allocator::template rebind<bucket_ptr>::other;
-
-    VX_STATIC_ASSERT_MSG(validate_traits<Traits>::value, "invalid table traits");
-    VX_STATIC_ASSERT_MSG(growth::is_valid_capacity(0), "growth policy must accept capacity 0");
-    VX_STATIC_ASSERT_MSG(growth::is_valid_capacity(growth::min_capacity), "min_capacity must be valid");
-    VX_STATIC_ASSERT_MSG(growth::next_capacity(0) == growth::min_capacity, "next_capacity(0) must be min_capacity");
-    VX_STATIC_ASSERT_MSG(growth::next_capacity(growth::min_capacity) > growth::min_capacity, "next_capacity must increase");
-    VX_STATIC_ASSERT_MSG(load::max_size(0) == 0, "max_size(0) must be 0");
-    VX_STATIC_ASSERT_MSG(load::max_size(growth::min_capacity) >= 1, "load policy leaves no room in min_capacity");
-    VX_STATIC_ASSERT_MSG(!(Traits::cache_hash && (std::is_integral<typename policy::key_type>::value || std::is_pointer<typename policy::key_type>::value)),
-        "cache_hash on integral or pointer keys only costs memory: hashing them is cheaper than loading the cache");
+    using node_type = chain_node<slot_type>;
+    using node_allocator = typename mem::rebind_allocator<Allocator, node_type>::type;
+    using bucket_allocator = typename mem::rebind_allocator<Allocator, bucket_ptr>::type;
+    using chain_data_type = chain_data<node_type>;
 
 public:
 
-    using slot_policy = SlotPolicy;
+    //=========================================================================
+    // public types
+    //=========================================================================
+
     using allocator_type = Allocator;
     using hasher_type = Hasher;
     using eq_type = Eq;
-    using key_type = typename policy::key_type;
+
+    using key_type = typename slot_traits::key_type;
     using value_type = slot_type;
     using size_type = size_t;
 
-    using iterator = chain_iterator<node_type, typename std::conditional<policy::mutable_slots, slot_type, const slot_type>::type>;
+    using iterator = chain_iterator<
+        node_type,
+        typename std::conditional<
+            slot_traits::mutable_slots,
+            slot_type,
+            const slot_type>::type>;
+
     using const_iterator = chain_iterator<node_type, const slot_type>;
+
+    struct insert_result
+    {
+        iterator it;
+        bool inserted;
+    };
+
+    //=========================================================================
+    // public iterator utilities
+    //=========================================================================
+
+    // const_iterator -> iterator (for maps these differ)
+    iterator unconst(const_iterator it) const noexcept
+    {
+        return iterator(it.node(), it.bucket());
+    }
+
+    // Mutable access to a full slot, whatever the iterator's constness. For relocating an
+    // element out of the table right before erasing it (merge). Touches no table state, so
+    // it works with an iterator of any chain_table of the same slot type.
+    slot_type& value_at(const_iterator it) noexcept
+    {
+        VX_ASSERT(it.node() != nullptr);
+        return *static_cast<node_type*>(it.node())->slot();
+    }
 
 private:
 
@@ -291,44 +305,54 @@ private:
     // storage
     //=========================================================================
 
-    table_storage<allocator_type, Hasher, Eq, chain_data> m_storage;
+    table_storage<node_allocator, Hasher, Eq, chain_data_type> m_storage;
 
-    allocator_type& alloc() noexcept
+    //=========================================================================
+    // accessors
+    //=========================================================================
+
+    node_allocator& m_allocator() noexcept
     {
         return m_storage.alloc();
     }
 
-    const allocator_type& alloc() const noexcept
+    const node_allocator& m_allocator() const noexcept
     {
         return m_storage.alloc();
     }
 
-    Hasher& hasher() noexcept
+    //=========================================================================
+
+    Hasher& m_hasher() noexcept
     {
         return m_storage.hasher();
     }
 
-    const Hasher& hasher() const noexcept
+    const Hasher& m_hasher() const noexcept
     {
         return m_storage.hasher();
     }
 
-    Eq& eq() noexcept
+    //=========================================================================
+
+    Eq& m_eq() noexcept
     {
         return m_storage.eq();
     }
 
-    const Eq& eq() const noexcept
+    const Eq& m_eq() const noexcept
     {
         return m_storage.eq();
     }
 
-    chain_data& m_data() noexcept
+    //=========================================================================
+
+    chain_data_type& m_data() noexcept
     {
         return m_storage.data();
     }
 
-    const chain_data& m_data() const noexcept
+    const chain_data_type& m_data() const noexcept
     {
         return m_storage.data();
     }
@@ -337,17 +361,26 @@ private:
     // memory helpers
     //=========================================================================
 
-    // largest ring that still fits (cap + 2 pointers) in size_t bytes
-    static constexpr size_t max_buckets() noexcept
+    bucket_allocator bucket_alloc() const noexcept
     {
-        return SIZE_MAX / sizeof(bucket_ptr) - 2;
+        return bucket_allocator(m_allocator());
+    }
+
+    // Largest cap whose bucket array (cap + 2 pointers) the allocator can hand out,
+    // clamped to PTRDIFF_MAX bytes. 0 if not even the minimum fits.
+    constexpr size_t max_buckets() const noexcept
+    {
+        const size_t units = mem::allocator_traits<bucket_allocator>::max_size(bucket_allocator(m_allocator()));
+        constexpr size_t limit = static_cast<size_t>(PTRDIFF_MAX) / sizeof(bucket_ptr);
+        const size_t n = units < limit ? units : limit;
+        return n > 2 ? n - 2 : 0;
     }
 
     // [0, cap] = nullptr, [cap + 1] = END. nullptr on allocation failure.
     bucket_ptr* allocate_buckets(size_t cap) noexcept
     {
         VX_ASSERT(cap != 0 && cap <= max_buckets());
-        bucket_ptr* b = bucket_allocator(alloc()).allocate(cap + 2);
+        bucket_ptr* b = bucket_alloc().allocate(cap + 2);
         if (!b)
         {
             return nullptr;
@@ -363,12 +396,12 @@ private:
 
     void release_buckets(bucket_ptr* b, size_t cap) noexcept
     {
-        bucket_allocator(alloc()).deallocate(b, cap + 2);
+        bucket_alloc().deallocate(b, cap + 2);
     }
 
     node_type* allocate_node() noexcept
     {
-        node_type* n = node_allocator(alloc()).allocate(1);
+        node_type* n = m_allocator().allocate(1);
         if (n)
         {
             n->next = nullptr;
@@ -378,34 +411,7 @@ private:
 
     void free_node(node_type* n) noexcept
     {
-        node_allocator(alloc()).deallocate(n, 1);
-    }
-
-    // destroys and frees every node in buckets [0, cap]
-    void destroy_nodes(bucket_ptr* b, size_t cap) noexcept
-    {
-        for (size_t i = 0; i <= cap; ++i)
-        {
-            node_base* p = b[i];
-            while (p)
-            {
-                node_base* next = p->next;
-                node_type* n = static_cast<node_type*>(p);
-                policy::destroy(n->slot());
-                free_node(n);
-                p = next;
-            }
-        }
-    }
-
-    void destroy_and_release() noexcept
-    {
-        auto& d = m_data();
-        if (d.capacity != 0)
-        {
-            destroy_nodes(d.buckets, d.capacity);
-            release_buckets(d.buckets, d.capacity);
-        }
+        m_allocator().deallocate(n, 1);
     }
 
     //=========================================================================
@@ -420,23 +426,16 @@ private:
     // the hash of a stored node: read from the node, or recomputed
     size_t node_hash(const node_type* n) const noexcept
     {
-        VX_IF_CONSTEXPR (cache)
-        {
-            return n->get();
-        }
-        else
-        {
-            return hash_of(policy::key(*n->slot()));
-        }
+        return hash_of(slot_traits::key(*n->slot()));
     }
 
     //=========================================================================
-    // copy helper
+    // copy helpers
     //=========================================================================
 
     // Rebuilds every chain in the same order. No hashing, no probing.
-    // Requires *this to be unallocated.
-    success copy_construct_from(const chain_data& src)
+    // Requires *this to be unallocated (cleared, or during construction).
+    success copy_construct_from(const chain_data_type& src)
     {
         auto& d = m_data();
         VX_ASSERT(d.capacity == 0);
@@ -465,8 +464,7 @@ private:
                 }
                 VX_RET_ERR_IF(!n, err::out_of_memory);
 
-                policy::construct(n->slot(), *s->slot());
-                n->set(s->get());
+                slot_traits::construct(n->slot(), *s->slot());
                 *tail = n;
                 tail = &n->next;
             }
@@ -499,14 +497,14 @@ public:
     }
 
     chain_table(const chain_table& other)
-        : m_storage(other.alloc(), other.hasher(), other.eq())
+        : m_storage(other.m_allocator(), other.m_hasher(), other.m_eq())
     {
         const auto ok = copy_construct_from(other.m_data());
         VX_VERIFY(ok);
     }
 
     chain_table(chain_table&& other) noexcept
-        : m_storage(std::move(other.alloc()), std::move(other.hasher()), std::move(other.eq()))
+        : m_storage(std::move(other.m_allocator()), std::move(other.m_hasher()), std::move(other.m_eq()))
     {
         m_data().acquire(other.m_data());
     }
@@ -515,26 +513,55 @@ public:
     // fallible construction
     //=========================================================================
 
-    static expected<chain_table, error> create(const Hasher& h = Hasher(), const Eq& e = Eq(), const allocator_type& a = allocator_type())
-    {
-        return chain_table(h, e, a);
-    }
-
-    static expected<chain_table, error> create(size_t n, const Hasher& h = Hasher(), const Eq& e = Eq(), const allocator_type& a = allocator_type())
-    {
-        chain_table t(h, e, a);
-        const auto ok = t.reserve(n);
-        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
-        return t;
-    }
-
     static expected<chain_table, error> create(const chain_table& other)
     {
-        chain_table t(other.hasher(), other.eq(), other.alloc());
+        chain_table t(other.m_hasher(), other.m_eq(), other.m_allocator());
         const auto ok = t.copy_construct_from(other.m_data());
         VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return t;
     }
+
+    static expected<chain_table, error> create(chain_table&& other) noexcept
+    {
+        chain_table t(std::move(other.m_hasher()), std::move(other.m_eq()), std::move(other.m_allocator()));
+        t.m_data().acquire(other.m_data());
+        return t;
+    }
+
+private:
+
+    //=========================================================================
+    // destructor helpers
+    //=========================================================================
+
+    // destroys and frees every node in buckets [0, cap]
+    void destroy_nodes(bucket_ptr* b, size_t cap) noexcept
+    {
+        for (size_t i = 0; i <= cap; ++i)
+        {
+            node_base* p = b[i];
+            while (p)
+            {
+                node_base* next = p->next;
+                node_type* n = static_cast<node_type*>(p);
+                slot_traits::destroy(n->slot());
+                free_node(n);
+                p = next;
+            }
+        }
+    }
+
+    void destroy_and_release() noexcept
+    {
+        auto& d = m_data();
+        if (d.capacity != 0)
+        {
+            destroy_nodes(d.buckets, d.capacity);
+            release_buckets(d.buckets, d.capacity);
+        }
+    }
+
+public:
 
     //=========================================================================
     // destructor
@@ -551,66 +578,78 @@ public:
 
     allocator_type get_allocator() const noexcept
     {
-        return alloc();
+        return static_cast<allocator_type>(m_allocator());
     }
 
     Hasher hash_function() const
     {
-        return hasher();
+        return m_hasher();
     }
 
     Eq key_eq() const
     {
-        return eq();
+        return m_eq();
     }
 
     //=========================================================================
-    // assignment
+    // assignment operators
     //=========================================================================
 
     chain_table& operator=(const chain_table& other)
     {
-        if (this != &other)
+        if (this == &other)
         {
-            const auto ok = assign(other);
-            VX_VERIFY(ok);
+            return *this;
         }
+
+        const auto ok = assign(other);
+        VX_VERIFY(ok);
         return *this;
     }
 
     chain_table& operator=(chain_table&& other) noexcept
     {
-        if (this != &other)
+        if (this == &other)
         {
-            destroy_and_release();
-            alloc() = std::move(other.alloc());
-            hasher() = std::move(other.hasher());
-            eq() = std::move(other.eq());
-            m_data().acquire(other.m_data());
+            return *this;
         }
+
+        destroy_and_release();
+        m_allocator() = std::move(other.m_allocator());
+        m_hasher() = std::move(other.m_hasher());
+        m_eq() = std::move(other.m_eq());
+        m_data().acquire(other.m_data());
+
         return *this;
     }
+
+    //=========================================================================
+    // assign
+    //=========================================================================
 
     // Strong guarantee: build the copy first, then swap. Keeps this table's allocator.
     success assign(const chain_table& other)
     {
         VX_ASSERT(this != &other);
 
-        chain_table tmp(other.hasher(), other.eq(), alloc());
+        chain_table tmp(other.m_hasher(), other.m_eq(), get_allocator());
         const auto ok = tmp.copy_construct_from(other.m_data());
-        if (!ok)
-        {
-            return ok;
-        }
+        VX_RET_ERR_IF(!ok, ok);
 
         swap(tmp);
+        return success{};
+    }
+
+    success assign(chain_table&& other) noexcept
+    {
+        operator=(std::move(other));
         return success{};
     }
 
 private:
 
     //=========================================================================
-    // iterators
+    // iterator helpers
     //=========================================================================
 
     template <typename It>
@@ -632,6 +671,10 @@ private:
     }
 
 public:
+
+    //=========================================================================
+    // iterators
+    //=========================================================================
 
     iterator begin() noexcept
     {
@@ -663,12 +706,6 @@ public:
         return end();
     }
 
-    // const_iterator -> iterator (for maps these differ)
-    iterator unconst(const_iterator it) const noexcept
-    {
-        return iterator(it.node(), it.bucket());
-    }
-
     //=========================================================================
     // size
     //=========================================================================
@@ -683,9 +720,11 @@ public:
         return m_data().size;
     }
 
-    static constexpr size_t max_size() noexcept
+    // Loose upper bound on elements, set by the node allocator. Allocation can
+    // still fail below this, with size_error or out_of_memory.
+    constexpr size_t max_size() const noexcept
     {
-        return (SIZE_MAX / 2) / (sizeof(node_type) + sizeof(bucket_ptr));
+        return mem::allocator_traits<node_allocator>::max_size(m_allocator());
     }
 
     //=========================================================================
@@ -695,17 +734,13 @@ public:
     // number of elements the table can hold before it must grow
     size_t capacity() const noexcept
     {
-        return load::max_size(m_data().capacity);
+        return growth::max_size(m_data().capacity);
     }
 
+    // number of buckets, 0 when unallocated
     size_t bucket_count() const noexcept
     {
         return m_data().capacity == 0 ? 0 : m_data().capacity + 1;
-    }
-
-    static constexpr size_t capacity_for_size(size_t n) noexcept
-    {
-        return _hash_priv::capacity_for_size<growth, load>(n);
     }
 
     //=========================================================================
@@ -718,31 +753,20 @@ public:
         return m_storage.hash_of(key);
     }
 
-private:
-
     //=========================================================================
     // lookup
     //=========================================================================
 
+private:
+
     template <typename It, typename Q>
     It find_impl(const Q& key, size_t hash) const noexcept
     {
-        VX_ASSERT(hash == hash_of(key)); // debug: a precomputed hash must agree with the hasher
-
         node_base** b = m_data().buckets + bucket_index(hash);
         for (node_base* p = *b; p != nullptr; p = p->next)
         {
             const node_type* n = static_cast<const node_type*>(p);
-
-            VX_IF_CONSTEXPR (cache)
-            {
-                if (n->get() != hash)
-                {
-                    continue;
-                }
-            }
-
-            if (eq()(key, policy::key(*n->slot())))
+            if (m_eq()(key, slot_traits::key(*n->slot())))
             {
                 return It(p, b);
             }
@@ -782,33 +806,30 @@ public:
         return find(key) != end();
     }
 
-    template <typename Q>
-    size_t count(const Q& key) const noexcept
-    {
-        return contains(key) ? 1 : 0;
-    }
-
 private:
 
     //=========================================================================
     // rehash
     //=========================================================================
 
-    // Capacity to grow into so that `needed` elements fit. Always steps at least
-    // once. Returns 0 on overflow.
-    size_t grown_capacity(size_t needed) const noexcept
+    // Capacity to grow into so that `needed` elements fit. Returns 0 if no valid capacity
+    // satisfies it under the allocator ceiling (report size_error).
+    size_t grow_capacity(size_t needed) const noexcept
     {
-        size_t cap = growth::next_capacity(m_data().capacity);
-        while (cap != 0 && load::max_size(cap) < needed)
-        {
-            cap = growth::next_capacity(cap);
-        }
+        const size_t cap = growth::next_capacity(m_data().capacity, needed, max_buckets());
+        VX_ASSERT(cap == 0 || (cap > m_data().capacity && growth::max_size(cap) >= needed && cap <= max_buckets()));
         return cap;
+    }
+
+    // Smallest valid capacity that holds n elements. 0 if n == 0 or nothing fits.
+    size_t slots_for(size_t n) const noexcept
+    {
+        return n == 0 ? 0 : growth::next_capacity(0, n, max_buckets());
     }
 
     // Allocates a new bucket array and relinks every node into it. No element is
     // constructed, moved or destroyed. Hashes are recomputed unless cached.
-    // The old state is untouched on failure.
+    // The old state is untouched on failure. Serves growth, reserve and shrink_to_fit.
     success relink_to(size_t new_cap)
     {
         VX_RET_ERR_IF(new_cap > max_buckets(), err::size_error);
@@ -845,7 +866,6 @@ private:
     iterator link_node(node_type* n, size_t hash) noexcept
     {
         auto& d = m_data();
-        n->set(hash);
         node_base** b = d.buckets + bucket_index(hash);
         n->next = *b;
         *b = n;
@@ -886,15 +906,17 @@ public:
     success reserve(size_t n)
     {
         auto& d = m_data();
-        if (n <= load::max_size(d.capacity))
+
+        if (n <= growth::max_size(d.capacity))
         {
             return success{};
         }
 
         VX_RET_ERR_IF(n > max_size(), err::size_error);
 
-        const size_t new_cap = grown_capacity(n);
+        const size_t new_cap = grow_capacity(n);
         VX_RET_ERR_IF(new_cap == 0, err::size_error);
+
         return relink_to(new_cap);
     }
 
@@ -908,9 +930,10 @@ public:
             return success{};
         }
 
-        const size_t target = capacity_for_size(d.size);
-        VX_RET_ERR_IF(target == 0, err::size_error);
+        const size_t target = slots_for(d.size);
+        VX_ASSERT(target != 0);
 
+        // Only rebuild if it actually shrinks.
         return target < d.capacity ? relink_to(target) : success{};
     }
 
@@ -930,10 +953,11 @@ public:
     {
         auto& d = m_data();
 
-        if (d.size >= load::max_size(d.capacity))
+        if (d.size >= growth::max_size(d.capacity))
         {
-            const size_t new_cap = grown_capacity(d.size + 1);
+            const size_t new_cap = grow_capacity(d.size + 1);
             VX_RET_UNEXPECTED_ERR_IF(new_cap == 0, err::size_error);
+
             const auto ok = relink_to(new_cap);
             VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         }
@@ -941,21 +965,21 @@ public:
         node_type* n = allocate_node();
         VX_RET_UNEXPECTED_ERR_IF(!n, err::out_of_memory);
 
-        policy::construct(n->slot(), std::forward<Args>(args)...);
+        slot_traits::construct(n->slot(), std::forward<Args>(args)...);
         return link_node(n, hash);
     }
 
     // Requires size < capacity(): the bucket array will not grow. Each element
     // still needs a node, so a failed node allocation is a VX_VERIFY here.
     template <typename... Args>
-    iterator emplace_new_capacity(size_t hash, Args&&... args)
+    iterator emplace_new_assume_capacity(size_t hash, Args&&... args)
     {
-        VX_ASSERT(m_data().size < load::max_size(m_data().capacity));
+        VX_ASSERT(m_data().size < growth::max_size(m_data().capacity));
 
         node_type* n = allocate_node();
         VX_VERIFY(n);
 
-        policy::construct(n->slot(), std::forward<Args>(args)...);
+        slot_traits::construct(n->slot(), std::forward<Args>(args)...);
         return link_node(n, hash);
     }
 
@@ -968,7 +992,7 @@ public:
     void erase_at(const_iterator it) noexcept
     {
         auto& d = m_data();
-        VX_ASSERT(d.capacity != 0 && it.node() != nullptr);
+        VX_ASSERT(d.capacity != 0 && it.node() != nullptr && it.node() != d.buckets[d.capacity + 1]);
 
         node_base** link = it.bucket();
         node_base* target = it.node();
@@ -979,14 +1003,18 @@ public:
         *link = target->next;
 
         node_type* n = static_cast<node_type*>(target);
-        policy::destroy(n->slot());
+        slot_traits::destroy(n->slot());
         free_node(n);
         --d.size;
     }
 };
 
-template <typename P, typename H, typename E, typename A, typename T>
-void swap(chain_table<P, H, E, A, T>& a, chain_table<P, H, E, A, T>& b) noexcept
+//=========================================================================
+// swap
+//=========================================================================
+
+template <typename P, typename H, typename E, typename A, typename G>
+void swap(chain_table<P, H, E, A, G>& a, chain_table<P, H, E, A, G>& b) noexcept
 {
     a.swap(b);
 }

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+  <!-- ===== Front ends: forward to the backend ===== -->
+  <Type Name="vx::_hash_priv::basic_hash_map&lt;*&gt;">
+    <DisplayString>{m_b}</DisplayString>
+    <Expand HideRawView="false">
+      <ExpandedItem>m_b</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <Type Name="vx::_hash_priv::basic_hash_set&lt;*&gt;">
+    <DisplayString>{m_b}</DisplayString>
+    <Expand HideRawView="false">
+      <ExpandedItem>m_b</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- table_storage: m_pair<Alloc, pair<Hasher, pair<Eq, Data>>> -->
+  <Type Name="vx::_hash_priv::open_table&lt;*&gt;">
+    <DisplayString>{m_storage.m_pair.second.second.second}</DisplayString>
+    <Expand>
+      <ExpandedItem>m_storage.m_pair.second.second.second</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- ===== Data: sets (generic slot) ===== -->
+  <Type Name="vx::_hash_priv::open_data&lt;*&gt;">
+    <DisplayString Condition="size == 0">empty</DisplayString>
+    <DisplayString>{{ size={size}, slots={capacity} }}</DisplayString>
+    <Expand>
+      <Item Name="[size]">size</Item>
+      <Item Name="[slots]">capacity</Item>
+      <Item Name="[growth_left]">growth_left</Item>
+      <Item Name="[ctrl bytes]">ctrl,[capacity]</Item>
+      <CustomListItems MaxItemsPerView="5000">
+        <Variable Name="i" InitialValue="0"/>
+        <Loop>
+          <Break Condition="i >= capacity"/>
+          <If Condition="((int)ctrl[i] &amp; 0x80) == 0">
+            <Item>slots[i]</Item>
+          </If>
+          <Exec>++i</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+
+  <!-- ===== Data: maps (slot is a pair), shown as [key] = value ===== -->
+  <Type Name="vx::_hash_priv::open_data&lt;vx::pair&lt;*&gt;&gt;" Priority="Medium">
+    <DisplayString Condition="size == 0">empty</DisplayString>
+    <DisplayString>{{ size={size}, slots={capacity} }}</DisplayString>
+    <Expand>
+      <Item Name="[size]">size</Item>
+      <Item Name="[slots]">capacity</Item>
+      <Item Name="[growth_left]">growth_left</Item>
+      <Item Name="[ctrl bytes]">ctrl,[capacity]</Item>
+      <CustomListItems MaxItemsPerView="5000">
+        <Variable Name="i" InitialValue="0"/>
+        <Loop>
+          <Break Condition="i >= capacity"/>
+          <If Condition="((int)ctrl[i] &amp; 0x80) == 0">
+            <Item Name="[{slots[i].first}]">slots[i].second</Item>
+          </If>
+          <Exec>++i</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+
+  <!-- ===== Iterator ===== -->
+  <Type Name="vx::_hash_priv::open_iterator&lt;*&gt;">
+    <DisplayString Condition="m_ctrl == nullptr">null</DisplayString>
+    <DisplayString Condition="((int)*m_ctrl &amp; 0x80) != 0">end</DisplayString>
+    <DisplayString>{*m_slot}</DisplayString>
+    <Expand>
+      <ExpandedItem Condition="m_ctrl != nullptr &amp;&amp; ((int)*m_ctrl &amp; 0x80) == 0">*m_slot</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- chain_table forwards to its data block -->
+  <Type Name="vx::_hash_priv::chain_table&lt;*&gt;">
+    <DisplayString>{m_storage.m_pair.second.second.second}</DisplayString>
+    <Expand>
+      <ExpandedItem>m_storage.m_pair.second.second.second</ExpandedItem>
+    </Expand>
+  </Type>
+
+  <!-- chain_data: sets (and anything non-pair) -->
+  <Type Name="vx::_hash_priv::chain_data&lt;*&gt;">
+    <DisplayString Condition="size == 0">empty</DisplayString>
+    <DisplayString>{{ size={size}, buckets={capacity + 1} }}</DisplayString>
+    <Expand>
+      <Item Name="[size]">size</Item>
+      <Item Name="[buckets]">capacity + 1</Item>
+      <CustomListItems MaxItemsPerView="5000">
+        <Variable Name="b" InitialValue="0"/>
+        <Variable Name="p" InitialValue="buckets[0]"/>
+        <Loop>
+          <Break Condition="b &gt; capacity"/>
+          <Exec>p = buckets[b]</Exec>
+          <Loop>
+            <Break Condition="p == 0"/>
+            <Item>(($T1*)p)-&gt;m_slot</Item>
+            <Exec>p = p-&gt;next</Exec>
+          </Loop>
+          <Exec>++b</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+
+  <!-- chain_data: maps, shown as [key] = value -->
+  <Type Name="vx::_hash_priv::chain_data&lt;vx::_hash_priv::chain_node&lt;vx::pair&lt;*&gt;&gt;&gt;" Priority="Medium">
+    <DisplayString Condition="size == 0">empty</DisplayString>
+    <DisplayString>{{ size={size}, buckets={capacity + 1} }}</DisplayString>
+    <Expand>
+      <Item Name="[size]">size</Item>
+      <Item Name="[buckets]">capacity + 1</Item>
+      <CustomListItems MaxItemsPerView="5000">
+        <Variable Name="b" InitialValue="0"/>
+        <Variable Name="p" InitialValue="buckets[0]"/>
+        <Loop>
+          <Break Condition="b &gt; capacity"/>
+          <Exec>p = buckets[b]</Exec>
+          <Loop>
+            <Break Condition="p == 0"/>
+            <Item Name="[{(($T1*)p)-&gt;m_slot.first}]">(($T1*)p)-&gt;m_slot.second</Item>
+            <Exec>p = p-&gt;next</Exec>
+          </Loop>
+          <Exec>++b</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+
+</AutoVisualizer>

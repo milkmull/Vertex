@@ -3,19 +3,21 @@
 #include <forward_list>
 #include <memory>
 
-#include "vertex/std/io.hpp"
-#include "vertex/std/array.hpp"
-#include "vertex/std/shared_ptr.hpp"
+#include "vertex/std/hash_set.hpp"
 
 using namespace vx;
 
 int main()
 {
-    auto res = vx::make_shared<int>(42);
-    assert(res);
+    vx::unordered_set<int> set;
+    set.insert(5);
 
-    auto ptr = res.value();
-    constexpr auto x = sizeof(vx::shared_ptr<int>);
+    const bool x1 = set.contains(5);
+    set.erase(5);
+    const bool x2 = set.contains(5);
+
+    set.clear();
+    set.clear_and_deallocate();
 
     return 0;
 }

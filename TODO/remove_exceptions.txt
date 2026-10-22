@@ -5,10 +5,10 @@ x dynamic array base
 
 x span
 x vector
-x static vector
+- static vector
 
 x string view
-x static string
+- static string
 x string
 
 - packed string array
@@ -25,3 +25,8 @@ x unique_ptr
 x shared_ptr
 x thread
 x mutex
+
+- fix empty string sentinel
+- fix if consteval spots
+- check is_forward_iterator in places that use vx::distance
+- add other common types to natvis

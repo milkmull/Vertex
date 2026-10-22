@@ -18,15 +18,11 @@ namespace _string_traits_priv {
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr const C* empty_string() noexcept
 {
-    // this may cause problems accross dlls on Windows...
+    // Do not compare pointer against this to detect empty string.
+    // Every dll will get it's own copy and addresses will differ
+    // accross module boundaries.
     static constexpr C s[1] = { C() };
     return s;
-}
-
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
-constexpr bool is_empty_string(const C* ptr) noexcept
-{
-    return ptr == empty_string<C>();
 }
 
 } // namespace _string_traits_priv

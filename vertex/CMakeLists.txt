@@ -122,6 +122,25 @@ endif()
 #endif()
 
 #--------------------------------------------------------------------
+# Natvis
+#--------------------------------------------------------------------
+
+# Debugger visualizers for the containers (embedded in the PDB of every consumer)
+if(MSVC)
+
+    set(VX_NATVIS_FILE "${CMAKE_CURRENT_SOURCE_DIR}/natvis/vertex.natvis")
+
+    target_link_options(Vertex INTERFACE
+        "$<BUILD_INTERFACE:/NATVIS:${VX_NATVIS_FILE}>")
+
+    target_link_options(Vertex_Headers INTERFACE
+        "$<BUILD_INTERFACE:/NATVIS:${VX_NATVIS_FILE}>")
+
+    target_sources(Vertex PRIVATE "${VX_NATVIS_FILE}")
+
+endif()
+
+#--------------------------------------------------------------------
 # Files
 #--------------------------------------------------------------------
 
@@ -202,6 +221,18 @@ if(MSVC)
             endforeach()
         " CONFIGURATIONS Debug)
     endif()
+
+endif()
+
+# Install natvis file
+if(MSVC)
+
+    install(FILES "natvis/vertex.natvis" DESTINATION "${CMAKE_INSTALL_DATADIR}/vertex")
+
+    # and extend the link options:
+    target_link_options(Vertex INTERFACE
+        "$<BUILD_INTERFACE:/NATVIS:${VX_NATVIS_FILE}>"
+        "$<INSTALL_INTERFACE:/NATVIS:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/vertex/vertex.natvis>")
 
 endif()
 

@@ -25,6 +25,11 @@ using bool_constant = std::integral_constant<bool, V>;
 //==============================================================================
 
 template <typename T>
+using always_false = bool_constant<false>;
+
+//==============================================================================
+
+template <typename T>
 struct type_identity
 {
     using type = T;

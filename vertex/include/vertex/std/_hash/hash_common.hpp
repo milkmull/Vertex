@@ -10,6 +10,7 @@
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/memory.hpp"
+#include "vertex/std/util.hpp"
 
 #include "hash_group.hpp" // group_width, used by the policies below
 
@@ -150,16 +151,6 @@ struct pow2_growth : growth_defaults<pow2_growth>
 
 using default_growth = pow2_growth;
 
-template <typename Growth>
-size_t cleanup_limit_of(size_t cap) noexcept
-{
-    const size_t max_load = Growth::max_size(cap);
-    VX_ASSERT(max_load > 0);
-    const size_t limit = Growth::cleanup_limit(max_load);
-    VX_ASSERT(limit < max_load); // otherwise cleanup would never be chosen
-    return limit;
-}
-
 //=========================================================================
 // cleanup limit
 //=========================================================================
@@ -281,6 +272,67 @@ struct set_policy
     static void relocate(slot_type* dst, slot_type* src)
     {
         construct(dst, std::move(*src));
+        destroy(src);
+    }
+};
+
+//=========================================================================
+
+template <typename K, typename V>
+struct map_policy
+{
+    using key_type = K;
+    using mapped_type = V;
+    using slot_type = vx::pair<const K, V>;
+
+    static constexpr bool mutable_slots = true;
+
+    static const K& key(const slot_type& s) noexcept
+    {
+        return s.first;
+    }
+
+    // (key, value args...): value is only constructed when we actually insert
+    template <
+        typename KK,
+        typename... VArgs,
+        std::enable_if_t<
+            !std::is_same_v<
+                std::remove_cv_t<std::remove_reference_t<KK>>,
+                slot_type>,
+            int> = 0>
+    static void construct(slot_type* p, KK&& k, VArgs&&... v)
+    {
+        mem::construct_in_place(p, std::piecewise_construct,
+            std::forward_as_tuple(std::forward<KK>(k)),
+            std::forward_as_tuple(std::forward<VArgs>(v)...));
+    }
+
+    // copy of an existing slot (table copy). Non-template, so it wins over the one above.
+    static void construct(slot_type* p, const slot_type& s)
+    {
+        mem::construct_in_place(p, s);
+    }
+
+    static void construct(slot_type* p, slot_type&& s)
+    {
+        mem::construct_in_place(p, std::move(s));
+    }
+
+    static void destroy(slot_type* p) noexcept
+    {
+        mem::destroy_in_place(p);
+    }
+
+    // move the key too (a const K member would be copied otherwise)
+    static void relocate(slot_type* dst, slot_type* src)
+    {
+        using mutable_slot = std::pair<K, V>;
+        VX_STATIC_ASSERT_MSG(sizeof(mutable_slot) == sizeof(slot_type) && alignof(mutable_slot) == alignof(slot_type),
+            "pair<K, V> and pair<const K, V> must be layout compatible");
+
+        mem::construct_in_place(reinterpret_cast<mutable_slot*>(dst),
+            std::move(*reinterpret_cast<mutable_slot*>(src)));
         destroy(src);
     }
 };

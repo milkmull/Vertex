@@ -160,7 +160,7 @@ using byte_allocator = default_allocator<unsigned char, Alignment, Policy>;
 template <typename Allocator, typename U>
 struct rebind_allocator
 {
-    using type = typename Allocator::template rebind<U>::other;
+    using type = typename allocator_traits<Allocator>::template rebind_alloc<U>;
 };
 
 } // namespace mem

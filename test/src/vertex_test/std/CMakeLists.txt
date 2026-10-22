@@ -11,6 +11,7 @@
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/vector")
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/string")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/hash_set")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/hash_map")
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/list")
 #
 #vx_add_test(test_std_array                  "std" "${CMAKE_CURRENT_SOURCE_DIR}/array.cpp")

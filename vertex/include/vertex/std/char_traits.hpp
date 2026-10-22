@@ -9,6 +9,7 @@
 #include "vertex/std/_simd/simd_algorithms.hpp"
 #include "vertex/std/algorithm.hpp"
 #include "vertex/std/crypto/fnv1a.hpp"
+#include "vertex/std/hash.hpp"
 
 namespace vx {
 namespace str {
@@ -504,11 +505,11 @@ struct char_traits_base
         return static_cast<int_type>(EOF);
     }
 
-    static constexpr size_t hash(const char_type* const s, const size_t count) noexcept
+    static hash_t hash(const char_type* const s, const size_t count) noexcept
     {
         fnv1a fnv;
         fnv.update(reinterpret_cast<const unsigned char*>(s), count * sizeof(char_type));
-        return fnv.result();
+        return static_cast<hash_t>(fnv.result());
     }
 };
 

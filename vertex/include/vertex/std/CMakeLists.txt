@@ -15,9 +15,6 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_open.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_chain.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_table.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_functions.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_traits.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_map_policy.hpp"
 
     # Core
     "${CMAKE_CURRENT_SOURCE_DIR}/array.hpp"
@@ -38,6 +35,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/unique_ptr.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/weak_ptr.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/shared_ptr.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/hash.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/hash_set.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/hash_map.hpp"
 
@@ -106,7 +104,6 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_tools/dynamic_array_base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_tools/pointer_iterator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_tools/invoke.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_tools/hash.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_simd/min_max.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_simd/simd_algorithms.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_string_convert/string_convert_common.hpp"

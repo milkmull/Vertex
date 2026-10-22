@@ -110,4 +110,11 @@ VX_FORCE_INLINE constexpr const T* launder(const T* p) noexcept
     return const_cast<const T*>(launder(const_cast<T*>(p)));
 }
 
+//=========================================================================
+// pair
+//=========================================================================
+
+template <typename T1, typename T2>
+using pair = std::pair<T1, T2>;
+
 } // namespace vx

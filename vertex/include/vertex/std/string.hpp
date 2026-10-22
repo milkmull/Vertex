@@ -10,6 +10,7 @@
 #include "vertex/std/cstring_view.hpp"
 #include "vertex/std/expected.hpp"
 #include "vertex/std/growth_policy.hpp"
+#include "vertex/std/hash.hpp"
 #include "vertex/std/iterator.hpp"
 #include "vertex/std/string_view.hpp"
 
@@ -108,7 +109,7 @@ private:
     // does not reassign static buffer, only call if you are about to assign a new pointer
     void destroy_and_deallocate(T* ptr, size_type size, size_type capacity)
     {
-        if (!is_static_buffer())
+        if (capacity != 0)
         {
             destroy_size(ptr, size);
             deallocate_capacity(ptr, capacity);
@@ -121,7 +122,7 @@ private:
         auto& size = m_data().size;
         auto& capacity = m_data().capacity;
 
-        if (!is_static_buffer())
+        if (capacity != 0)
         {
             range::destroy(ptr, size + 1);
             m_allocator().deallocate(ptr, capacity + 1); // +1 for null terminator slot
@@ -145,7 +146,7 @@ private:
 
     bool is_static_buffer() const noexcept
     {
-        return m_data().ptr == _string_traits_priv::empty_string<T>();
+        return m_data().capacity == 0;
     }
 
     void assign_empty_ptr() noexcept
@@ -167,8 +168,7 @@ private:
         auto& size = m_data().size;
         auto& capacity = m_data().capacity;
 
-        assign_empty_ptr();
-
+        construct_empty();
         if (count == 0)
         {
             return success{};
@@ -3560,15 +3560,12 @@ using u32string = str::basic_string<char32_t>;
 
 namespace vx {
 
-template <typename T>
-struct hash;
-
 template <typename T, typename Allocator>
 struct hash<str::basic_string<T, Allocator>>
 {
-    size_t operator()(const vx::str::basic_string<T, Allocator>& s) const noexcept
+    hash_t operator()(const str::basic_string<T, Allocator>& s) const noexcept
     {
-        using traits = typename vx::str::basic_string<T, Allocator>::traits_type;
+        using traits = typename str::basic_string<T, Allocator>::traits_type;
         return traits::hash(s.data(), s.size());
     }
 };

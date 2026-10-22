@@ -1,24 +1,13 @@
 #pragma once
 
-// Open-addressing (Swiss-style) backend: ctrl bytes, probing, layout, iterator
-// and open_table. Shared policies live in hash_common.hpp, allocator/hasher/eq
-// storage in hash_storage.hpp.
-
-#include <cstddef>
-#include <cstdint>
-#include <iterator>
-#include <type_traits>
-#include <utility>
-
 #include "vertex/config/language_config.hpp"
-#include "vertex/std/bit.hpp" // path is a guess
+#include "vertex/std/bit.hpp"
 #include "vertex/std/expected.hpp"
-#include "vertex/std/memory.hpp" // path is a guess
-#include "vertex/std/variant_storage.hpp"
+#include "vertex/std/memory.hpp"
 
-#include "hash_common.hpp"
-#include "hash_group.hpp"
-#include "hash_storage.hpp"
+#include "vertex/std/_hash/hash_common.hpp"
+#include "vertex/std/_hash/hash_group.hpp"
+#include "vertex/std/_hash/hash_storage.hpp"
 
 namespace vx {
 namespace _hash_priv {
@@ -55,76 +44,6 @@ struct alignas(Align) block_unit
 };
 
 //=========================================================================
-// ctrl array
-//=========================================================================
-
-// What an unallocated table points at. capacity == 0, so ctrl[capacity] is
-// ctrl[0], which is the sentinel. The other width-1 bytes are EMPTY, so:
-//   - a find loads this group, matches nothing, sees an EMPTY, and reports a miss
-//   - begin() lands on the sentinel, so begin() == end() with no null check
-// It is never written: an unallocated table has growth_left == 0, so any insert
-// takes the grow path first. Anything that writes ctrl (clear, erase, rehash)
-// must check capacity != 0. Never compare a pointer against it (not DLL-safe),
-// test capacity == 0 instead.
-// Growth policies must therefore accept cap == 0 (wrap(x, 0) == 0).
-inline ctrl_t* empty_group() noexcept
-{
-    // The initializer below is written for width 8. Any other width would
-    // zero-fill the tail, and 0x00 is a FULL byte with h2 == 0, so a lookup on
-    // an empty table would call eq() on a null slot array.
-    VX_STATIC_ASSERT_MSG(group_width == 8, "empty_group() initializer assumes group_width == 8");
-
-    // clang-format off
-    alignas(group_width) static const ctrl_t group_bytes[group_width] = {
-        ctrl_sentinel,
-        ctrl_empty, ctrl_empty, ctrl_empty, ctrl_empty,
-        ctrl_empty, ctrl_empty, ctrl_empty
-    };
-    // clang-format on
-    return const_cast<ctrl_t*>(group_bytes);
-}
-
-// ctrl layout: [ cap slots | sentinel | min(cap, W-1) clones | phantoms ]
-// For cap >= W - 1 there are no phantoms. For smaller caps the remaining bytes
-// stay EMPTY forever (see has_phantom_bytes). Nothing may write them.
-inline void reset_ctrl(ctrl_t* ctrl, size_t cap) noexcept
-{
-    VX_ASSERT(cap != 0);
-    mem::set(ctrl, static_cast<int>(ctrl_empty), cap + group_width);
-    ctrl[cap] = ctrl_sentinel;
-}
-
-// Re-establish the sentinel and clones after bulk-rewriting ctrl[0..cap).
-inline void restore_ctrl_clones(ctrl_t* ctrl, size_t cap) noexcept
-{
-    VX_ASSERT(cap != 0);
-    constexpr size_t max_clones = group_width - 1;
-    const size_t n = cap < max_clones ? cap : max_clones;
-
-    ctrl[cap] = ctrl_sentinel;
-    for (size_t i = 0; i < n; ++i)
-    {
-        ctrl[cap + 1 + i] = ctrl[i];
-    }
-}
-
-// Writes ctrl[i] and its clone, if it has one. Every ctrl write after reset_ctrl
-// goes through this (insert writes H2, erase writes EMPTY or DELETED).
-// Works for any capacity: the clone of slot i (i < width - 1) lives at cap + 1 + i.
-inline void set_ctrl(ctrl_t* ctrl, size_t cap, size_t i, ctrl_t value) noexcept
-{
-    VX_ASSERT(i < cap);
-
-    constexpr size_t cloned = group_width - 1;
-    // For i >= cloned the "mirror" is just i again (harmless, branch-free cmov).
-    const size_t mirror = i < cloned ? cap + 1 + i : i;
-
-    ctrl[i] = value;
-    ctrl[mirror] = value;
-}
-
-
-//=========================================================================
 // probing
 //=========================================================================
 
@@ -135,7 +54,7 @@ public:
 
     probe_seq(size_t h1, size_t cap) noexcept
         : m_cap(cap)
-        , m_offset(base::wrap(h1, cap))
+        , m_offset(Growth::wrap(h1, cap))
         , m_index(0)
     {}
 
@@ -209,8 +128,6 @@ size_t group_before(size_t i, size_t cap) noexcept
 // iterators
 //=========================================================================
 
-// Backend iterator: a (ctrl*, slot*) pair that advances in lockstep.
-// Slot is slot_type or const slot_type.
 template <typename Slot>
 class open_iterator
 {
@@ -219,7 +136,7 @@ class open_iterator
 
 public:
 
-    using iterator_category = std::forward_iterator_tag; // swap for your own tag type
+    using iterator_category = std::forward_iterator_tag;
     using value_type = typename std::remove_const<Slot>::type;
     using difference_type = ptrdiff_t;
     using pointer = Slot*;
@@ -241,7 +158,7 @@ public:
 
     reference operator*() const noexcept
     {
-        VX_ASSERT(is_full(*m_ctrl));
+        VX_ASSERT(slot_is_full(*m_ctrl));
         return *m_slot;
     }
 
@@ -252,7 +169,8 @@ public:
 
     open_iterator& operator++() noexcept
     {
-        VX_ASSERT(*m_ctrl != ctrl_sentinel); // cannot advance end()
+        VX_ASSERT(*m_ctrl != ctrl_sentinel);
+
         ++m_ctrl;
         ++m_slot;
         skip_empty_or_deleted();
@@ -270,7 +188,7 @@ public:
     // jumps over a whole run of EMPTY/DELETED lanes. Used by begin().
     void skip_empty_or_deleted() noexcept
     {
-        while (is_empty_or_deleted(*m_ctrl))
+        while (slot_is_empty_or_deleted(*m_ctrl))
         {
             // all lanes empty/deleted gives trailing_zeros == width, so we skip a
             // whole group, and the sentinel can never be jumped over
@@ -326,7 +244,6 @@ struct open_data
         growth_left = 0;
     }
 
-    // same role as vector's data_type::acquire: take other's block, leave it empty
     void acquire(open_data& other) noexcept
     {
         *this = other;
@@ -343,9 +260,13 @@ template <
     typename Hasher,
     typename Eq,
     typename Allocator,
-    typename Growth = pow2_growth>
+    typename Growth = _hash_priv::pow2_growth>
 class open_table
 {
+public:
+
+    using slot_traits = SlotTraits;
+
 private:
 
     //=========================================================================
@@ -369,10 +290,7 @@ private:
         : group_width;
 
     using block_type = block_unit<block_align>;
-    using block_allocator = typename Allocator::template rebind<block_type>::other;
-
-    // Above this size, avoid using a temporary slot on the stack.
-    static constexpr size_t max_in_place_slot_size = 256;
+    using block_allocator = typename mem::rebind_allocator<Allocator, block_type>::type;
 
 public:
 
@@ -380,7 +298,7 @@ public:
     // public types
     //=========================================================================
 
-    using allocator_type = block_allocator;
+    using allocator_type = Allocator;
     using hasher_type = Hasher;
     using eq_type = Eq;
 
@@ -413,24 +331,33 @@ public:
         return iterator_at(index_of(it));
     }
 
+    // Mutable access to a full slot, whatever the iterator's constness. For relocating an
+    // element out of the table right before erasing it (merge).
+    slot_type& value_at(const_iterator it) noexcept
+    {
+        const size_t i = index_of(it);
+        VX_ASSERT(i < m_data().capacity && slot_is_full(m_data().ctrl[i]));
+        return m_data().slots[i];
+    }
+
 private:
 
     //=========================================================================
     // storage
     //=========================================================================
 
-    table_storage<allocator_type, Hasher, Eq, table_data> m_storage;
+    table_storage<block_allocator, Hasher, Eq, table_data> m_storage;
 
     //=========================================================================
     // accessors
     //=========================================================================
 
-    allocator_type& m_allocator() noexcept
+    block_allocator& m_allocator() noexcept
     {
         return m_storage.alloc();
     }
 
-    const allocator_type& m_allocator() const noexcept
+    const block_allocator& m_allocator() const noexcept
     {
         return m_storage.alloc();
     }
@@ -477,6 +404,7 @@ private:
 
     unsigned char* allocate_block(size_t bytes) noexcept
     {
+        VX_ASSERT(bytes % block_align == 0);
         block_type* p = m_allocator().allocate(bytes / block_align);
         return reinterpret_cast<unsigned char*>(p);
     }
@@ -503,6 +431,7 @@ private:
         }
     };
 
+    // allocate new table and copy over each full slot
     data_pointer_pair allocate_and_copy_from(const table_data& src)
     {
         layout l;
@@ -523,7 +452,7 @@ private:
         // copy the values over
         for (size_t i = 0; i < src.capacity; ++i)
         {
-            if (is_full(ctrl[i]))
+            if (slot_is_full(ctrl[i]))
             {
                 slot_traits::construct(slots + i, src.slots[i]);
             }
@@ -532,14 +461,11 @@ private:
         return { ctrl, slots };
     }
 
-    // Copies ctrl bytes verbatim (sentinel, clones, phantoms, and tombstones), then
-    // copy-constructs each full slot at the same index. No hashing, no probing.
-    // Requires *this to be unallocated.
     success copy_construct_from(const table_data& src)
     {
         auto& d = m_data();
 
-        // should only be called when empty
+        // should only be called after being cleared or during cinstruction
         VX_ASSERT(d.capacity == 0);
 
         if (src.capacity == 0)
@@ -560,6 +486,8 @@ private:
         return success{};
     }
 
+public:
+
     //=========================================================================
     // constructors
     //=========================================================================
@@ -579,15 +507,14 @@ private:
     }
 
     open_table(const open_table& other)
-        : m_storage(other.alloc(), other.hasher(), other.eq())
+        : m_storage(other.m_allocator(), other.m_hasher(), other.m_eq())
     {
         const auto ok = copy_construct_from(other.m_data());
         VX_VERIFY(ok);
     }
 
-    // like vector: the allocator moves along with the block that it produced
     open_table(open_table&& other) noexcept
-        : m_storage(std::move(other.alloc()), std::move(other.hasher()), std::move(other.eq()))
+        : m_storage(std::move(other.m_allocator()), std::move(other.m_hasher()), std::move(other.m_eq()))
     {
         m_data().acquire(other.m_data());
     }
@@ -596,22 +523,9 @@ private:
     // fallible construction
     //=========================================================================
 
-    static expected<open_table, error> create(const Hasher& h = Hasher(), const Eq& e = Eq(), const allocator_type& a = allocator_type())
-    {
-        return open_table(h, e, a);
-    }
-
-    static expected<open_table, error> create(size_t n, const Hasher& h = Hasher(), const Eq& e = Eq(), const allocator_type& a = allocator_type())
-    {
-        open_table t(h, e, a);
-        const auto ok = t.reserve(n);
-        VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
-        return t;
-    }
-
     static expected<open_table, error> create(const open_table& other)
     {
-        open_table t(other.hasher(), other.eq(), other.alloc());
+        open_table t(other.m_hasher(), other.m_eq(), other.m_allocator());
         const auto ok = t.copy_construct_from(other.m_data());
         VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return t;
@@ -619,7 +533,7 @@ private:
 
     static expected<open_table, error> create(open_table&& other) noexcept
     {
-        open_table t(std::move(other.alloc()), std::move(other.hasher()), std::move(other.eq()));
+        open_table t(std::move(other.m_hasher()), std::move(other.m_eq()), std::move(other.m_allocator()));
         t.m_data().acquire(other.m_data());
         return t;
     }
@@ -641,7 +555,7 @@ private:
 
         for (size_t i = 0; i < d.capacity; ++i)
         {
-            if (is_full(d.ctrl[i]))
+            if (slot_is_full(d.ctrl[i]))
             {
                 slot_traits::destroy(d.slots + i);
             }
@@ -675,7 +589,7 @@ public:
 
     allocator_type get_allocator() const noexcept
     {
-        return m_allocator();
+        return static_cast<allocator_type>(m_allocator());
     }
 
     Hasher hash_function() const
@@ -694,7 +608,7 @@ public:
 
 private:
 
-    success assign_from(const open_table& src) noexcept
+    success assign_from(const table_data& src) noexcept
     {
         auto& d = m_data();
 
@@ -706,6 +620,8 @@ private:
 
         const auto ptrs = allocate_and_copy_from(src);
         VX_RET_ERR_IF(!ptrs.ok(), err::out_of_memory);
+
+        destroy_and_release();
 
         d.ctrl = ptrs.ctrl;
         d.slots = ptrs.slots;
@@ -758,7 +674,7 @@ public:
     success assign(const open_table& other)
     {
         VX_ASSERT(this != &other);
-        return assign_from(other);
+        return assign_from(other.m_data());
     }
 
     success assign(open_table&& other) noexcept
@@ -875,7 +791,6 @@ public:
         return d.capacity;
     }
 
-    // Tombstones are the budget that erase left behind. Derived, so no extra field.
     size_t tombstone_count() const noexcept
     {
         const auto& d = m_data();
@@ -892,7 +807,6 @@ public:
     // hashing
     //=========================================================================
 
-    // Hash plus finalizer (see table_storage::hash_of).
     template <typename Q>
     size_t hash_of(const Q& key) const noexcept
     {
@@ -922,7 +836,7 @@ private:
             for (uint32_t lane : g.match(h2))
             {
                 const size_t i = seq.slot_at(lane);
-                if (eq()(key, slot_traits::key(d.slots[i])))
+                if (m_eq()(key, slot_traits::key(d.slots[i])))
                 {
                     return i;
                 }
@@ -949,7 +863,6 @@ public:
     template <typename Q>
     iterator find_with_hash(const Q& key, size_t hash) noexcept
     {
-        VX_ASSERT(hash == hash_of(key)); // debug: a precomputed hash must agree with the hasher
         const size_t i = find_index_with_hash(key, hash);
         return i == npos ? end() : iterator_at(i);
     }
@@ -957,7 +870,6 @@ public:
     template <typename Q>
     const_iterator find_with_hash(const Q& key, size_t hash) const noexcept
     {
-        VX_ASSERT(hash == hash_of(key));
         const size_t i = find_index_with_hash(key, hash);
         return i == npos ? end() : iterator_at(i);
     }
@@ -989,7 +901,7 @@ private:
     // Capacity to grow into so that `needed` elements fit. Returns 0 if no valid capacity
     // satisfies it under the allocator ceiling (report size_error). After allocating:
     //     m_data().growth_left = growth::max_size(new_cap) - m_data().size;
-    size_t grown_capacity(size_t needed) const noexcept
+    size_t grow_capacity(size_t needed) const noexcept
     {
         const size_t cap = growth::next_capacity(m_data().capacity, needed, max_size());
         VX_ASSERT(cap == 0 || (cap > m_data().capacity && growth::max_size(cap) >= needed && cap <= max_size()));
@@ -1023,7 +935,7 @@ private:
         {
             for (size_t i = 0; i < d.capacity; ++i)
             {
-                if (!is_full(d.ctrl[i]))
+                if (!slot_is_full(d.ctrl[i]))
                 {
                     continue;
                 }
@@ -1046,12 +958,21 @@ private:
         return success{};
     }
 
+    success cleanup_tombstones()
+    {
+        return rehash_to(m_data().capacity);
+    }
+
     // Called when an insert finds growth_left == 0: clean in place if tombstones
     // dominate, otherwise grow.
     success grow_for_insert()
     {
-        auto& d = m_data();
-        const size_t new_cap = grown_capacity(d.size + 1);
+        if (needs_cleanup())
+        {
+            return cleanup_tombstones();
+        }
+
+        const size_t new_cap = grow_capacity(m_data().size + 1);
         VX_RET_ERR_IF(new_cap == 0, err::size_error);
         return rehash_to(new_cap);
     }
@@ -1095,7 +1016,12 @@ public:
             return success{};
         }
 
-        const size_t new_cap = grown_capacity(n);
+        if (d.capacity != 0 && n <= growth::max_size(d.capacity))
+        {
+            return cleanup_tombstones();
+        }
+
+        const size_t new_cap = grow_capacity(n);
         VX_RET_ERR_IF(new_cap == 0, err::size_error);
 
         return rehash_to(new_cap);
@@ -1112,13 +1038,12 @@ public:
         }
 
         const size_t target = slots_for(d.size);
-        VX_ASSERT(target != 0); // the current capacity already holds size, so something valid fits
+        VX_ASSERT(target != 0);
 
         // Only rebuild if it actually shrinks. Equal capacity would just be a cleanup.
         return target < d.capacity ? rehash_to(target) : success{};
     }
 
-    // Explicit tombstone cleanup (decision 8's compact()).
     success compact()
     {
         return tombstone_count() == 0 ? success{} : cleanup_tombstones();
@@ -1149,10 +1074,11 @@ private:
             VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
             i = find_first_non_full<growth>(d.ctrl, d.capacity, hash);
         }
+
         return i;
     }
 
-    size_t prepare_insert_capacity(size_t hash) noexcept
+    size_t prepare_insert_assume_capacity(size_t hash) noexcept
     {
         auto& d = m_data();
         const size_t i = find_first_non_full<growth>(d.ctrl, d.capacity, hash);
@@ -1164,7 +1090,7 @@ private:
     void insert_index(size_t i, size_t hash) noexcept
     {
         auto& d = m_data();
-        VX_ASSERT(i < d.capacity && !is_full(d.ctrl[i]));
+        VX_ASSERT(i < d.capacity && !slot_is_full(d.ctrl[i]));
         d.growth_left -= (d.ctrl[i] == ctrl_empty); // only EMPTY spends budget
         set_ctrl(d.ctrl, d.capacity, i, static_cast<ctrl_t>(h2_of(hash)));
         ++d.size;
@@ -1192,9 +1118,9 @@ public:
 
     // requires growth_left > 0 (or a tombstone on the probe path)
     template <typename... Args>
-    iterator emplace_new_capacity(size_t hash, Args&&... args)
+    iterator emplace_new_assume_capacity(size_t hash, Args&&... args)
     {
-        const size_t i = prepare_insert_capacity(hash);
+        const size_t i = prepare_insert_assume_capacity(hash);
         slot_traits::construct(m_data().slots + i, std::forward<Args>(args)...);
         insert_index(i, hash);
         return iterator_at(i);
@@ -1209,7 +1135,7 @@ private:
     void erase_index(size_t i) noexcept
     {
         auto& d = m_data();
-        VX_ASSERT(i < d.capacity && is_full(d.ctrl[i]));
+        VX_ASSERT(i < d.capacity && slot_is_full(d.ctrl[i]));
         slot_traits::destroy(d.slots + i);
 
         // Could any probe window of W bytes have passed over slot i while it was

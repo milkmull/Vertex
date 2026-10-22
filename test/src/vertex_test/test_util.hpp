@@ -117,6 +117,11 @@ public:
         : m_id(id), m_stats(stats)
     {}
 
+    template <typename U>
+    tracking_allocator(const tracking_allocator<U>& other) noexcept
+        : m_id(other.id()), m_stats(other.stats())
+    {}
+
     tracking_allocator(const tracking_allocator&) noexcept = default;
     tracking_allocator(tracking_allocator&&) noexcept = default;
     tracking_allocator& operator=(const tracking_allocator&) noexcept = default;
