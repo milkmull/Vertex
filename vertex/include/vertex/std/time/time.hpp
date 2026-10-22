@@ -3,9 +3,10 @@
 #include "vertex/config/hash.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/type_traits.hpp"
+#include "vertex/std/crypto/fnv1a.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/expected.hpp"
-#include "vertex/std/crypto/fnv1a.hpp"
+#include "vertex/std/hash.hpp"
 
 namespace vx {
 namespace time {
@@ -521,28 +522,25 @@ inline constexpr void swap(time_point& lhs, time_point& rhs) noexcept
 
 namespace vx {
 
-template <typename T>
-struct hash;
-
 template <>
 struct hash<vx::time::duration>
 {
-    size_t operator()(const vx::time::duration& d) const noexcept
+    hash_t operator()(const vx::time::duration& d) const noexcept
     {
         fnv1a fnv;
         fnv.update(d.as_nanoseconds());
-        return fnv.result();
+        return static_cast<hash_t>(fnv.result());
     }
 };
 
 template <>
 struct hash<vx::time::time_point>
 {
-    size_t operator()(const vx::time::time_point& t) const noexcept
+    hash_t operator()(const vx::time::time_point& t) const noexcept
     {
         fnv1a fnv;
         fnv.update(t.time_since_epoch().as_nanoseconds());
-        return fnv.result();
+        return static_cast<hash_t>(fnv.result());
     }
 };
 

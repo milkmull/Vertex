@@ -6,14 +6,12 @@
 
 #include "vertex/config/assert.hpp"
 #include "vertex/config/language_config.hpp"
+#include "vertex/std/bit.hpp"
 #include "vertex/std/crypto/fnv1a.hpp"
 #include "vertex/std/expected.hpp"
-#include "vertex/std/bit.hpp"
+#include "vertex/std/hash.hpp"
 
 namespace vx {
-
-template <typename T>
-struct hash;
 
 template <size_t N>
 class bitset
@@ -596,11 +594,11 @@ namespace vx {
 template <size_t N>
 struct hash<vx::bitset<N>>
 {
-    size_t operator()(const vx::bitset<N>& s) const noexcept
+    hash_t operator()(const vx::bitset<N>& s) const noexcept
     {
         fnv1a fnv;
         fnv.update(s.m_array, s.m_array + s.word_count + 1);
-        return fnv.result();
+        return static_cast<hash_t>(fnv.result());
     }
 };
 

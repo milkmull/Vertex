@@ -675,12 +675,9 @@ using u32string_view = str::basic_string_view<char32_t>;
 namespace vx {
 
 template <typename T>
-struct hash;
-
-template <typename T>
 struct hash<str::basic_string_view<T>>
 {
-    size_t operator()(const vx::str::basic_string_view<T> s) const noexcept
+    hash_t operator()(const vx::str::basic_string_view<T> s) const noexcept
     {
         using traits = typename vx::str::basic_string_view<T>::traits_type;
         return traits::hash(s.data(), s.size());

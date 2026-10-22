@@ -2639,13 +2639,10 @@ using static_u32string = str::basic_static_string<N, char32_t>;
 
 namespace vx {
 
-template <typename T>
-struct hash;
-
 template <size_t N, typename T>
 struct hash<str::basic_static_string<N, T>>
 {
-    size_t operator()(const vx::str::basic_static_string<N, T>& s) const noexcept
+    hash_t operator()(const vx::str::basic_static_string<N, T>& s) const noexcept
     {
         using traits = typename vx::str::basic_static_string<N, T>::traits_type;
         return traits::hash(s.data(), s.size());

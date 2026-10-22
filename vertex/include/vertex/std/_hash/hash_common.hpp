@@ -1,13 +1,5 @@
 #pragma once
 
-// Pieces shared by every backend: growth and load policies, traits, hash
-// helpers and slot policies. Nothing here knows how elements are stored.
-
-#include <cstddef>
-#include <cstdint>
-#include <type_traits>
-#include <utility>
-
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/memory.hpp"
 #include "vertex/std/util.hpp"
