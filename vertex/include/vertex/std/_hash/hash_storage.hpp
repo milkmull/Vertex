@@ -109,9 +109,9 @@ public:
 
     // Hash plus finalizer. Hashers declaring is_avalanching are trusted as-is.
     template <typename Q>
-    size_t hash_of(const Q& key) const noexcept
+    hash_t hash_of(const Q& key) const noexcept
     {
-        const size_t h = static_cast<size_t>(hasher()(key));
+        const hash_t h = static_cast<hash_t>(hasher()(key));
 
         VX_IF_CONSTEXPR (is_avalanching<Hasher>::value)
         {
@@ -130,7 +130,10 @@ public:
     // swaps allocator, hasher, eq and data together
     void swap(table_storage& other) noexcept
     {
-        vx::swap(m_pair, other.m_pair);
+        vx::swap(alloc(), other.alloc());
+        vx::swap(hasher(), other.hasher());
+        vx::swap(eq(), other.eq());
+        vx::swap(data(), other.data());
     }
 };
 

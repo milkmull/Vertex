@@ -44,8 +44,8 @@ inline size_t format_error_impl(error_type error, char* buffer, size_t size)
         return 0;
     }
 
-    const auto last = str::string_cast<char>(wbuffer, wcount, buffer, size);
-    return static_cast<size_t>(buffer - last);
+    const auto res = str::string_cast<char>(wbuffer, wcount, buffer, size);
+    return static_cast<size_t>(buffer - res.dst_end);
 }
 
 

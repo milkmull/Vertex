@@ -27,7 +27,7 @@
 //=========================================================================
 
 namespace vx {
-namespace _hash_group_priv {
+namespace _flat_hash_priv {
 
 //=========================================================================
 // control bytes
@@ -419,5 +419,5 @@ inline void set_ctrl(ctrl_t* ctrl, size_t capacity, size_t i, ctrl_t value) noex
     ctrl[mirror] = value;
 }
 
-} // namespace _hash_group_priv
+} // namespace _flat_hash_priv
 } // namespace vx

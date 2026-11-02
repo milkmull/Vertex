@@ -12,7 +12,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_group.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_common.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_storage.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_open.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_flat.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_chain.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_table.hpp"
 
@@ -43,6 +43,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/path.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/filesystem.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shared_library.hpp"
 
     # Containers
     "${CMAKE_CURRENT_SOURCE_DIR}/growth_policy.hpp"
@@ -65,6 +66,8 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/string_utils.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/packed_string_array.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/utf.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/temporary_string.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/native_string.hpp"
 
     # Math / numeric
     "${CMAKE_CURRENT_SOURCE_DIR}/math/numeric.hpp"

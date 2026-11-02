@@ -84,7 +84,7 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_process.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_random.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_random.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_shared_library.hpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_shared_library.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_system_info.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_system_info.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_system_memory.hpp"

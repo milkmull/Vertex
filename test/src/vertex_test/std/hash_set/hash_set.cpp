@@ -7,6 +7,7 @@
 #include <functional>
 #include <initializer_list>
 #include <iterator>
+#include <limits>
 #include <list>
 #include <set>
 #include <sstream>
@@ -16,8 +17,8 @@
 
 #include "vertex_test/test.hpp"
 
-// Generic tests: every test is a template over the set type, so the same code
-// runs against every key type / allocator combination (TEST_SETS).
+// Generic tests are templates over the set type, so the same code runs against
+// every key type / allocator combination (see TEST_SETS below).
 //
 // Key types:
 //   int           trivial key
@@ -30,14 +31,24 @@
 // Requirements on test helpers outside this file:
 //   * tracking_allocator<T> must have the converting constructor
 //       template <typename U> tracking_allocator(const tracking_allocator<U>&)
-//     that copies id + stats (needed because the table rebinds the allocator internally).
+//     that copies id + stats (the table rebinds the allocator internally).
 //
-// Test-local helpers (defined below): counted_key (element lifetime tracking),
-// failing_allocator (allocation failure injection), stateful / transparent /
-// degenerate / avalanching hashers.
+// Layout:
+//   1. helpers          key types, hashers, allocators, set aliases, macros
+//   2. construction
+//   3. insert / emplace / lookup
+//   4. erase
+//   5. capacity         growth, load boundary, tombstone churn
+//   6. copy / move / swap / assign / compare
+//   7. iteration
+//   8. hashing          default, degenerate, avalanching, transparent, stateful
+//   9. element lifetime
+//  10. allocators
+//  11. error reporting
+//  12. randomized stress
 
 //=========================================================================
-// helpers
+// 1. helpers
 //=========================================================================
 
 namespace {
@@ -56,6 +67,10 @@ int val(const T& t)
 {
     return static_cast<int>(t);
 }
+
+//-------------------------------------------------------------------------
+// hashers
+//-------------------------------------------------------------------------
 
 // Deliberately NOT avalanching, so the table's own finalizer is exercised.
 template <typename K>
@@ -94,65 +109,38 @@ struct avalanche_hash
     }
 };
 
-template <typename K>
-using plain_set = vx::unordered_set<K, test_hash<K>>;
-
-template <typename K>
-using tracked_set = vx::unordered_set<K, test_hash<K>, std::equal_to<K>, tracking_allocator<K>>;
-
-template <typename K>
-using degenerate_set = vx::unordered_set<K, const_hash<K>>;
-
-template <typename K>
-using avalanche_set = vx::unordered_set<K, avalanche_hash<K>>;
-
-// sorted contents, by walking the iterators
-template <typename S>
-std::vector<int> contents(const S& s)
+// stateful hasher / equality, to check they are copied, moved and swapped
+struct seeded_hash
 {
-    std::vector<int> out;
-    for (auto it = s.begin(); it != s.end(); ++it)
+    int seed = 0;
+
+    seeded_hash() = default;
+
+    explicit seeded_hash(int s) noexcept
+        : seed(s)
+    {}
+
+    size_t operator()(int k) const noexcept
     {
-        out.push_back(val(*it));
+        return vx::default_hash<int>()(k + seed);
     }
-    std::sort(out.begin(), out.end());
-    return out;
-}
+};
 
-template <typename S>
-bool eq_model(const S& s, const std::vector<int>& sorted)
+struct tagged_eq
 {
-    return s.size() == sorted.size() && contents(s) == sorted;
-}
+    int tag = 0;
 
-template <typename S>
-bool eq(const S& s, std::initializer_list<int> l)
-{
-    std::vector<int> sorted(l);
-    std::sort(sorted.begin(), sorted.end());
-    return eq_model(s, sorted);
-}
+    tagged_eq() = default;
 
-// inserts [lo, hi)
-template <typename S>
-void fill(S& s, int lo, int hi)
-{
-    using K = typename S::key_type;
-    for (int i = lo; i < hi; ++i)
+    explicit tagged_eq(int t) noexcept
+        : tag(t)
+    {}
+
+    bool operator()(int a, int b) const noexcept
     {
-        VX_CHECK(s.insert(K(i)));
+        return a == b;
     }
-}
-
-std::vector<int> range(int lo, int hi)
-{
-    std::vector<int> v;
-    for (int i = lo; i < hi; ++i)
-    {
-        v.push_back(i);
-    }
-    return v;
-}
+};
 
 //-------------------------------------------------------------------------
 // counted_key: tracks construction / destruction / copies / moves, and
@@ -176,9 +164,7 @@ constexpr unsigned counted_magic = 0xC0FFEEu;
 
 struct counted_key
 {
-    using stats_t = counted_stats;
-
-    static stats_t& stats() noexcept
+    static counted_stats& stats() noexcept
     {
         return g_counted_stats;
     }
@@ -270,8 +256,6 @@ private:
     unsigned m_magic = counted_magic;
 };
 
-using counted_set = vx::unordered_set<counted_key, test_hash<counted_key>>;
-
 //-------------------------------------------------------------------------
 // multi-argument key, for emplace(args...)
 //-------------------------------------------------------------------------
@@ -349,42 +333,6 @@ struct wide_eq
 };
 
 //-------------------------------------------------------------------------
-// stateful hasher / equality, to check they are copied, moved and swapped
-//-------------------------------------------------------------------------
-
-struct seeded_hash
-{
-    int seed = 0;
-
-    seeded_hash() = default;
-
-    explicit seeded_hash(int s) noexcept
-        : seed(s)
-    {}
-
-    size_t operator()(int k) const noexcept
-    {
-        return vx::default_hash<int>()(k + seed);
-    }
-};
-
-struct tagged_eq
-{
-    int tag = 0;
-
-    tagged_eq() = default;
-
-    explicit tagged_eq(int t) noexcept
-        : tag(t)
-    {}
-
-    bool operator()(int a, int b) const noexcept
-    {
-        return a == b;
-    }
-};
-
-//-------------------------------------------------------------------------
 // failing_allocator: malloc based, can be told to fail.
 // countdown == -1: never fail. countdown == k: k more allocations succeed,
 // then every allocation returns nullptr until countdown is reset.
@@ -394,8 +342,6 @@ struct fail_state
 {
     long countdown = -1;
     long live = 0;
-    size_t allocs = 0;
-    size_t deallocs = 0;
     size_t failures = 0;
 };
 
@@ -440,7 +386,6 @@ public:
         T* p = static_cast<T*>(std::malloc(n * sizeof(T)));
         if (p && m_s)
         {
-            ++m_s->allocs;
             ++m_s->live;
         }
         return p;
@@ -454,7 +399,6 @@ public:
         }
         if (m_s)
         {
-            ++m_s->deallocs;
             --m_s->live;
         }
         std::free(p);
@@ -477,10 +421,87 @@ bool operator!=(const failing_allocator<T>& a, const failing_allocator<U>& b) no
     return !(a == b);
 }
 
+//-------------------------------------------------------------------------
+// set aliases
+//-------------------------------------------------------------------------
+
+template <typename K>
+using plain_set = vx::unordered_set<K, test_hash<K>>;
+
+template <typename K>
+using tracked_set = vx::unordered_set<K, test_hash<K>, std::equal_to<K>, tracking_allocator<K>>;
+
 template <typename K>
 using failing_set = vx::unordered_set<K, test_hash<K>, std::equal_to<K>, failing_allocator<K>>;
 
-// Runs a templated test for every key type / allocator combination.
+template <typename K>
+using degenerate_set = vx::unordered_set<K, const_hash<K>>;
+
+template <typename K>
+using avalanche_set = vx::unordered_set<K, avalanche_hash<K>>;
+
+using counted_set = vx::unordered_set<counted_key, test_hash<counted_key>>;
+
+//-------------------------------------------------------------------------
+// content helpers
+//-------------------------------------------------------------------------
+
+// sorted contents, by walking the iterators
+template <typename S>
+std::vector<int> contents(const S& s)
+{
+    std::vector<int> out;
+    for (auto it = s.begin(); it != s.end(); ++it)
+    {
+        out.push_back(val(*it));
+    }
+    std::sort(out.begin(), out.end());
+    return out;
+}
+
+template <typename S>
+bool eq_model(const S& s, const std::vector<int>& sorted)
+{
+    return s.size() == sorted.size() && contents(s) == sorted;
+}
+
+template <typename S>
+bool eq(const S& s, std::initializer_list<int> l)
+{
+    std::vector<int> sorted(l);
+    std::sort(sorted.begin(), sorted.end());
+    return eq_model(s, sorted);
+}
+
+// [lo, hi)
+std::vector<int> range(int lo, int hi)
+{
+    std::vector<int> v;
+    for (int i = lo; i < hi; ++i)
+    {
+        v.push_back(i);
+    }
+    return v;
+}
+
+// inserts [lo, hi), checking that each insert succeeds
+template <typename S>
+void fill(S& s, int lo, int hi)
+{
+    using K = typename S::key_type;
+    for (int i = lo; i < hi; ++i)
+    {
+        VX_CHECK(s.insert(K(i)));
+    }
+}
+
+} // namespace
+
+//-------------------------------------------------------------------------
+// test registration macros
+//-------------------------------------------------------------------------
+
+// Runs test_<name><S>() for every key type / allocator combination.
 #define TEST_SETS(name) \
     VX_TEST_CASE(name##_int) \
     { \
@@ -503,7 +524,7 @@ using failing_set = vx::unordered_set<K, test_hash<K>, std::equal_to<K>, failing
         test_##name<tracked_set<movable_int>>(); \
     }
 
-// Same, but for tests that only make sense with the key types that can be copied.
+// Same, but only for the key types that can be copied.
 #define TEST_SETS_COPYABLE(name) \
     VX_TEST_CASE(name##_int) \
     { \
@@ -518,10 +539,23 @@ using failing_set = vx::unordered_set<K, test_hash<K>, std::equal_to<K>, failing
         test_##name<tracked_set<copyable_int>>(); \
     }
 
-} // namespace
+// Runs test_<name><K>() for every key type (for tests that pick their own set type).
+#define TEST_KEYS(name) \
+    VX_TEST_CASE(name##_int) \
+    { \
+        test_##name<int>(); \
+    } \
+    VX_TEST_CASE(name##_copyable) \
+    { \
+        test_##name<copyable_int>(); \
+    } \
+    VX_TEST_CASE(name##_movable) \
+    { \
+        test_##name<movable_int>(); \
+    }
 
 //=========================================================================
-// construction
+// 2. construction
 //=========================================================================
 
 template <typename S>
@@ -542,6 +576,13 @@ void test_construct()
         VX_CHECK(s.erase(K(1)) == 0);
         s.clear();
         VX_CHECK(s.empty());
+    }
+
+    VX_SECTION("reserving constructor")
+    {
+        S s(size_t(50));
+        VX_CHECK(s.empty());
+        VX_CHECK(s.capacity() >= 50);
     }
 
     VX_SECTION("create")
@@ -571,13 +612,6 @@ void test_construct()
             VX_CHECK(c);
             VX_CHECK(c.value() == src2);
         }
-    }
-
-    VX_SECTION("reserving constructor")
-    {
-        S s(size_t(50));
-        VX_CHECK(s.empty());
-        VX_CHECK(s.capacity() >= 50);
     }
 }
 TEST_SETS(construct)
@@ -665,7 +699,7 @@ VX_TEST_CASE(construct_from_input_iterators)
 }
 
 //=========================================================================
-// insert / lookup
+// 3. insert / emplace / lookup
 //=========================================================================
 
 template <typename S>
@@ -688,16 +722,12 @@ void test_insert_find()
         VX_CHECK(again.value().it == r.value().it);
         VX_CHECK(s.size() == 1);
 
-        VX_CHECK(s.emplace(3).value().inserted);
-        VX_CHECK(!s.emplace(3).value().inserted);
-        VX_CHECK(eq(s, { 1, 3 }));
-
         if constexpr (copyable<K>)
         {
             const K c(2);
             VX_CHECK(s.insert(c).value().inserted);
             VX_CHECK(!s.insert(c).value().inserted);
-            VX_CHECK(eq(s, { 1, 2, 3 }));
+            VX_CHECK(eq(s, { 1, 2 }));
         }
     }
 
@@ -769,45 +799,30 @@ void test_insert_find()
 }
 TEST_SETS(insert_find)
 
-//=========================================================================
-// emplace
-//=========================================================================
-
 template <typename S>
 void test_emplace()
 {
-    using K = typename S::key_type;
-
-    VX_SECTION("emplace / emplace_assume_capacity")
-    {
-        S s;
-        VX_CHECK(s.emplace(5).value().inserted);
-        VX_CHECK(!s.emplace(5).value().inserted);
-        VX_CHECK(s.reserve(10));
-        VX_CHECK(s.emplace_assume_capacity(6).inserted);
-        VX_CHECK(!s.emplace_assume_capacity(6).inserted);
-        VX_CHECK(eq(s, { 5, 6 }));
-    }
-
-    VX_SECTION("emplace_assume_unique variants")
-    {
-        S s;
-        VX_CHECK(s.reserve(10));
-        auto a = s.emplace_assume_unique(1);
-        VX_CHECK(a);
-        VX_CHECK(val(*a.value()) == 1);
-        auto b = s.emplace_assume_unique_and_capacity(2);
-        VX_CHECK(val(*b) == 2);
-        VX_CHECK(eq(s, { 1, 2 }));
-    }
-
-    VX_SECTION("emplace returns an iterator to the existing element")
+    VX_SECTION("emplace inserts, duplicates return the existing element")
     {
         S s;
         auto first = s.emplace(7);
+        VX_CHECK(first);
+        VX_CHECK(first.value().inserted);
+
         auto second = s.emplace(7);
+        VX_CHECK(second);
+        VX_CHECK(!second.value().inserted);
         VX_CHECK(first.value().it == second.value().it);
         VX_CHECK(s.size() == 1);
+    }
+
+    VX_SECTION("emplace_assume_capacity")
+    {
+        S s;
+        VX_CHECK(s.reserve(10));
+        VX_CHECK(s.emplace_assume_capacity(6).inserted);
+        VX_CHECK(!s.emplace_assume_capacity(6).inserted);
+        VX_CHECK(eq(s, { 6 }));
     }
 }
 TEST_SETS(emplace)
@@ -830,8 +845,52 @@ VX_TEST_CASE(emplace_multiple_arguments)
     VX_CHECK(s.size() == 3);
 }
 
+// the _assume_capacity / _assume_unique variants of insert and emplace
+template <typename S>
+void test_insert_variants()
+{
+    using K = typename S::key_type;
+
+    VX_SECTION("insert_assume_capacity")
+    {
+        S s;
+        VX_CHECK(s.reserve(100));
+        for (int i = 0; i < 100; ++i)
+        {
+            VX_CHECK(s.insert_assume_capacity(K(i)).inserted);
+        }
+        VX_CHECK(!s.insert_assume_capacity(K(5)).inserted);
+        VX_CHECK(eq_model(s, range(0, 100)));
+    }
+
+    VX_SECTION("insert_assume_unique")
+    {
+        S s;
+        VX_CHECK(s.reserve(10));
+        auto r = s.insert_assume_unique(K(1));
+        VX_CHECK(r);
+        VX_CHECK(val(*r.value()) == 1);
+        auto it = s.insert_assume_unique_and_capacity(K(2));
+        VX_CHECK(val(*it) == 2);
+        VX_CHECK(eq(s, { 1, 2 }));
+    }
+
+    VX_SECTION("emplace_assume_unique")
+    {
+        S s;
+        VX_CHECK(s.reserve(10));
+        auto a = s.emplace_assume_unique(1);
+        VX_CHECK(a);
+        VX_CHECK(val(*a.value()) == 1);
+        auto b = s.emplace_assume_unique_and_capacity(2);
+        VX_CHECK(val(*b) == 2);
+        VX_CHECK(eq(s, { 1, 2 }));
+    }
+}
+TEST_SETS(insert_variants)
+
 //=========================================================================
-// erase
+// 4. erase
 //=========================================================================
 
 template <typename S>
@@ -858,6 +917,14 @@ void test_erase()
         }
     }
 
+    VX_SECTION("missing key on a non-empty table")
+    {
+        S s;
+        fill(s, 0, 10);
+        VX_CHECK(s.erase(K(999)) == 0);
+        VX_CHECK(s.size() == 10);
+    }
+
     VX_SECTION("by iterator returns the next element")
     {
         S s;
@@ -872,6 +939,7 @@ void test_erase()
             VX_CHECK(s.contains(K(val(*next))));
         }
 
+        // erase through the whole table using the returned iterator
         size_t n = 0;
         for (auto i = s.begin(); i != s.end(); i = s.erase(i))
         {
@@ -879,6 +947,8 @@ void test_erase()
         }
         VX_CHECK(n == 9);
         VX_CHECK(s.empty());
+        VX_CHECK(s.begin() == s.end());
+        VX_CHECK(s.insert(K(1)).value().inserted); // still usable
     }
 
     VX_SECTION("by const_iterator")
@@ -900,50 +970,12 @@ void test_erase()
             s.erase(s.begin());
         }
         VX_CHECK(s.begin() == s.end());
-        VX_CHECK(s.insert(K(1)).value().inserted); // still usable
-    }
-
-    VX_SECTION("erase every element in insertion order, then reinsert")
-    {
-        S s;
-        fill(s, 0, 300);
-        for (int i = 0; i < 300; ++i)
-        {
-            VX_CHECK(s.erase(K(i)) == 1);
-        }
-        VX_CHECK(s.empty());
-        fill(s, 0, 300);
-        VX_CHECK(eq_model(s, range(0, 300)));
-    }
-
-    VX_SECTION("sliding window churn")
-    {
-        S s;
-        const int window = 16;
-        const int total = 5000;
-        for (int i = 0; i < total; ++i)
-        {
-            VX_CHECK(s.insert(K(i)).value().inserted);
-            if (i >= window)
-            {
-                VX_CHECK(s.erase(K(i - window)) == 1);
-            }
-        }
-        VX_CHECK(eq_model(s, range(total - window, total)));
-    }
-
-    VX_SECTION("erase of a missing key on a non-empty table")
-    {
-        S s;
-        fill(s, 0, 10);
-        VX_CHECK(s.erase(K(999)) == 0);
-        VX_CHECK(s.size() == 10);
     }
 }
 TEST_SETS(erase)
 
 //=========================================================================
-// growth / capacity
+// 5. capacity
 //=========================================================================
 
 template <typename S>
@@ -979,9 +1011,6 @@ void test_growth()
         VX_CHECK(s.reserve(10)); // smaller: no-op
         VX_CHECK(s.capacity() == cap);
         VX_CHECK(eq_model(s, range(0, 50)));
-
-        VX_CHECK(!s.reserve(s.max_size() + 1));
-        VX_CHECK(eq_model(s, range(0, 50)));
     }
 
     VX_SECTION("reserve on a populated table keeps elements")
@@ -995,30 +1024,6 @@ void test_growth()
         {
             VX_CHECK(s.contains(K(i)));
         }
-    }
-
-    VX_SECTION("_assume_capacity variants after reserve")
-    {
-        S s;
-        VX_CHECK(s.reserve(100));
-        for (int i = 0; i < 100; ++i)
-        {
-            VX_CHECK(s.insert_assume_capacity(K(i)).inserted);
-        }
-        VX_CHECK(!s.insert_assume_capacity(K(5)).inserted);
-        VX_CHECK(eq_model(s, range(0, 100)));
-    }
-
-    VX_SECTION("_unique variants")
-    {
-        S s;
-        VX_CHECK(s.reserve(10));
-        auto r = s.insert_assume_unique(K(1));
-        VX_CHECK(r);
-        VX_CHECK(val(*r.value()) == 1);
-        auto it = s.insert_assume_unique_and_capacity(K(2));
-        VX_CHECK(val(*it) == 2);
-        VX_CHECK(eq(s, { 1, 2 }));
     }
 
     VX_SECTION("clear keeps the table usable")
@@ -1102,8 +1107,53 @@ void test_load_boundary()
 }
 TEST_SETS(load_boundary)
 
+// capacity must stay bounded when elements are constantly inserted and erased
+template <typename S>
+void test_tombstone_churn()
+{
+    using K = typename S::key_type;
+
+    VX_SECTION("sliding window does not grow without bound")
+    {
+        S s;
+        const int window = 16;
+        const int total = 20000;
+        for (int i = 0; i < total; ++i)
+        {
+            VX_CHECK(s.insert(K(i)).value().inserted);
+            if (i >= window)
+            {
+                VX_CHECK(s.erase(K(i - window)) == 1);
+            }
+        }
+        VX_CHECK(eq_model(s, range(total - window, total)));
+        VX_CHECK(s.capacity() < 1024);
+    }
+
+    VX_SECTION("fill and drain cycles keep capacity stable")
+    {
+        S s;
+        size_t cap_after_first = 0;
+        for (int round = 0; round < 50; ++round)
+        {
+            fill(s, 0, 100);
+            for (int i = 0; i < 100; ++i)
+            {
+                VX_CHECK(s.erase(K(i)) == 1);
+            }
+            VX_CHECK(s.empty());
+            if (round == 0)
+            {
+                cap_after_first = s.capacity();
+            }
+        }
+        VX_CHECK(s.capacity() <= cap_after_first * 2);
+    }
+}
+TEST_SETS(tombstone_churn)
+
 //=========================================================================
-// copy / move / swap / compare
+// 6. copy / move / swap / assign / compare
 //=========================================================================
 
 template <typename S>
@@ -1270,10 +1320,6 @@ void test_move_swap()
 }
 TEST_SETS(move_swap)
 
-//=========================================================================
-// assign / observers
-//=========================================================================
-
 template <typename S>
 void test_assign()
 {
@@ -1328,48 +1374,8 @@ void test_assign()
 }
 TEST_SETS_COPYABLE(assign)
 
-VX_TEST_CASE(observers_stateful_functors)
-{
-    using S = vx::unordered_set<int, seeded_hash, tagged_eq>;
-
-    S a(seeded_hash(7), tagged_eq(9));
-    VX_CHECK(a.hash_function().seed == 7);
-    VX_CHECK(a.key_eq().tag == 9);
-    fill(a, 0, 50);
-
-    S copy(a);
-    VX_CHECK(copy.hash_function().seed == 7);
-    VX_CHECK(copy.key_eq().tag == 9);
-    VX_CHECK(copy == a);
-
-    S moved(std::move(copy));
-    VX_CHECK(moved.hash_function().seed == 7);
-    VX_CHECK(moved.key_eq().tag == 9);
-    VX_CHECK(eq_model(moved, range(0, 50)));
-
-    auto made = S::create(a);
-    VX_CHECK(made);
-    VX_CHECK(made.value().hash_function().seed == 7);
-    VX_CHECK(made.value().key_eq().tag == 9);
-
-    // swap exchanges the functors together with the contents
-    S b(seeded_hash(1), tagged_eq(2));
-    fill(b, 100, 110);
-    a.swap(b);
-    VX_CHECK(a.hash_function().seed == 1);
-    VX_CHECK(a.key_eq().tag == 2);
-    VX_CHECK(b.hash_function().seed == 7);
-    VX_CHECK(b.key_eq().tag == 9);
-    VX_CHECK(eq_model(a, range(100, 110)));
-    VX_CHECK(eq_model(b, range(0, 50)));
-    for (int i = 100; i < 110; ++i)
-    {
-        VX_CHECK(a.contains(i));
-    }
-}
-
 //=========================================================================
-// iteration
+// 7. iteration
 //=========================================================================
 
 template <typename S>
@@ -1380,7 +1386,6 @@ void test_iteration()
     using CIt = typename S::const_iterator;
 
     VX_STATIC_CHECK((std::is_convertible_v<It, CIt>));
-    //VX_STATIC_CHECK((!std::is_convertible_v<CIt, It>));
     VX_STATIC_CHECK((std::is_convertible_v<typename std::iterator_traits<It>::iterator_category, std::forward_iterator_tag>));
     VX_STATIC_CHECK((std::is_convertible_v<typename std::iterator_traits<CIt>::iterator_category, std::forward_iterator_tag>));
 
@@ -1454,7 +1459,7 @@ void test_iteration()
     }
     VX_CHECK(eq(s, { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 }));
 
-    // single element at the very end of a large table
+    // single element in a large table
     S big;
     VX_CHECK(big.reserve(1000));
     VX_CHECK(big.insert(K(42)));
@@ -1469,7 +1474,7 @@ void test_iteration()
 TEST_SETS(iteration)
 
 //=========================================================================
-// default hasher
+// 8. hashing
 //=========================================================================
 
 VX_TEST_CASE(default_hasher)
@@ -1496,10 +1501,6 @@ VX_TEST_CASE(default_hasher)
     VX_CHECK(s.insert(INT32_MAX));
     VX_CHECK(s.contains(-1) && s.contains(INT32_MIN) && s.contains(INT32_MAX));
 }
-
-//=========================================================================
-// hash quality edge cases
-//=========================================================================
 
 template <typename K>
 void test_degenerate_hash()
@@ -1544,18 +1545,7 @@ void test_degenerate_hash()
     }
     VX_CHECK(eq_model(s, range(1200, 1500)));
 }
-VX_TEST_CASE(degenerate_hash_int)
-{
-    test_degenerate_hash<int>();
-}
-VX_TEST_CASE(degenerate_hash_copyable)
-{
-    test_degenerate_hash<copyable_int>();
-}
-VX_TEST_CASE(degenerate_hash_movable)
-{
-    test_degenerate_hash<movable_int>();
-}
+TEST_KEYS(degenerate_hash)
 
 template <typename K>
 void test_avalanching_hash()
@@ -1580,63 +1570,7 @@ void test_avalanching_hash()
         VX_CHECK(s.contains(K(i)) == (i % 2 == 1));
     }
 }
-VX_TEST_CASE(avalanching_hash_int)
-{
-    test_avalanching_hash<int>();
-}
-VX_TEST_CASE(avalanching_hash_movable)
-{
-    test_avalanching_hash<movable_int>();
-}
-
-// capacity must stay bounded when elements are constantly inserted and erased
-template <typename S>
-void test_tombstone_churn()
-{
-    using K = typename S::key_type;
-
-    VX_SECTION("sliding window does not grow without bound")
-    {
-        S s;
-        const int window = 16;
-        const int total = 20000;
-        for (int i = 0; i < total; ++i)
-        {
-            VX_CHECK(s.insert(K(i)));
-            if (i >= window)
-            {
-                VX_CHECK(s.erase(K(i - window)) == 1);
-            }
-        }
-        VX_CHECK(eq_model(s, range(total - window, total)));
-        VX_CHECK(s.capacity() < 1024);
-    }
-
-    VX_SECTION("fill and drain cycles keep capacity stable")
-    {
-        S s;
-        size_t cap_after_first = 0;
-        for (int round = 0; round < 50; ++round)
-        {
-            fill(s, 0, 100);
-            for (int i = 0; i < 100; ++i)
-            {
-                VX_CHECK(s.erase(K(i)) == 1);
-            }
-            VX_CHECK(s.empty());
-            if (round == 0)
-            {
-                cap_after_first = s.capacity();
-            }
-        }
-        VX_CHECK(s.capacity() <= cap_after_first * 2);
-    }
-}
-TEST_SETS(tombstone_churn)
-
-//=========================================================================
-// transparent (heterogeneous) lookup
-//=========================================================================
+TEST_KEYS(avalanching_hash)
 
 VX_TEST_CASE(transparent_lookup)
 {
@@ -1678,239 +1612,71 @@ VX_TEST_CASE(transparent_lookup)
     VX_CHECK(s.size() == 47);
 }
 
-//=========================================================================
-// merge
-//=========================================================================
+VX_TEST_CASE(stateful_functors)
+{
+    using S = vx::unordered_set<int, seeded_hash, tagged_eq>;
 
-//template <typename S>
-//void test_merge()
-//{
-//    using K = typename S::key_type;
-//
-//    VX_SECTION("disjoint keys")
-//    {
-//        S a;
-//        S b;
-//        fill(a, 0, 10);
-//        fill(b, 10, 20);
-//        VX_CHECK(a.merge(b));
-//        VX_CHECK(eq_model(a, range(0, 20)));
-//        VX_CHECK(b.empty());
-//    }
-//
-//    VX_SECTION("overlapping keys: duplicates stay in the source")
-//    {
-//        S a;
-//        S b;
-//        fill(a, 0, 10);
-//        fill(b, 5, 15);
-//        VX_CHECK(a.merge(b));
-//        VX_CHECK(eq_model(a, range(0, 15)));
-//        VX_CHECK(eq_model(b, range(5, 10)));
-//    }
-//
-//    VX_SECTION("identical sets: nothing moves")
-//    {
-//        S a;
-//        S b;
-//        fill(a, 0, 10);
-//        fill(b, 0, 10);
-//        VX_CHECK(a.merge(b));
-//        VX_CHECK(eq_model(a, range(0, 10)));
-//        VX_CHECK(eq_model(b, range(0, 10)));
-//    }
-//
-//    VX_SECTION("self merge is a no-op")
-//    {
-//        S a;
-//        fill(a, 0, 10);
-//        VX_CHECK(a.merge(a));
-//        VX_CHECK(eq_model(a, range(0, 10)));
-//    }
-//
-//    VX_SECTION("empty source / empty destination")
-//    {
-//        S a;
-//        S b;
-//        fill(a, 0, 5);
-//        VX_CHECK(a.merge(b));
-//        VX_CHECK(eq_model(a, range(0, 5)));
-//
-//        VX_CHECK(b.merge(a));
-//        VX_CHECK(eq_model(b, range(0, 5)));
-//        VX_CHECK(a.empty());
-//
-//        S e1;
-//        S e2;
-//        VX_CHECK(e1.merge(e2));
-//        VX_CHECK(e1.empty());
-//    }
-//
-//    VX_SECTION("rvalue source")
-//    {
-//        S a;
-//        fill(a, 0, 5);
-//        S b;
-//        fill(b, 5, 10);
-//        VX_CHECK(a.merge(std::move(b)));
-//        VX_CHECK(eq_model(a, range(0, 10)));
-//    }
-//
-//    VX_SECTION("large merge forces growth")
-//    {
-//        S a;
-//        S b;
-//        fill(a, 0, 1000);
-//        fill(b, 500, 3000);
-//        VX_CHECK(a.merge(b));
-//        VX_CHECK(eq_model(a, range(0, 3000)));
-//        VX_CHECK(eq_model(b, range(500, 1000)));
-//    }
-//
-//    VX_SECTION("both tables stay usable afterwards")
-//    {
-//        S a;
-//        S b;
-//        fill(a, 0, 20);
-//        fill(b, 10, 30);
-//        VX_CHECK(a.merge(b));
-//        VX_CHECK(a.insert(K(1000)));
-//        VX_CHECK(b.insert(K(2000)));
-//        VX_CHECK(b.erase(K(10)) == 1);
-//        VX_CHECK(a.contains(K(1000)) && !a.contains(K(2000)));
-//    }
-//}
-//TEST_SETS(merge)
-//
-//VX_TEST_CASE(merge_between_different_table_types)
-//{
-//    // same value_type, different hasher + allocator
-//    using Dst = vx::unordered_set<int, test_hash<int>>;
-//    using A = tracking_allocator<int>;
-//    using Src = vx::unordered_set<int, vx::default_hash<int>, std::equal_to<int>, A>;
-//
-//    allocator_stats stats;
-//    {
-//        Dst dst;
-//        fill(dst, 0, 10);
-//
-//        Src src(vx::default_hash<int>(), std::equal_to<int>(), A(1, &stats));
-//        fill(src, 5, 25);
-//
-//        VX_CHECK(dst.merge(src));
-//        VX_CHECK(eq_model(dst, range(0, 25)));
-//        VX_CHECK(eq_model(src, range(5, 10)));
-//        VX_CHECK(stats.live_allocations > 0);
-//
-//        // and back the other way
-//        Src other(vx::default_hash<int>(), std::equal_to<int>(), A(2, &stats));
-//        VX_CHECK(other.merge(dst));
-//        VX_CHECK(eq_model(other, range(0, 25)));
-//        VX_CHECK(dst.empty());
-//    }
-//    VX_CHECK(stats.live_allocations == 0);
-//    VX_CHECK(stats.allocate_calls == stats.deallocate_calls);
-//}
-//
-//VX_TEST_CASE(merge_allocation_failure_changes_nothing)
-//{
-//    using S = failing_set<int>;
-//    using A = failing_allocator<int>;
-//
-//    fail_state dst_state;
-//    fail_state src_state;
-//    {
-//        S dst(test_hash<int>(), std::equal_to<int>(), A{ &dst_state });
-//        S src(test_hash<int>(), std::equal_to<int>(), A{ &src_state });
-//        fill(dst, 0, 10);
-//        fill(src, 5, 200);
-//
-//        dst_state.countdown = 0; // the reserve inside merge cannot allocate
-//        VX_CHECK(!dst.merge(src));
-//        VX_CHECK(eq_model(dst, range(0, 10)));
-//        VX_CHECK(eq_model(src, range(5, 200)));
-//
-//        // recovers once allocation works again
-//        dst_state.countdown = -1;
-//        VX_CHECK(dst.merge(src));
-//        VX_CHECK(eq_model(dst, range(0, 200)));
-//        VX_CHECK(eq_model(src, range(5, 10)));
-//    }
-//    VX_CHECK(dst_state.live == 0);
-//    VX_CHECK(src_state.live == 0);
-//}
+    S a(seeded_hash(7), tagged_eq(9));
+    VX_CHECK(a.hash_function().seed == 7);
+    VX_CHECK(a.key_eq().tag == 9);
+    fill(a, 0, 50);
+
+    S copy(a);
+    VX_CHECK(copy.hash_function().seed == 7);
+    VX_CHECK(copy.key_eq().tag == 9);
+    VX_CHECK(copy == a);
+
+    S moved(std::move(copy));
+    VX_CHECK(moved.hash_function().seed == 7);
+    VX_CHECK(moved.key_eq().tag == 9);
+    VX_CHECK(eq_model(moved, range(0, 50)));
+
+    auto made = S::create(a);
+    VX_CHECK(made);
+    VX_CHECK(made.value().hash_function().seed == 7);
+    VX_CHECK(made.value().key_eq().tag == 9);
+
+    // swap exchanges the functors together with the contents
+    S b(seeded_hash(1), tagged_eq(2));
+    fill(b, 100, 110);
+    a.swap(b);
+    VX_CHECK(a.hash_function().seed == 1);
+    VX_CHECK(a.key_eq().tag == 2);
+    VX_CHECK(b.hash_function().seed == 7);
+    VX_CHECK(b.key_eq().tag == 9);
+    VX_CHECK(eq_model(a, range(100, 110)));
+    VX_CHECK(eq_model(b, range(0, 50)));
+    for (int i = 100; i < 110; ++i)
+    {
+        VX_CHECK(a.contains(i));
+    }
+}
 
 //=========================================================================
-// move-only keys
-// movable_int has a deleted copy constructor, so this also proves that
-// insert / growth / relocation / move never copy a key.
+// 9. element lifetime
 //=========================================================================
 
-VX_TEST_CASE(move_only_keys)
+// movable_int has a deleted copy constructor, so the generic tests above
+// already prove that growth / relocation / move never copy a key. This just
+// checks that insert consumes its argument.
+VX_TEST_CASE(move_only_insert_consumes_argument)
 {
     using K = movable_int;
     using S = plain_set<K>;
 
     VX_STATIC_CHECK(!std::is_copy_constructible_v<K>);
 
-    VX_SECTION("insert consumes the argument")
-    {
-        S s;
-        K k(5);
-        auto r = s.insert(std::move(k));
-        VX_CHECK(r);
-        VX_CHECK(r.value().inserted);
-        VX_CHECK(val(k) == -1); // moved-from sentinel
-        VX_CHECK(val(*r.value().it) == 5);
-        VX_CHECK(!s.insert(K(5)).value().inserted);
-    }
-
-    VX_SECTION("emplace moves")
-    {
-        S s;
-        VX_CHECK(s.emplace(5).value().inserted);
-        VX_CHECK(!s.emplace(5).value().inserted);
-        VX_CHECK(s.reserve(10));
-        VX_CHECK(s.emplace_assume_capacity(6).inserted);
-        VX_CHECK(eq(s, { 5, 6 }));
-    }
-
-    VX_SECTION("growth relocates by move")
-    {
-        S s;
-        fill(s, 0, 2000);
-        VX_CHECK(eq_model(s, range(0, 2000)));
-        VX_CHECK(s.reserve(10000));
-        VX_CHECK(eq_model(s, range(0, 2000)));
-        VX_CHECK(s.shrink_to_fit());
-        VX_CHECK(eq_model(s, range(0, 2000)));
-    }
-
-    //VX_SECTION("merge moves")
-    //{
-    //    S a;
-    //    S b;
-    //    fill(a, 0, 20);
-    //    fill(b, 10, 40);
-    //    VX_CHECK(a.merge(b));
-    //    VX_CHECK(eq_model(a, range(0, 40)));
-    //    VX_CHECK(eq_model(b, range(10, 20)));
-    //}
-
-    VX_SECTION("create from rvalue")
-    {
-        S a;
-        fill(a, 0, 20);
-        auto r = S::create(std::move(a));
-        VX_CHECK(r);
-        VX_CHECK(eq_model(r.value(), range(0, 20)));
-    }
+    S s;
+    K k(5);
+    auto r = s.insert(std::move(k));
+    VX_CHECK(r);
+    VX_CHECK(r.value().inserted);
+    VX_CHECK(val(k) == -1); // moved-from sentinel
+    VX_CHECK(val(*r.value().it) == 5);
+    VX_CHECK(!s.insert(K(5)).value().inserted);
 }
 
-//=========================================================================
-// element lifetime (constructs vs destroys, copies vs moves)
-//=========================================================================
-
+// constructs vs destroys, copies vs moves
 VX_TEST_CASE(lifetime_counted_keys)
 {
     auto& st = counted_key::stats();
@@ -1926,8 +1692,19 @@ VX_TEST_CASE(lifetime_counted_keys)
             return st.live == s.size() + m.size() + o.size() && st.bad == 0;
         };
 
+        // Sections share s / m / o and run one after another, so every section
+        // starts by emptying them and zeroing the counters.
+        auto fresh = [&]()
+        {
+            s.clear();
+            m.clear();
+            o.clear();
+            counted_key::reset();
+        };
+
         VX_SECTION("insert + growth: rvalue inserts never copy")
         {
+            fresh();
             fill(s, 0, 1000);
             VX_CHECK(s.size() == 1000);
             VX_CHECK(live_matches());
@@ -1941,36 +1718,43 @@ VX_TEST_CASE(lifetime_counted_keys)
             VX_CHECK(st.copies == 0);
         }
 
-        VX_SECTION("duplicate inserts construct nothing that survives")
+        VX_SECTION("duplicate insert does not copy")
         {
-            const counted_key dup(5);
-            const size_t copies_before = st.copies;
-            VX_CHECK(!s.insert(dup).value().inserted || true); // first time may insert
-            VX_CHECK(!s.insert(dup).value().inserted);
-            // second (duplicate) insert must not copy
-            const size_t copies_after_first = st.copies;
-            VX_CHECK(!s.insert(dup).value().inserted);
-            VX_CHECK(st.copies == copies_after_first);
-            VX_CHECK(copies_after_first - copies_before <= 1);
-            VX_CHECK(!s.emplace(5).value().inserted);
+            fresh();
+            {
+                const counted_key dup(5); // lives outside the set, so scope it
+                VX_CHECK(s.insert(dup).value().inserted);
+
+                const size_t copies = st.copies;
+                VX_CHECK(!s.insert(dup).value().inserted);
+                VX_CHECK(!s.emplace(5).value().inserted);
+                VX_CHECK(st.copies == copies);
+            }
+            VX_CHECK(live_matches());
         }
 
         VX_SECTION("erase destroys the element")
         {
+            fresh();
             fill(s, 1000, 1200);
             for (int i = 1000; i < 1200; i += 2)
             {
                 VX_CHECK(s.erase(counted_key(i)) == 1);
             }
+            VX_CHECK(s.size() == 100);
+            VX_CHECK(live_matches());
+
             for (auto it = s.begin(); it != s.end();)
             {
                 it = s.erase(it);
             }
             VX_CHECK(s.empty());
+            VX_CHECK(live_matches());
         }
 
         VX_SECTION("clear / shrink / reserve")
         {
+            fresh();
             fill(s, 0, 200);
             for (int i = 0; i < 200; i += 2)
             {
@@ -1984,12 +1768,12 @@ VX_TEST_CASE(lifetime_counted_keys)
 
             s.clear();
             VX_CHECK(s.empty());
-            VX_CHECK(st.live == m.size() + o.size());
-            VX_CHECK(st.bad == 0);
+            VX_CHECK(live_matches());
         }
 
         VX_SECTION("copy / move / swap / assign")
         {
+            fresh();
             fill(s, 0, 100);
             const size_t copies_before = st.copies;
 
@@ -2019,26 +1803,14 @@ VX_TEST_CASE(lifetime_counted_keys)
             VX_CHECK(live_matches());
         }
 
-        //VX_SECTION("merge")
-        //{
-        //    fill(s, 0, 100);
-        //    fill(o, 50, 150);
-        //    VX_CHECK(s.merge(o));
-        //    VX_CHECK(s.size() == 150);
-        //    VX_CHECK(o.size() == 50); // the duplicates 50..99 stay behind
-        //    VX_CHECK(live_matches());
-        //    VX_CHECK(st.copies == 0);
-        //}
-
-        //VX_SECTION("self operations")
-        //{
-        //    fill(s, 0, 50);
-        //    s.swap(s);
-        //    VX_CHECK(live_matches());
-        //    //VX_CHECK(s.merge(s));
-        //    VX_CHECK(live_matches());
-        //    VX_CHECK(s.size() == 50);
-        //}
+        VX_SECTION("self swap")
+        {
+            fresh();
+            fill(s, 0, 50);
+            s.swap(s);
+            VX_CHECK(s.size() == 50);
+            VX_CHECK(live_matches());
+        }
     }
 
     // everything destroyed exactly once, nothing touched after destruction
@@ -2048,7 +1820,7 @@ VX_TEST_CASE(lifetime_counted_keys)
 }
 
 //=========================================================================
-// allocator tracking
+// 10. allocators
 //=========================================================================
 
 VX_TEST_CASE(allocator_no_leaks)
@@ -2184,13 +1956,116 @@ VX_TEST_CASE(allocator_assign_and_swap)
 }
 
 //=========================================================================
-// allocation failure injection
+// 11. error reporting
+//
+// "Not found" and "already present" are results, not errors (covered by the
+// insert / erase tests above). Failures are one of:
+//   size_error      the request cannot be represented, nothing is attempted
+//   out_of_memory   allocation failed; the table must be left as it was
 //=========================================================================
 
-VX_TEST_CASE(failure_insert_sweep)
+template <typename S>
+void test_size_errors()
 {
-    // fail the Nth allocation for every N: the table must report the error,
-    // keep exactly what was inserted so far, and stay usable
+    using K = typename S::key_type;
+    const size_t huge = std::numeric_limits<size_t>::max();
+
+    VX_SECTION("reserve beyond max_size leaves the table untouched")
+    {
+        S s;
+        fill(s, 0, 20);
+        const size_t cap = s.capacity();
+
+        VX_CHECK_ERROR(s.reserve(s.max_size() + 1), vx::err::size_error);
+        VX_CHECK_ERROR(s.reserve(huge), vx::err::size_error);
+
+        VX_CHECK(s.capacity() == cap);
+        VX_CHECK(eq_model(s, range(0, 20)));
+        VX_CHECK(s.insert(K(100))); // still usable
+    }
+
+    VX_SECTION("reserve beyond max_size on an empty table")
+    {
+        S s;
+        VX_CHECK_ERROR(s.reserve(huge), vx::err::size_error);
+        VX_CHECK(s.capacity() == 0);
+        VX_CHECK(s.empty());
+        VX_CHECK(s.insert(K(1)));
+    }
+
+    VX_SECTION("create with an impossible size")
+    {
+        VX_CHECK_EXPECTED_ERROR(S::create(huge), vx::err::size_error);
+    }
+}
+TEST_SETS(size_errors)
+
+VX_TEST_CASE(error_out_of_memory_first_allocation)
+{
+    using A = failing_allocator<int>;
+    using S = failing_set<int>;
+
+    fail_state st;
+    {
+        S s(test_hash<int>(), std::equal_to<int>(), A{ &st });
+        st.countdown = 0;
+
+        VX_CHECK_EXPECTED_ERROR(s.insert(1), vx::err::out_of_memory);
+        VX_CHECK_EXPECTED_ERROR(s.insert(2), vx::err::out_of_memory);
+        VX_CHECK_EXPECTED_ERROR(s.emplace(3), vx::err::out_of_memory);
+        VX_CHECK_ERROR(s.reserve(10), vx::err::out_of_memory);
+
+        VX_CHECK(s.empty());
+        VX_CHECK(s.capacity() == 0);
+        VX_CHECK(s.begin() == s.end());
+        VX_CHECK(st.failures > 0);
+
+        // recovers once allocation works again
+        st.countdown = -1;
+        VX_CHECK(s.insert(1));
+        VX_CHECK(eq(s, { 1 }));
+    }
+    VX_CHECK(st.live == 0);
+}
+
+VX_TEST_CASE(error_out_of_memory_growth)
+{
+    using A = failing_allocator<int>;
+    using S = failing_set<int>;
+
+    fail_state st;
+    {
+        S s(test_hash<int>(), std::equal_to<int>(), A{ &st });
+
+        // fill to exactly the current capacity, so the next insert must grow
+        VX_CHECK(s.reserve(10));
+        const int n = static_cast<int>(s.capacity());
+        fill(s, 0, n);
+        VX_CHECK(s.size() == s.capacity());
+
+        st.countdown = 0;
+        VX_CHECK_EXPECTED_ERROR(s.insert(1000), vx::err::out_of_memory);
+        VX_CHECK_EXPECTED_ERROR(s.emplace(1001), vx::err::out_of_memory);
+
+        // nothing was lost or added
+        VX_CHECK(eq_model(s, range(0, n)));
+        VX_CHECK(!s.contains(1000));
+        for (int i = 0; i < n; ++i)
+        {
+            VX_CHECK(s.contains(i));
+        }
+
+        st.countdown = -1;
+        VX_CHECK(s.insert(1000));
+        VX_CHECK(s.contains(1000));
+    }
+    VX_CHECK(st.live == 0);
+}
+
+// fail the Nth allocation for every N: the table must report the error,
+// keep exactly what was inserted so far, and stay usable
+VX_TEST_CASE(error_out_of_memory_insert_sweep)
+{
     using A = failing_allocator<int>;
     using S = failing_set<int>;
 
@@ -2237,84 +2112,10 @@ VX_TEST_CASE(failure_insert_sweep)
     }
 }
 
-VX_TEST_CASE(failure_reserve_and_shrink)
+// same sweep with a lifetime-counting key: a failed insert must not leak
+// or double destroy the key that was being inserted
+VX_TEST_CASE(error_out_of_memory_leaks_no_elements)
 {
-    using A = failing_allocator<int>;
-    using S = failing_set<int>;
-
-    fail_state st;
-    {
-        S s(test_hash<int>(), std::equal_to<int>(), A{ &st });
-        fill(s, 0, 50);
-
-        st.countdown = 0;
-        VX_CHECK(!s.reserve(100000));
-        VX_CHECK(eq_model(s, range(0, 50)));
-        VX_CHECK(st.failures > 0);
-
-        st.countdown = -1;
-        for (int i = 3; i < 50; ++i)
-        {
-            VX_CHECK(s.erase(i) == 1);
-        }
-
-        st.countdown = 0;
-        VX_CHECK(!s.shrink_to_fit()); // needs a new, smaller buffer
-        VX_CHECK(eq(s, { 0, 1, 2 }));
-
-        st.countdown = -1;
-        VX_CHECK(s.shrink_to_fit());
-        VX_CHECK(eq(s, { 0, 1, 2 }));
-    }
-    VX_CHECK(st.live == 0);
-}
-
-VX_TEST_CASE(failure_create_and_assign)
-{
-    using A = failing_allocator<int>;
-    using S = failing_set<int>;
-
-    fail_state st;
-    {
-        // create(n) with a failing allocator
-        st.countdown = 0;
-        auto r = S::create(size_t(100), test_hash<int>(), std::equal_to<int>(), A{ &st });
-        VX_CHECK(!r);
-
-        // create(range) with a failing allocator
-        std::vector<int> src = range(0, 20);
-        auto r2 = S::create(src.begin(), src.end(), size_t(0), test_hash<int>(), std::equal_to<int>(), A{ &st });
-        VX_CHECK(!r2);
-
-        // create(copy) fails without touching the original
-        st.countdown = -1;
-        S a(test_hash<int>(), std::equal_to<int>(), A{ &st });
-        fill(a, 0, 40);
-        st.countdown = 0;
-        auto r3 = S::create(a);
-        VX_CHECK(!r3);
-        VX_CHECK(eq_model(a, range(0, 40)));
-
-        // assign(range) fails without touching the target
-        VX_CHECK(!a.assign(src.begin(), src.end()));
-        VX_CHECK(eq_model(a, range(0, 40)));
-
-        // assign(const&) fails without touching the target
-        S b(test_hash<int>(), std::equal_to<int>(), A{ &st });
-        st.countdown = -1;
-        fill(b, 100, 200);
-        st.countdown = 0;
-        VX_CHECK(!a.assign(b));
-        VX_CHECK(eq_model(a, range(0, 40)));
-        VX_CHECK(eq_model(b, range(100, 200)));
-    }
-    VX_CHECK(st.live == 0);
-}
-
-VX_TEST_CASE(failure_leaves_no_leaked_elements)
-{
-    // same sweep with a lifetime-counting key: a failed insert must not leak
-    // or double destroy the key that was being inserted
     using A = failing_allocator<counted_key>;
     using S = vx::unordered_set<counted_key, test_hash<counted_key>, std::equal_to<counted_key>, A>;
 
@@ -2344,8 +2145,133 @@ VX_TEST_CASE(failure_leaves_no_leaked_elements)
     }
 }
 
+VX_TEST_CASE(error_out_of_memory_reserve_and_shrink)
+{
+    using A = failing_allocator<int>;
+    using S = failing_set<int>;
+
+    fail_state st;
+    {
+        S s(test_hash<int>(), std::equal_to<int>(), A{ &st });
+        fill(s, 0, 50);
+
+        st.countdown = 0;
+        VX_CHECK_ERROR(s.reserve(100000), vx::err::out_of_memory);
+        VX_CHECK(eq_model(s, range(0, 50)));
+
+        st.countdown = -1;
+        for (int i = 3; i < 50; ++i)
+        {
+            VX_CHECK(s.erase(i) == 1);
+        }
+
+        st.countdown = 0;
+        VX_CHECK_ERROR(s.shrink_to_fit(), vx::err::out_of_memory); // needs a new, smaller buffer
+        VX_CHECK(eq(s, { 0, 1, 2 }));
+
+        st.countdown = -1;
+        VX_CHECK(s.shrink_to_fit());
+        VX_CHECK(eq(s, { 0, 1, 2 }));
+    }
+    VX_CHECK(st.live == 0);
+}
+
+VX_TEST_CASE(error_out_of_memory_create)
+{
+    using A = failing_allocator<int>;
+    using S = failing_set<int>;
+
+    fail_state st;
+    {
+        st.countdown = 0;
+
+        auto make_n = [&]()
+        {
+            return S::create(size_t(100), test_hash<int>(), std::equal_to<int>(), A{ &st });
+        };
+        VX_CHECK_EXPECTED_ERROR(make_n(), vx::err::out_of_memory);
+
+        std::vector<int> src = range(0, 20);
+        auto make_range = [&]()
+        {
+            return S::create(src.begin(), src.end(), size_t(0), test_hash<int>(), std::equal_to<int>(), A{ &st });
+        };
+        VX_CHECK_EXPECTED_ERROR(make_range(), vx::err::out_of_memory);
+
+        // copying fails without touching the original
+        st.countdown = -1;
+        S a(test_hash<int>(), std::equal_to<int>(), A{ &st });
+        fill(a, 0, 40);
+
+        st.countdown = 0;
+        auto make_copy = [&]()
+        {
+            return S::create(a);
+        };
+        VX_CHECK_EXPECTED_ERROR(make_copy(), vx::err::out_of_memory);
+        VX_CHECK(eq_model(a, range(0, 40)));
+    }
+    VX_CHECK(st.live == 0);
+}
+
+VX_TEST_CASE(error_out_of_memory_assign)
+{
+    using A = failing_allocator<int>;
+    using S = failing_set<int>;
+
+    fail_state st;
+    {
+        S a(test_hash<int>(), std::equal_to<int>(), A{ &st });
+        S b(test_hash<int>(), std::equal_to<int>(), A{ &st });
+        fill(a, 0, 40);
+        fill(b, 100, 200);
+        std::vector<int> src = range(500, 520);
+
+        st.countdown = 0;
+        VX_CHECK_ERROR(a.assign(b), vx::err::out_of_memory);
+        VX_CHECK_ERROR(a.assign(src.begin(), src.end()), vx::err::out_of_memory);
+
+        // a failed assign changes neither side
+        VX_CHECK(eq_model(a, range(0, 40)));
+        VX_CHECK(eq_model(b, range(100, 200)));
+
+        st.countdown = -1;
+        VX_CHECK(a.assign(b));
+        VX_CHECK(a == b);
+    }
+    VX_CHECK(st.live == 0);
+}
+
+VX_TEST_CASE(error_out_of_memory_insert_range)
+{
+    using A = failing_allocator<int>;
+    using S = failing_set<int>;
+
+    fail_state st;
+    {
+        S s(test_hash<int>(), std::equal_to<int>(), A{ &st });
+        std::vector<int> src = range(0, 200);
+
+        st.countdown = 0;
+        VX_CHECK_ERROR(s.insert(src.begin(), src.end()), vx::err::out_of_memory);
+
+        // Whatever was inserted before the failure must be a valid subset of the input,
+        // and the table must still be internally consistent.
+        for (int k : contents(s))
+        {
+            VX_CHECK(k >= 0 && k < 200);
+        }
+        VX_CHECK(s.size() == static_cast<size_t>(std::distance(s.begin(), s.end())));
+
+        st.countdown = -1;
+        VX_CHECK(s.insert(src.begin(), src.end()));
+        VX_CHECK(eq_model(s, range(0, 200)));
+    }
+    VX_CHECK(st.live == 0);
+}
+
 //=========================================================================
-// randomized comparison against std::set
+// 12. randomized stress (compared against std::set)
 //=========================================================================
 
 template <typename S>

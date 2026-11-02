@@ -17,7 +17,7 @@
   </Type>
 
   <!-- table_storage: m_pair<Alloc, pair<Hasher, pair<Eq, Data>>> -->
-  <Type Name="vx::_hash_priv::open_table&lt;*&gt;">
+  <Type Name="vx::_flat_hash_priv::flat_table&lt;*&gt;">
     <DisplayString>{m_storage.m_pair.second.second.second}</DisplayString>
     <Expand>
       <ExpandedItem>m_storage.m_pair.second.second.second</ExpandedItem>
@@ -25,7 +25,7 @@
   </Type>
 
   <!-- ===== Data: sets (generic slot) ===== -->
-  <Type Name="vx::_hash_priv::open_data&lt;*&gt;">
+  <Type Name="vx::_flat_hash_priv::flat_data&lt;*&gt;">
     <DisplayString Condition="size == 0">empty</DisplayString>
     <DisplayString>{{ size={size}, slots={capacity} }}</DisplayString>
     <Expand>
@@ -47,7 +47,7 @@
   </Type>
 
   <!-- ===== Data: maps (slot is a pair), shown as [key] = value ===== -->
-  <Type Name="vx::_hash_priv::open_data&lt;vx::pair&lt;*&gt;&gt;" Priority="Medium">
+  <Type Name="vx::_flat_hash_priv::flat_data&lt;vx::pair&lt;*&gt;&gt;" Priority="Medium">
     <DisplayString Condition="size == 0">empty</DisplayString>
     <DisplayString>{{ size={size}, slots={capacity} }}</DisplayString>
     <Expand>
@@ -69,7 +69,7 @@
   </Type>
 
   <!-- ===== Iterator ===== -->
-  <Type Name="vx::_hash_priv::open_iterator&lt;*&gt;">
+  <Type Name="vx::_flat_hash_priv::flat_iterator&lt;*&gt;">
     <DisplayString Condition="m_ctrl == nullptr">null</DisplayString>
     <DisplayString Condition="((int)*m_ctrl &amp; 0x80) != 0">end</DisplayString>
     <DisplayString>{*m_slot}</DisplayString>

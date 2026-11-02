@@ -67,7 +67,6 @@ struct utf_base_traits<1> // utf8
 {
     using utype = uint8_t;
 
-
     /**
      * @brief Determines the number of trailing bytes for a given lead byte.
      *
@@ -172,7 +171,6 @@ template <typename char_t>
 struct utf_traits<char_t, 1> : utf_base_traits<1>
 {
     using char_type = char_t;
-    using string_type = std::basic_string<char_type>;
     using utype = utf_base_traits<1>::utype;
 
     /**
@@ -191,12 +189,10 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
     static IT decode(IT first, IT last, code_point& c)
     {
         VX_ITERATOR_VALID_RANGE(first, last);
-        const size_t size = static_cast<size_t>(std::distance(first, last));
-
         c = invalid_code_point;
 
         // Empty range
-        if (VX_UNLIKELY(size == 0))
+        if (VX_UNLIKELY(first == last))
         {
             return first;
         }
@@ -210,91 +206,43 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
             return first;
         }
 
-        c = lead;
-
         // ASCII is always single byte
         if (trail_bytes == 0)
         {
+            c = lead;
             return first;
         }
 
-        // Mask out prefix bits in lead byte and
-        // shift to make room for trail bytes
-        c &= static_cast<code_point>((1 << (6 - trail_bytes)) - 1);
+        // strip the length prefix from the lead byte
+        code_point result = lead & ((1u << (6 - trail_bytes)) - 1);
 
-        switch (trail_bytes)
+        for (size_t i = 0; i < trail_bytes; ++i)
         {
-            case 3:
+            if (first == last)
             {
-                if (first == last)
-                {
-                    c = invalid_code_point;
-                    return first;
-                }
-
-                const utype byte = static_cast<utype>(*first++);
-
-                if (!is_trail(byte))
-                {
-                    c = invalid_code_point;
-                    return first;
-                }
-
-                c = (c << 6) | (byte & 0b00111111);
-                VX_FALLTHROUGH;
+                // truncated sequence, c stays invalid
+                return first;
             }
-            case 2:
+
+            const utype byte = static_cast<utype>(*first);
+
+            if (!is_trail(byte))
             {
-                if (first == last)
-                {
-                    c = invalid_code_point;
-                    return first;
-                }
-
-                const utype byte = static_cast<utype>(*first++);
-
-                if (!is_trail(byte))
-                {
-                    c = invalid_code_point;
-                    return first;
-                }
-
-                c = (c << 6) | (byte & 0b00111111);
-                VX_FALLTHROUGH;
+                // NOT consumed: it gets decoded on its own next call
+                return first;
             }
-            case 1:
-            {
-                if (first == last)
-                {
-                    c = invalid_code_point;
-                    return first;
-                }
 
-                const utype byte = static_cast<utype>(*first++);
-
-                if (!is_trail(byte))
-                {
-                    c = invalid_code_point;
-                    return first;
-                }
-
-                c = (c << 6) | (byte & 0b00111111);
-            }
+            ++first;
+            result = (result << 6) | (byte & 0b00111111);
         }
 
-        if (VX_UNLIKELY(!is_valid_codepoint(c)))
+        if (VX_UNLIKELY(!is_valid_codepoint(result)) || VX_UNLIKELY(width(result) != trail_bytes + 1))
         {
-            c = invalid_code_point;
+            // surrogate, > 0x10FFFF, or overlong
             return first;
         }
 
-        // check for overlong encoding
-        if (VX_UNLIKELY(width(c) != trail_bytes + 1))
-        {
-            c = invalid_code_point;
-            return first;
-        }
-
+        c = result;
         return first;
     }
 
@@ -328,7 +276,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
         // 2-byte characters: 110xxxxx 10xxxxxx
         else if (c < 0x00000800)
         {
-            *out++ = static_cast<char_type>((c >> 6) | 0b00111111);
+            *out++ = static_cast<char_type>((c >> 6) | 0b11000000);
             *out++ = static_cast<char_type>((c & 0b00111111) | 0b10000000);
         }
         // 3-byte characters: 1110xxxx 10xxxxxx 10xxxxxx
@@ -481,7 +429,6 @@ template <typename char_t>
 struct utf_traits<char_t, 2> : utf_base_traits<2>
 {
     using char_type = char_t;
-    using string_type = std::basic_string<char_type>;
     using utype = utf_base_traits<2>::utype;
 
     /**
@@ -658,7 +605,6 @@ template <typename char_t>
 struct utf_traits<char_t, 4> : utf_base_traits<4>
 {
     using char_type = char_t;
-    using string_type = std::basic_string<char_type>;
     using utype = utf_base_traits<4>::utype;
 
     /**
