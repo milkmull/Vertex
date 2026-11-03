@@ -6,8 +6,13 @@
 
 namespace vx {
 namespace os {
+namespace shared_library {
 
-constexpr const char* shared_library_suffix() noexcept
+//=============================================================================
+// platform
+//=============================================================================
+
+constexpr const char* suffix() noexcept
 {
 #if defined(VX_OS_WINDOWS)
     return ".dll";
@@ -18,12 +23,23 @@ constexpr const char* shared_library_suffix() noexcept
 #endif
 }
 
-using shared_library_handle = void*;
-using shared_library_symbol_cstring = const char*;
+//=============================================================================
+// types
+//=============================================================================
 
-VX_API success load_shared_library(shared_library_handle& h, native_cstring lib);
-VX_API void free_shared_library(shared_library_handle& h);
-VX_API void* get_shared_library_symbol(shared_library_handle& h, shared_library_symbol_cstring symbol_name);
+using native_handle = void*;
+using native_symbol = void*;
+using symbol_char = char;
+using symbol_cstring = const symbol_char*;
 
+//=============================================================================
+// api
+//=============================================================================
+
+VX_API success load(native_handle& h, native_cstring lib);
+VX_API void free(native_handle h);
+VX_API native_symbol get_symbol(native_handle h, symbol_cstring symbol_name);
+
+} // namespace shared_library
 } // namespace os
 } // namespace vx

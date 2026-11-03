@@ -77,22 +77,28 @@ public:
         }
     }
 
-    basic_temporary_string(const basic_temporary_string&) = delete;
+    basic_temporary_string(const basic_temporary_string& other) noexcept
+        : m_cstr(other.m_cstr)
+        , m_owned(false)
+    {}
+
+    basic_temporary_string(const basic_temporary_string&&) noexcept = delete;
     basic_temporary_string& operator=(const basic_temporary_string&) = delete;
+    basic_temporary_string& operator=(basic_temporary_string&&) noexcept = delete;
 
     const C* c_str() const noexcept
     {
         return m_cstr;
     }
 
-    bool valid() const noexcept
+    bool is_valid() const noexcept
     {
         return m_cstr != nullptr;
     }
 
     explicit operator bool() const noexcept
     {
-        return valid();
+        return is_valid();
     }
 
 private:
