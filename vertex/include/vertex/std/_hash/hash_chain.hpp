@@ -46,6 +46,27 @@
 namespace vx {
 namespace _hash_priv {
 
+//-------------------------------------------------------------------------
+// Chained sizing tests
+//-------------------------------------------------------------------------
+
+template <typename Sizing>
+struct chained_sizing_tests : sizing_tests<Sizing>
+{
+    // One element per bucket.
+    VX_STATIC_ASSERT_MSG(Sizing::max_load(0) == 0,
+        "max_load(0) must be 0");
+    VX_STATIC_ASSERT_MSG(Sizing::max_load(3) == 4,
+        "cap 3 -> 4 buckets -> 4 elements");
+
+    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(0, 4) == 3,
+        "4 elements fit in cap 3");
+    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(0, 5) == 7,
+        "5 elements need cap 7");
+    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(3, 1) == 7,
+        "always grows");
+};
+
 //=========================================================================
 // nodes
 //=========================================================================

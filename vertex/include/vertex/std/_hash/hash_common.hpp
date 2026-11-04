@@ -14,16 +14,14 @@
 namespace vx {
 namespace _hash_priv {
 
-// common size type
-using hash_size_t = std::size_t;
+using hash_size_t = size_t;
 
 //=========================================================================
 // small constexpr helpers
 //=========================================================================
 
 // Takes by value on purpose: std::max/vx::max take const&, which would
-// ODR-use static constexpr members (e.g. min_capacity) and, before C++17,
-// require an out-of-class definition or you get a link error in debug builds.
+// ODR-use static constexpr members (e.g. min_capacity).
 constexpr hash_size_t max_of(hash_size_t a, hash_size_t b) noexcept
 {
     return a < b ? b : a;
@@ -38,42 +36,6 @@ constexpr bool is_mask(hash_size_t x) noexcept
 //=========================================================================
 // sizing policies
 //=========================================================================
-
-// Vocabulary (use these words everywhere, in code and comments)
-// -------------------------------------------------------------
-//   cap       2^k - 1, or 0 when unallocated. Also the index mask.
-//   ring      the cap + 1 positions [0, cap] that a hash can map to.
-//   flat:     positions [0, cap) are slots and ctrl[cap] is the sentinel,
-//             so a flat table has `cap` slots. A probe may start on the
-//             sentinel; lanes wrap back onto slots through the mask.
-//   chain:    positions [0, cap] are buckets, so a chain table has
-//             `cap + 1` buckets (END lives one past them, at index cap + 1).
-//   max_load  the most elements a table of this cap may hold.
-//
-// A Sizing policy must provide:
-//
-//   static constexpr bool         pow2_capacity;       // wrap() is a plain mask
-//   static constexpr hash_size_t  min_capacity;        // 2^k - 1 with max_load >= 1
-//   static constexpr hash_size_t  max_capacity;        // 2^k - 1; cap + 1 and
-//                                                      // cap + group_width must not overflow
-//   static constexpr hash_size_t  max_load(cap);       // max_load(0) == 0
-//   static constexpr hash_size_t  wrap(hash, cap);     // hash -> ring position [0, cap]
-//   static constexpr hash_size_t  next_capacity(current, required);
-//        // Smallest valid cap that is > current, >= min_capacity and has
-//        // max_load(cap) >= required. Returns 0 if not representable.
-//        // `current` must be 0 or a valid cap. `required == 0` counts as 1.
-//
-// Flat tables additionally need max_load(cap) < cap for every cap > 0: at
-// least one EMPTY byte must always exist, or probing for an absent key never
-// terminates. Chain tables have no such limit.
-//
-// The policy is split into two independent knobs:
-//   - WHEN to grow:   a Load struct, one function, max_load(cap).
-//   - BY HOW MUCH:    pow2_sizing_t's GrowShift (1 = x2, 2 = x4, ...).
-// next_capacity is derived from max_load, so a custom Load never needs to
-// supply an inverse function.
-//
-// (The constexpr functions below use loops and locals, so they need C++14.)
 
 //-------------------------------------------------------------------------
 // load policies: when to grow
@@ -91,12 +53,6 @@ constexpr bool is_mask(hash_size_t x) noexcept
 //    31  |    28    |        3         | 90%
 //    63  |    56    |        7         | 89%
 //   127  |   112    |       15         | 88%
-//
-// The max(cap / 8, 1) clamp is what makes the tiny sizes work: with a plain
-// `cap - cap / 8`, caps 1, 3 and 7 would have max_load == cap, i.e. no EMPTY
-// slot at all. Tables smaller than one group also rely on this guarantee:
-// their group loads run past the clones into padding bytes that are always
-// EMPTY, and a real EMPTY slot is always found before them.
 struct load_7_8
 {
     static constexpr hash_size_t max_load(hash_size_t cap) noexcept
@@ -118,62 +74,63 @@ struct load_1_0
 // power-of-two sizing: by how much
 //-------------------------------------------------------------------------
 
-// Load      a load policy (see above)
-// MinCap    smallest cap ever allocated; must be 2^k - 1 with max_load > 0.
-//           We overallocate a little on the first allocations so early
-//           rehashes are rarer. Raise to 7 or 15 to skip more of them.
-// GrowShift log2 of the growth factor: 1 doubles, 2 quadruples.
-template <typename Load, hash_size_t MinCap = 3, unsigned GrowShift = 1>
+template <typename Load>
 struct pow2_sizing_t
 {
-    VX_STATIC_ASSERT_MSG(is_mask(MinCap), "MinCap must be 2^k - 1");
-    VX_STATIC_ASSERT_MSG(GrowShift >= 1 && GrowShift < sizeof(hash_size_t) * 8 - 1,
-        "GrowShift must be at least 1 (the table has to grow) and well below the type width");
+    // smallest cap ever allocated We overallocate a little on the first
+    // allocations so early rehashes are rarer.
+    static constexpr hash_size_t min_capacity = 7;
+    // log2 of the growth factor
+    static constexpr hash_size_t growth_shift = 1;
+
+    VX_STATIC_ASSERT_MSG(is_mask(min_capacity), "min_capacity must be 2^k - 1");
+    VX_STATIC_ASSERT_MSG(growth_shift >= 1 && growth_shift < sizeof(hash_size_t) * 8 - 1,
+        "growth_shift must be at least 1 (the table has to grow) and well below the type width");
 
     static constexpr bool pow2_capacity = true;
-    static constexpr hash_size_t min_capacity = MinCap;
 
     // Largest cap we will ever hand out. Keeps cap + 1 and cap + group_width
-    // from overflowing hash_size_t. The allocator will usually fail long before.
+    // from overflowing hash_size_t.
     static constexpr hash_size_t max_capacity = std::numeric_limits<hash_size_t>::max() >> 1;
 
+    // max number of elements we can hold at the given capacity
     static constexpr hash_size_t max_load(hash_size_t cap) noexcept
     {
         return Load::max_load(cap);
     }
 
-    static constexpr hash_size_t wrap(hash_size_t hash, hash_size_t cap) noexcept
+    static constexpr hash_size_t wrap(hash_t hash, hash_size_t cap) noexcept
     {
         return hash & cap;
     }
 
+    // Smallest valid cap that is > current, >= min_capacity and has
+    // max_load(cap) >= required. Returns 0 if not representable.
     static constexpr hash_size_t next_capacity(hash_size_t current, hash_size_t required) noexcept
     {
-        const hash_size_t req = required == 0 ? 1 : required;
+        VX_ASSERT(required > 0);
 
         // the geometric step below must stay <= max_capacity
-        if (current > (max_capacity >> GrowShift))
+        if (current > (max_capacity >> growth_shift))
         {
             return 0;
         }
 
         // can't satisfy the request even at the largest cap
-        if (req > max_load(max_capacity))
+        if (required > max_load(max_capacity))
         {
             return 0;
         }
 
         // ((current + 1) << shift) - 1 keeps the 2^k - 1 form, and always grows
-        hash_size_t cap = ((current + 1) << GrowShift) - 1;
-        if (cap < MinCap)
+        hash_size_t cap = ((current + 1) << growth_shift) - 1;
+        if (cap < min_capacity)
         {
-            cap = MinCap;
+            cap = min_capacity;
         }
 
-        // Jump further if the step isn't enough. Every value visited is already
-        // 2^k - 1, so nothing needs rounding. At most ~63 iterations, and only
-        // on a rehash, which is O(n) anyway.
-        while (max_load(cap) < req)
+        // jump further if the step isn't enough
+        while (max_load(cap) < required)
         {
             if (cap >= max_capacity)
             {
@@ -187,83 +144,98 @@ struct pow2_sizing_t
     }
 };
 
-using pow2_sizing = pow2_sizing_t<load_7_8>;
-using default_sizing = pow2_sizing;                   // flat
+using default_flat_sizing = pow2_sizing_t<load_7_8>;  // flat
 using default_chain_sizing = pow2_sizing_t<load_1_0>; // chain
 
 //-------------------------------------------------------------------------
-// policy validation (each table static-asserts these on its Sizing)
+// Compile-time sizing tests
 //-------------------------------------------------------------------------
 
-template <typename S>
-constexpr bool valid_sizing() noexcept
+template <typename Sizing>
+struct sizing_tests
 {
-    return S::max_load(0) == 0 && is_mask(S::min_capacity) && is_mask(S::max_capacity) && S::max_load(S::min_capacity) >= 1;
+    static constexpr bool valid_sizing() noexcept
+    {
+        return Sizing::max_load(0) == 0 && is_mask(Sizing::min_capacity) && is_mask(Sizing::max_capacity) && Sizing::max_load(Sizing::min_capacity) >= 1;
+    }
+
+    VX_STATIC_ASSERT_MSG(valid_sizing(), "valid sizing");
+    VX_STATIC_ASSERT_MSG(is_mask(Sizing::max_capacity),
+        "max_capacity must be 2^k - 1");
+    VX_STATIC_ASSERT_MSG(
+        Sizing::max_capacity + 1 > Sizing::max_capacity,
+        "cap + 1 must not overflow");
+};
+
+//=========================================================================
+// map_pair
+//=========================================================================
+
+template <typename K, typename V>
+struct map_pair
+{
+    using key_type = K;
+    using value_type = V;
+
+    K key;
+    V value;
+
+    // value-initializes, like std::map_pair. Doesn't affect trivial copyability.
+    constexpr map_pair() : key(), value()
+    {}
+
+    map_pair(const map_pair&) = default;
+    map_pair(map_pair&&) = default;
+    map_pair& operator=(const map_pair&) = default;
+    map_pair& operator=(map_pair&&) = default;
+    ~map_pair() = default;
+
+    constexpr map_pair(const K& a, const V& b)
+        : key(a), value(b)
+    {}
+
+    template <typename U1, typename U2, VX_REQUIRES(std::is_constructible<K, U1&&>::value&& std::is_constructible<V, U2&&>::value)>
+    constexpr map_pair(U1&& a, U2&& b)
+        : key(std::forward<U1>(a)), value(std::forward<U2>(b))
+    {}
+
+    // map_pair<K, V> -> map_pair<const K, V>, and from std::map_pair
+    template <typename U1, typename U2, VX_REQUIRES(std::is_constructible<K, const U1&>::value&& std::is_constructible<V, const U2&>::value)>
+    constexpr map_pair(const map_pair<U1, U2>& p)
+        : key(p.key), value(p.value)
+    {}
+
+    template <typename U1, typename U2, VX_REQUIRES(std::is_constructible<K, U1&&>::value&& std::is_constructible<V, U2&&>::value)>
+    constexpr map_pair(map_pair<U1, U2>&& p)
+        : key(std::forward<U1>(p.key)), value(std::forward<U2>(p.value))
+    {}
+
+    // piecewise (what map_policy::construct uses)
+    template <typename... A1, typename... A2>
+    map_pair(std::piecewise_construct_t, std::tuple<A1...> a, std::tuple<A2...> b)
+        : map_pair(a, b, std::index_sequence_for<A1...>{}, std::index_sequence_for<A2...>{})
+    {}
+
+private:
+
+    template <typename Tuple1, typename Tuple2, std::size_t... I1, std::size_t... I2>
+    map_pair(Tuple1& a, Tuple2& b, std::index_sequence<I1...>, std::index_sequence<I2...>)
+        : key(std::forward<typename std::tuple_element<I1, Tuple1>::type>(std::get<I1>(a))...)
+        , value(std::forward<typename std::tuple_element<I2, Tuple2>::type>(std::get<I2>(b))...)
+    {}
+};
+
+template <typename K, typename V>
+constexpr bool operator==(const map_pair<K, V>& a, const map_pair<K, V>& b)
+{
+    return a.key == b.key && a.value == b.value;
 }
 
-// flat tables only: the minimum size must keep a free slot
-template <typename S>
-constexpr bool valid_flat_sizing() noexcept
+template <typename K, typename V>
+constexpr bool operator!=(const map_pair<K, V>& a, const map_pair<K, V>& b)
 {
-    return valid_sizing<S>() && S::max_load(S::min_capacity) < S::min_capacity;
+    return !(a == b);
 }
-
-//-------------------------------------------------------------------------
-// compile-time tests
-// (must live outside the classes: constexpr members can't be used in
-// constant expressions until the class is complete)
-//-------------------------------------------------------------------------
-
-VX_STATIC_ASSERT_MSG(valid_flat_sizing<default_sizing>(), "default flat sizing");
-VX_STATIC_ASSERT_MSG(valid_sizing<default_chain_sizing>(), "default chain sizing");
-VX_STATIC_ASSERT_MSG(is_mask(default_sizing::max_capacity), "max_capacity must be 2^k - 1");
-VX_STATIC_ASSERT_MSG(default_sizing::max_capacity + 1 > default_sizing::max_capacity, "cap + 1 must not overflow");
-
-// flat: the ladder of usable sizes
-VX_STATIC_ASSERT_MSG(default_sizing::max_load(0) == 0, "max_load(0) must be 0");
-VX_STATIC_ASSERT_MSG(default_sizing::max_load(1) == 0, "cap 1 holds nothing, hence min_capacity > 1");
-VX_STATIC_ASSERT_MSG(default_sizing::max_load(3) == 2, "cap 3 -> 2 elements");
-VX_STATIC_ASSERT_MSG(default_sizing::max_load(7) == 6, "cap 7 -> 6 elements");
-VX_STATIC_ASSERT_MSG(default_sizing::max_load(15) == 14, "cap 15 -> 14 elements");
-VX_STATIC_ASSERT_MSG(default_sizing::max_load(31) == 28, "cap 31 -> 28 elements");
-VX_STATIC_ASSERT_MSG(default_sizing::max_load(63) == 56, "cap 63 -> 56 elements");
-VX_STATIC_ASSERT_MSG(default_sizing::max_load(1) < 1 && default_sizing::max_load(3) < 3 && default_sizing::max_load(7) < 7 && default_sizing::max_load(15) < 15 && default_sizing::max_load(31) < 31,
-    "flat: max_load(cap) must be < cap");
-
-// flat: growth from empty
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(0, 1) == 3, "first allocation");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(0, 2) == 3, "2 elements fit in cap 3");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(0, 3) == 7, "3 elements need cap 7");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(0, 6) == 7, "6 elements fit in cap 7");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(0, 7) == 15, "7 elements need cap 15");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(0, 28) == 31, "28 elements fit in cap 31");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(0, 29) == 63, "29 elements need cap 63");
-
-// flat: growth from an existing table doubles at minimum, jumps further if asked
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(3, 3) == 7, "3 -> 7");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(7, 7) == 15, "7 -> 15");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(15, 15) == 31, "15 -> 31");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(31, 1) == 63, "always grows, even if required is small");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(7, 100) == 127, "can skip levels");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(3, 0) == 7, "required == 0 is treated as 1");
-
-// limits
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(default_sizing::max_capacity, 1) == 0, "cannot grow past max_capacity");
-VX_STATIC_ASSERT_MSG(default_sizing::next_capacity(0, std::numeric_limits<hash_size_t>::max()) == 0, "unrepresentable request");
-
-// chain: one element per bucket
-VX_STATIC_ASSERT_MSG(default_chain_sizing::max_load(0) == 0, "max_load(0) must be 0");
-VX_STATIC_ASSERT_MSG(default_chain_sizing::max_load(3) == 4, "cap 3 -> 4 buckets -> 4 elements");
-VX_STATIC_ASSERT_MSG(default_chain_sizing::next_capacity(0, 4) == 3, "4 elements fit in cap 3");
-VX_STATIC_ASSERT_MSG(default_chain_sizing::next_capacity(0, 5) == 7, "5 elements need cap 7");
-VX_STATIC_ASSERT_MSG(default_chain_sizing::next_capacity(3, 1) == 7, "always grows");
-
-// custom growth factor: x4
-VX_STATIC_ASSERT_MSG((pow2_sizing_t<load_7_8, 3, 2>::next_capacity(3, 1) == 15), "x4 growth: 3 -> 15");
-VX_STATIC_ASSERT_MSG((pow2_sizing_t<load_7_8, 3, 2>::next_capacity(0, 1) == 3), "x4 growth: first allocation is still min_capacity");
-
-// custom minimum
-VX_STATIC_ASSERT_MSG((pow2_sizing_t<load_7_8, 15>::next_capacity(0, 1) == 15), "min_capacity 15");
 
 //=========================================================================
 // slot policies
@@ -276,6 +248,7 @@ struct set_policy
     using slot_type = K;
 
     static constexpr bool mutable_slots = false;
+    static constexpr bool trivially_copyable_slots = std::is_trivially_copyable<slot_type>::value;
 
     // How the table sees a key inside a slot.
     static const K& key(const slot_type& s) noexcept
@@ -294,13 +267,18 @@ struct set_policy
         mem::destroy_in_place(p);
     }
 
-    // Move src into raw memory at dst, then destroy src. Used by rehash.
-    // noexcept iff the move is, so rehash can tell whether it can relocate
-    // without risking a half-moved table.
+    // Move src into raw memory at dst, then destroy src
     static void relocate(slot_type* dst, slot_type* src) noexcept(std::is_nothrow_move_constructible<slot_type>::value)
     {
-        construct(dst, std::move(*src));
-        destroy(src);
+        VX_IF_CONSTEXPR (trivially_copyable_slots)
+        {
+            mem::copy(dst, src, sizeof(slot_type));
+        }
+        else
+        {
+            construct(dst, std::move(*src));
+            destroy(src);
+        }
     }
 };
 
@@ -311,18 +289,19 @@ struct map_policy
 {
     using key_type = K;
     using mapped_type = V;
-    using slot_type = vx::pair<const K, V>;
-    using mutable_slot_type = vx::pair<K, V>;
+    using slot_type = map_pair<const K, V>;
+    using mutable_slot_type = map_pair<K, V>;
 
     static constexpr bool mutable_slots = true;
+    static constexpr bool trivially_copyable_slots = std::is_trivially_copyable<slot_type>::value;
 
     static const K& key(const slot_type& s) noexcept
     {
-        return s.first;
+        return s.key;
     }
 
     // (key, value args...): value is only constructed when we actually insert.
-    // Disabled for whole-pair arguments (slot_type or mutable_slot_type) so they
+    // Disabled for whole-map_pair arguments (slot_type or mutable_slot_type) so they
     // reach the non-template overloads below instead of being treated as a key.
     template <
         typename KK,
@@ -347,7 +326,7 @@ struct map_policy
         mem::construct_in_place(p, std::move(s));
     }
 
-    // pair<K, V> -> pair<const K, V> (e.g. insert(std::make_pair(k, v)))
+    // map_pair<K, V> -> map_pair<const K, V> (e.g. insert(std::make_pair(k, v)))
     static void construct(slot_type* p, const mutable_slot_type& s)
     {
         mem::construct_in_place(p, s);
@@ -365,21 +344,26 @@ struct map_policy
 
     // Move the key too (a const K member would be copied otherwise).
     //
-    // NOTE: this views a pair<const K, V> as a pair<K, V>. That works on every
+    // NOTE: this views a map_pair<const K, V> as a map_pair<K, V>. That works on every
     // mainstream ABI (it is what older Abseil did) and is guarded by the size /
     // alignment assert, but the standard does not guarantee the two layouts match.
-    // The strictly-conforming alternative is to make the slot a
-    // union { pair<const K, V> value; pair<K, V> mutable_value; } as Abseil does now.
     static void relocate(slot_type* dst, slot_type* src) noexcept(
         std::is_nothrow_move_constructible<K>::value && std::is_nothrow_move_constructible<V>::value)
     {
         VX_STATIC_ASSERT_MSG(sizeof(mutable_slot_type) == sizeof(slot_type) && alignof(mutable_slot_type) == alignof(slot_type),
-            "pair<K, V> and pair<const K, V> must be layout compatible");
+            "map_pair<K, V> and map_pair<const K, V> must be layout compatible");
 
-        mem::construct_in_place(
-            reinterpret_cast<mutable_slot_type*>(dst),
-            std::move(*reinterpret_cast<mutable_slot_type*>(src)));
-        destroy(src);
+        VX_IF_CONSTEXPR (trivially_copyable_slots)
+        {
+            mem::copy(dst, src, sizeof(slot_type));
+        }
+        else
+        {
+            mem::construct_in_place(
+                reinterpret_cast<mutable_slot_type*>(dst),
+                std::move(*reinterpret_cast<mutable_slot_type*>(src)));
+            destroy(src);
+        }
     }
 };
 

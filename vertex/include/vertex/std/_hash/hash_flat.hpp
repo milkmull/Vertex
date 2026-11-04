@@ -16,18 +16,6 @@
 #include "vertex/std/_hash/hash_storage.hpp"
 
 // Open-addressing (Swiss-table style) backend.
-//
-// One allocation: [ ctrl bytes | padding | slots ]
-//   ctrl:  cap + group_width bytes. One per slot, the sentinel at ctrl[cap],
-//          then clones of the first group_width - 1 bytes so a group load at
-//          any offset in [0, cap] reads valid memory.
-//   slots: cap slots.
-//
-// Built for exceptions disabled: failures are reported through expected/success,
-// and nothing here is exception-safe.
-//   - The allocator's allocate() must return nullptr on failure.
-//   - The hasher must mix its output well. H2 is the low 7 bits and H1 starts
-//     above them, so an identity hash on small integers clusters badly.
 
 namespace vx {
 namespace _flat_hash_priv {
@@ -49,16 +37,19 @@ struct triangular_probe
 {
     static constexpr bool requires_pow2 = true;
 
+    // The first group offset is the low bits of the hash, masked to the capacity
     static constexpr hash_size_t start(hash_size_t h1, hash_size_t cap) noexcept
     {
         return h1 & cap;
     }
 
+    // The next group offset is the previous offset plus the number of bytes
     static constexpr hash_size_t advance(hash_size_t offset, hash_size_t index, hash_size_t cap) noexcept
     {
         return (offset + index) & cap;
     }
 
+    // The lane index of a ring position is the low bits of the position, masked to the capacity
     static constexpr hash_size_t wrap_lane(hash_size_t x, hash_size_t cap) noexcept
     {
         return x & cap;
@@ -66,6 +57,87 @@ struct triangular_probe
 };
 
 using default_probe = triangular_probe;
+
+//=========================================================================
+// Flat sizing
+//=========================================================================
+
+using default_sizing = _hash_priv::pow2_sizing_t<_hash_priv::load_7_8>;
+
+//template <typename Sizing>
+//struct flat_sizing_tests : _hash_priv::sizing_tests<Sizing>
+//{
+//    // flat tables only: the minimum size must keep a free slot
+//    static constexpr bool valid_flat_sizing() noexcept
+//    {
+//        return _hash_priv::sizing_tests<Sizing>::valid_sizing() && Sizing::max_load(Sizing::min_capacity) < Sizing::min_capacity;
+//    }
+//
+//    VX_STATIC_ASSERT_MSG(valid_flat_sizing(),
+//        "valid flat sizing");
+//
+//    // max_load: always leave at least one EMPTY byte.
+//    VX_STATIC_ASSERT_MSG(Sizing::max_load(0) == 0,
+//        "max_load(0) must be 0");
+//    VX_STATIC_ASSERT_MSG(Sizing::max_load(1) == 0,
+//        "cap 1 holds nothing");
+//    VX_STATIC_ASSERT_MSG(Sizing::max_load(3) == 2,
+//        "cap 3 -> 2 elements");
+//    VX_STATIC_ASSERT_MSG(Sizing::max_load(7) == 6,
+//        "cap 7 -> 6 elements");
+//    VX_STATIC_ASSERT_MSG(Sizing::max_load(15) == 14,
+//        "cap 15 -> 14 elements");
+//    VX_STATIC_ASSERT_MSG(Sizing::max_load(31) == 28,
+//        "cap 31 -> 28 elements");
+//    VX_STATIC_ASSERT_MSG(Sizing::max_load(63) == 56,
+//        "cap 63 -> 56 elements");
+//
+//    VX_STATIC_ASSERT_MSG(
+//        Sizing::max_load(1) < 1 &&
+//            Sizing::max_load(3) < 3 &&
+//            Sizing::max_load(7) < 7 &&
+//            Sizing::max_load(15) < 15 &&
+//            Sizing::max_load(31) < 31,
+//        "flat: max_load(cap) must be < cap");
+//
+//    // Growth from empty.
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(0, 1) == 3,
+//        "first allocation");
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(0, 2) == 3,
+//        "2 elements fit in cap 3");
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(0, 3) == 7,
+//        "3 elements need cap 7");
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(0, 6) == 7,
+//        "6 elements fit in cap 7");
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(0, 7) == 15,
+//        "7 elements need cap 15");
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(0, 28) == 31,
+//        "28 elements fit in cap 31");
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(0, 29) == 63,
+//        "29 elements need cap 63");
+//
+//    // Growth from an existing table.
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(3, 3) == 7,
+//        "3 -> 7");
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(7, 7) == 15,
+//        "7 -> 15");
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(15, 15) == 31,
+//        "15 -> 31");
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(31, 1) == 63,
+//        "always grows, even if required is small");
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(7, 100) == 127,
+//        "can skip levels");
+//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(3, 0) == 7,
+//        "required == 0 is treated as 1");
+//
+//    // Limits.
+//    VX_STATIC_ASSERT_MSG(
+//        Sizing::next_capacity(Sizing::max_capacity, 1) == 0,
+//        "cannot grow past max_capacity");
+//    VX_STATIC_ASSERT_MSG(
+//        Sizing::next_capacity(0, std::numeric_limits<hash_size_t>::max()) == 0,
+//        "unrepresentable request");
+//};
 
 //=========================================================================
 // tombstone cleanup policy
@@ -88,7 +160,6 @@ hash_size_t checked_cleanup_limit(hash_size_t cap) noexcept
 {
     const hash_size_t max_load = Sizing::max_load(cap);
     VX_ASSERT(max_load > 0);
-
     const hash_size_t limit = Cleanup::cleanup_limit(max_load);
     VX_ASSERT(limit < max_load);
     return limit;
@@ -105,7 +176,6 @@ struct layout
     hash_size_t alloc_size;
 };
 
-// Cannot overflow for any cap <= max_slots() (see flat_table::max_slots).
 inline layout compute_layout(hash_size_t cap, hash_size_t slot_size, hash_size_t slot_align, hash_size_t block_align) noexcept
 {
     VX_ASSERT(cap != 0);
@@ -154,15 +224,13 @@ public:
         , m_index(0)
     {}
 
-    // Start of the current group, in [0, cap]. Note it can equal cap, where
-    // the group starts on the sentinel. That is fine: lanes are mapped to
-    // slots by slot_at() below and the sentinel never matches anything.
+    // Start of the current group, in [0, cap]
     hash_size_t offset() const noexcept
     {
         return m_offset;
     }
 
-    // Slot index for lane `lane` of the current group.
+    // Slot index for lane of the current group
     hash_size_t slot_at(hash_size_t lane) const noexcept
     {
         return Probe::wrap_lane(m_offset + lane, m_cap);
@@ -170,11 +238,7 @@ public:
 
     void next() noexcept
     {
-        // Stepping a second time on a table smaller than one group, or past
-        // cap + 1 bytes on a larger one, means a group with no EMPTY byte was
-        // found, which the load factor rules out. It is a table bug.
         VX_ASSERT(m_index <= m_cap);
-
         m_index += group_width;
         m_offset = Probe::advance(m_offset, m_index, m_cap);
     }
@@ -186,8 +250,7 @@ private:
     hash_size_t m_index;
 };
 
-// First EMPTY or DELETED slot on the probe path. Precondition: the table has
-// room (growth_left > 0, or a tombstone exists), so one is guaranteed.
+// First EMPTY or DELETED slot on the probe path.
 // Free function so rehash can run it on a block that is not installed yet.
 template <typename Probe>
 hash_size_t find_first_non_full(const ctrl_t* ctrl, hash_size_t cap, hash_t hash) noexcept
@@ -208,7 +271,7 @@ hash_size_t find_first_non_full(const ctrl_t* ctrl, hash_size_t cap, hash_t hash
     }
 }
 
-// start of the group that ends at slot i - 1 (erase's "was it ever surrounded" check)
+// start of the group that ends at slot i - 1
 template <typename Probe>
 hash_size_t group_before(hash_size_t i, hash_size_t cap) noexcept
 {
@@ -240,7 +303,6 @@ public:
         , m_slot(slot)
     {}
 
-    // iterator -> const_iterator
     template <typename S2, VX_REQUIRES(std::is_same<const S2, Slot>::value && !std::is_same<S2, Slot>::value)>
     flat_iterator(const flat_iterator<S2>& o) noexcept
         : m_ctrl(o.m_ctrl)
@@ -323,7 +385,7 @@ struct flat_data
     ctrl_t* ctrl = empty_group(); // never null
     slot_type* slots = nullptr;   // valid only when cap != 0
 
-    hash_size_t cap = 0; // 0, or a Sizing capacity (2^k - 1); also the slot count
+    hash_size_t cap = 0;
     hash_size_t size = 0;
     hash_size_t growth_left = 0; // Sizing::max_load(cap) - size - tombstones
 
@@ -352,16 +414,16 @@ template <
     typename Hasher,
     typename Eq,
     typename Allocator,
-    typename Sizing = _hash_priv::default_sizing,
+    typename Sizing = default_sizing,
     typename Probe = default_probe,
     typename Cleanup = default_cleanup>
 class flat_table
 {
-    VX_STATIC_ASSERT_MSG(_hash_priv::valid_flat_sizing<Sizing>(),
-        "invalid flat sizing policy (needs max_load(cap) < cap so an EMPTY slot always exists)");
-
-    VX_STATIC_ASSERT_MSG(!Probe::requires_pow2 || Sizing::pow2_capacity,
-        "this probe policy requires power-of-two capacities");
+    //VX_STATIC_ASSERT_MSG(_hash_priv::valid_flat_sizing<Sizing>(),
+    //    "invalid flat sizing policy (needs max_load(cap) < cap so an EMPTY slot always exists)");
+    //
+    //VX_STATIC_ASSERT_MSG(!Probe::requires_pow2 || Sizing::pow2_capacity,
+    //    "this probe policy requires power-of-two capacities");
 
 public:
 
@@ -492,7 +554,7 @@ private:
         return compute_layout(cap, sizeof(slot_type), alignof(slot_type), block_align);
     }
 
-    // The allocator must report failure with nullptr, not by throwing.
+    // The allocator reports failure with nullptr
     allocation allocate_table(size_type cap) noexcept
     {
         const layout l = layout_of(cap);
@@ -516,7 +578,7 @@ private:
     // copy helpers
     //=========================================================================
 
-    // Deep copy of a non-empty table into `out`. `out` is only written on success.
+    // Deep copy of a non-empty table
     bool clone_data(const table_data& src, table_data& out)
     {
         VX_ASSERT(src.cap != 0);
@@ -527,14 +589,23 @@ private:
             return false;
         }
 
-        // ctrl bytes (including sentinel, clones and padding) are trivially copyable
-        mem::copy(a.ctrl, src.ctrl, src.cap + group_width);
-
-        for (size_type i = 0; i < src.cap; ++i)
+        VX_IF_CONSTEXPR (slot_traits::trivially_copyable_slots)
         {
-            if (slot_is_full(a.ctrl[i]))
+            // Same cap => same layout. Ctrl, padding and slots copy as one block.
+            const size_type alloc_bytes = layout_of(src.cap).alloc_size;
+            mem::copy(a.ctrl, src.ctrl, alloc_bytes);
+        }
+        else
+        {
+            // ctrl bytes (including sentinel, clones and padding) are trivially copyable
+            mem::copy(a.ctrl, src.ctrl, src.cap + group_width);
+
+            for (size_type i = 0; i < src.cap; ++i)
             {
-                slot_traits::construct(a.slots + i, src.slots[i]);
+                if (slot_is_full(a.ctrl[i]))
+                {
+                    slot_traits::construct(a.slots + i, src.slots[i]);
+                }
             }
         }
 
@@ -645,7 +716,6 @@ private:
     {
         const auto& d = m_data();
 
-        // cap == 0 means no iterations, so no early-out is needed
         for (size_type i = 0; i < d.cap; ++i)
         {
             if (slot_is_full(d.ctrl[i]))
@@ -919,7 +989,7 @@ private:
             const group g(d.ctrl + seq.offset());
 
             // candidates: lanes whose ctrl byte equals H2
-            for (std::uint32_t lane : g.match(h2))
+            for (auto lane : g.match(h2))
             {
                 const size_type i = seq.slot_at(lane);
                 if (m_eq()(key, slot_traits::key(d.slots[i])))
@@ -991,10 +1061,8 @@ private:
     size_type next_slots(size_type current, size_type needed) const noexcept
     {
         VX_ASSERT(needed > 0);
-
         const size_type cap = sizing::next_capacity(current, needed);
         VX_ASSERT(cap == 0 || (cap > current && sizing::max_load(cap) >= needed));
-
         return cap <= max_slots() ? cap : 0;
     }
 

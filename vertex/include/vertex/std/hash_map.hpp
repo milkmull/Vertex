@@ -219,8 +219,8 @@ public:
 
         for (const_iterator it = a.begin(); it != a.end(); ++it)
         {
-            const const_iterator other = b.find(it->first);
-            if (other == b.end() || !(other->second == it->second))
+            const const_iterator other = b.find(it->key);
+            if (other == b.end() || !(other->value == it->value))
             {
                 return false;
             }
@@ -239,8 +239,11 @@ public:
 
 namespace vx {
 
+template <typename K, typename V>
+using map_pair = _hash_priv::map_pair<K, V>;
+
 template <typename K, typename V, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<vx::pair<const K, V>>, typename Growth = _hash_priv::pow2_growth>
-using flat_map = _hash_priv::basic_hash_map<_hash_priv::open_table<_hash_priv::map_policy<K, V>, Hash, Eq, Alloc, Growth>>;
+using flat_map = _hash_priv::basic_hash_map<_hash_priv::flat_ta<_hash_priv::map_policy<K, V>, Hash, Eq, Alloc, Growth>>;
 
 template <typename K, typename V, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<vx::pair<const K, V>>, typename Growth = _hash_priv::pow2_growth>
 using chain_map = _hash_priv::basic_hash_map<_hash_priv::chain_table<_hash_priv::map_policy<K, V>, Hash, Eq, Alloc, Growth>>;
