@@ -15,7 +15,7 @@
 #include "vertex/std/_hash/hash_group.hpp"
 #include "vertex/std/_hash/hash_storage.hpp"
 
-// Open-addressing (Swiss-table style) backend.
+// Open-addressing (Swiss-table style) backend
 
 namespace vx {
 namespace _flat_hash_priv {
@@ -672,7 +672,7 @@ public:
     explicit flat_table(size_type n, const Hasher& h = Hasher(), const Eq& e = Eq(), const allocator_type& a = allocator_type())
         : flat_table(h, e, a)
     {
-        const auto ok = reserve(n);
+        const auto ok = reserve_assume_empty(n);
         VX_VERIFY(ok);
     }
 
@@ -975,7 +975,7 @@ public:
 
 private:
 
-    // Returns the slot index of the key, or npos.
+    // Returns the slot index of the key, or npos
     template <typename Q>
     size_type find_index_with_hash(const Q& key, hash_t hash) const noexcept
     {
@@ -1054,10 +1054,9 @@ private:
     // rehash
     //=========================================================================
 
-    // Slot count to move to so that `needed` elements fit, growing from `current`.
+    // Slot count to move to so that required elements fit.
     // Pass current = 0 for the tightest fit (shrink_to_fit).
     // Returns 0 if the sizing can't represent it or it exceeds the allocator limit
-    // (the caller reports size_error).
     size_type next_slots(size_type current, size_type needed) const noexcept
     {
         VX_ASSERT(needed > 0);
@@ -1068,8 +1067,6 @@ private:
 
     // Allocates a block of new_cap slots, relocates every element into it by
     // hash, then frees the old block. The old block is untouched on failure
-    // (the only failure is the allocation, before anything moves).
-    // Serves growth, reserve, cleanup and shrink_to_fit.
     success rehash_to(size_type new_cap) noexcept
     {
         auto& d = m_data();
@@ -1107,15 +1104,14 @@ private:
         return success{};
     }
 
-    // Rebuilds into a fresh block of the same capacity. Not truly in place, so
-    // it can fail with out_of_memory.
+    // Rebuilds into a fresh block of the same capacity
     success cleanup_tombstones() noexcept
     {
         return rehash_to(m_data().cap);
     }
 
     // Called when an insert finds growth_left == 0: rebuild at the same capacity
-    // if tombstones dominate, otherwise grow.
+    // if tombstones dominate, otherwise grow
     success grow_for_insert() noexcept
     {
         if (needs_cleanup())
@@ -1178,6 +1174,33 @@ public:
         return rehash_to(new_cap);
     }
 
+    // For a freshly constructed table (no allocation yet, nothing ever inserted).
+    // Allocates once and installs the block. Nothing to relocate, wipe or free.
+    success reserve_assume_empty(size_type n) noexcept
+    {
+        auto& d = m_data();
+        VX_ASSERT(d.cap == 0 && d.size == 0);
+
+        if (n == 0)
+        {
+            return success{};
+        }
+
+        const size_type new_cap = next_slots(0, n);
+        VX_RET_ERR_IF(new_cap == 0, err::size_error);
+
+        const allocation a = allocate_table(new_cap);
+        VX_RET_ERR_IF(!a, err::out_of_memory);
+        reset_ctrl(a.ctrl, new_cap);
+
+        d.ctrl = a.ctrl;
+        d.slots = a.slots;
+        d.cap = new_cap;
+        d.growth_left = sizing::max_load(new_cap);
+
+        return success{};
+    }
+
     success shrink_to_fit() noexcept
     {
         auto& d = m_data();
@@ -1222,7 +1245,7 @@ private:
         auto& d = m_data();
         size_type i = find_first_non_full<probe>(d.ctrl, d.cap, hash);
 
-        // No budget and the slot found isn't a tombstone (reusing one is free).
+        // No budget and the slot found isn't a tombstone.
         // `!= DELETED` rather than `== EMPTY` matters for the empty singleton:
         // the probe lands on its sentinel byte, which is neither, and must grow.
         if (d.growth_left == 0 && d.ctrl[i] != ctrl_deleted)

@@ -8,8 +8,8 @@
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/_hash/hash_common.hpp"
 #include "vertex/std/hash.hpp"
-#include "vertex/std/_hash/hash_flat.hpp"
-//#include "vertex/std/_hash/hash_chain.hpp"
+#include "vertex/std/_hash/flat_hash_table.hpp"
+#include "vertex/std/_hash/node_hash_table.hpp"
 #include "vertex/std/_hash/hash_table.hpp"
 #include "vertex/std/expected.hpp"
 
@@ -46,10 +46,10 @@ namespace vx {
 template <typename K, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<K>, typename Sizing = _flat_hash_priv::default_sizing>
 using flat_set = _hash_priv::basic_hash_set<_flat_hash_priv::flat_table<_hash_priv::set_policy<K>, Hash, Eq, Alloc, Sizing>>;
 
-//template <typename K, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<K>, typename Growth = _hash_priv::pow2_growth>
-//using chain_set = _hash_priv::basic_hash_set<_hash_priv::chain_table<_hash_priv::set_policy<K>, Hash, Eq, Alloc, Growth>>;
+template <typename K, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<K>, typename Sizing = _node_hash_priv::default_sizing>
+using node_set = _hash_priv::basic_hash_set<_node_hash_priv::node_table<_hash_priv::set_policy<K>, Hash, Eq, Alloc, Sizing>>;
 
-template <typename K, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<K>, typename Sizing = _flat_hash_priv::default_sizing>
-using unordered_set = flat_set<K, Hash, Eq, Alloc, Sizing>;
+template <typename K, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<K>, typename Sizing = _node_hash_priv::default_sizing>
+using hash_set = node_set<K, Hash, Eq, Alloc, Sizing>;
 
 } // namespace vx

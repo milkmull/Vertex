@@ -17,8 +17,11 @@
 
 #include "vertex_test/test.hpp"
 
-// Generic tests are templates over the set type, so the same code runs against
-// every key type / allocator combination (see TEST_SETS below).
+// Every generic test runs against BOTH backends:
+//   flat_family  vx::flat_set  (open addressing, Swiss-table style)
+//   node_family  vx::node_set  (chained, one allocation per node)
+// A "family" is a tiny struct exposing `set<K, Hash, Eq, Alloc>`, so a test
+// templated on the set type (or on family + key) is written once.
 //
 // Key types:
 //   int           trivial key
@@ -33,19 +36,28 @@
 //       template <typename U> tracking_allocator(const tracking_allocator<U>&)
 //     that copies id + stats (the table rebinds the allocator internally).
 //
+// Registration macros (each generates one test case per family / key / allocator):
+//   TEST_SETS(name)             test_<name><S>()      S = plain / tracked sets, all key types
+//   TEST_SETS_COPYABLE(name)    same, copyable key types only
+//   TEST_KEYS(name)             test_<name><F, K>()   for every key type
+//   TEST_FAMILIES(name)         test_<name><F>()
+//   TEST_NODE_KEYS(name)        test_<name><K>()      node_set only (stability tests)
+//
 // Layout:
-//   1. helpers          key types, hashers, allocators, set aliases, macros
+//   1. helpers          families, key types, hashers, allocators, set aliases, macros
 //   2. construction
 //   3. insert / emplace / lookup
 //   4. erase
-//   5. capacity         growth, load boundary, tombstone churn
-//   6. copy / move / swap / assign / compare
-//   7. iteration
-//   8. hashing          default, degenerate, avalanching, transparent, stateful
-//   9. element lifetime
-//  10. allocators
-//  11. error reporting
-//  12. randomized stress
+//   5. merge
+//   6. capacity         growth, load boundary, churn
+//   7. copy / move / swap / assign / compare
+//   8. iteration
+//   9. hashing          default, degenerate, avalanching, transparent, stateful
+//  10. element lifetime
+//  11. allocators
+//  12. error reporting
+//  13. randomized stress
+//  14. node_set only: reference and iterator stability
 
 //=========================================================================
 // 1. helpers
@@ -69,6 +81,32 @@ int val(const T& t)
 }
 
 //-------------------------------------------------------------------------
+// families
+//-------------------------------------------------------------------------
+
+struct flat_family
+{
+    static constexpr bool stable_addresses = false;
+
+    template <typename K,
+        typename H = vx::default_hash<K>,
+        typename E = std::equal_to<K>,
+        typename A = vx::mem::default_allocator<K>>
+    using set = vx::flat_set<K, H, E, A>;
+};
+
+struct node_family
+{
+    static constexpr bool stable_addresses = true;
+
+    template <typename K,
+        typename H = vx::default_hash<K>,
+        typename E = std::equal_to<K>,
+        typename A = vx::mem::default_allocator<K>>
+    using set = vx::node_set<K, H, E, A>;
+};
+
+//-------------------------------------------------------------------------
 // hashers
 //-------------------------------------------------------------------------
 
@@ -82,7 +120,8 @@ struct test_hash
     }
 };
 
-// Everything collides: forces maximal probe chains / deleted-slot handling.
+// Everything collides: forces maximal probe chains / deleted-slot handling
+// (flat) and a single long chain (node).
 template <typename K>
 struct const_hash
 {
@@ -422,25 +461,26 @@ bool operator!=(const failing_allocator<T>& a, const failing_allocator<U>& b) no
 }
 
 //-------------------------------------------------------------------------
-// set aliases
+// set aliases (F = family, K = key)
 //-------------------------------------------------------------------------
 
-template <typename K>
-using plain_set = vx::unordered_set<K, test_hash<K>>;
+template <typename F, typename K>
+using plain_set = typename F::template set<K, test_hash<K>>;
 
-template <typename K>
-using tracked_set = vx::unordered_set<K, test_hash<K>, std::equal_to<K>, tracking_allocator<K>>;
+template <typename F, typename K>
+using tracked_set = typename F::template set<K, test_hash<K>, std::equal_to<K>, tracking_allocator<K>>;
 
-template <typename K>
-using failing_set = vx::unordered_set<K, test_hash<K>, std::equal_to<K>, failing_allocator<K>>;
+template <typename F, typename K>
+using failing_set = typename F::template set<K, test_hash<K>, std::equal_to<K>, failing_allocator<K>>;
 
-template <typename K>
-using degenerate_set = vx::unordered_set<K, const_hash<K>>;
+template <typename F, typename K>
+using degenerate_set = typename F::template set<K, const_hash<K>>;
 
-template <typename K>
-using avalanche_set = vx::unordered_set<K, avalanche_hash<K>>;
+template <typename F, typename K>
+using avalanche_set = typename F::template set<K, avalanche_hash<K>>;
 
-using counted_set = vx::unordered_set<counted_key, test_hash<counted_key>>;
+template <typename F>
+using counted_set = plain_set<F, counted_key>;
 
 //-------------------------------------------------------------------------
 // content helpers
@@ -501,46 +541,82 @@ void fill(S& s, int lo, int hi)
 // test registration macros
 //-------------------------------------------------------------------------
 
-// Runs test_<name><S>() for every key type / allocator combination.
+// One test per key type / allocator combination, for one family.
+#define TEST_SETS_FOR(name, tag, fam) \
+    VX_TEST_CASE(name##_##tag##_int) \
+    { \
+        test_##name<plain_set<fam, int>>(); \
+    } \
+    VX_TEST_CASE(name##_##tag##_copyable) \
+    { \
+        test_##name<plain_set<fam, copyable_int>>(); \
+    } \
+    VX_TEST_CASE(name##_##tag##_movable) \
+    { \
+        test_##name<plain_set<fam, movable_int>>(); \
+    } \
+    VX_TEST_CASE(name##_##tag##_tracked_copyable) \
+    { \
+        test_##name<tracked_set<fam, copyable_int>>(); \
+    } \
+    VX_TEST_CASE(name##_##tag##_tracked_movable) \
+    { \
+        test_##name<tracked_set<fam, movable_int>>(); \
+    }
+
+#define TEST_SETS_COPYABLE_FOR(name, tag, fam) \
+    VX_TEST_CASE(name##_##tag##_int) \
+    { \
+        test_##name<plain_set<fam, int>>(); \
+    } \
+    VX_TEST_CASE(name##_##tag##_copyable) \
+    { \
+        test_##name<plain_set<fam, copyable_int>>(); \
+    } \
+    VX_TEST_CASE(name##_##tag##_tracked_copyable) \
+    { \
+        test_##name<tracked_set<fam, copyable_int>>(); \
+    }
+
+#define TEST_KEYS_FOR(name, tag, fam) \
+    VX_TEST_CASE(name##_##tag##_int) \
+    { \
+        test_##name<fam, int>(); \
+    } \
+    VX_TEST_CASE(name##_##tag##_copyable) \
+    { \
+        test_##name<fam, copyable_int>(); \
+    } \
+    VX_TEST_CASE(name##_##tag##_movable) \
+    { \
+        test_##name<fam, movable_int>(); \
+    }
+
 #define TEST_SETS(name) \
-    VX_TEST_CASE(name##_int) \
-    { \
-        test_##name<plain_set<int>>(); \
-    } \
-    VX_TEST_CASE(name##_copyable) \
-    { \
-        test_##name<plain_set<copyable_int>>(); \
-    } \
-    VX_TEST_CASE(name##_movable) \
-    { \
-        test_##name<plain_set<movable_int>>(); \
-    } \
-    VX_TEST_CASE(name##_tracked_copyable) \
-    { \
-        test_##name<tracked_set<copyable_int>>(); \
-    } \
-    VX_TEST_CASE(name##_tracked_movable) \
-    { \
-        test_##name<tracked_set<movable_int>>(); \
-    }
+    TEST_SETS_FOR(name, flat, flat_family) \
+    TEST_SETS_FOR(name, node, node_family)
 
-// Same, but only for the key types that can be copied.
 #define TEST_SETS_COPYABLE(name) \
-    VX_TEST_CASE(name##_int) \
+    TEST_SETS_COPYABLE_FOR(name, flat, flat_family) \
+    TEST_SETS_COPYABLE_FOR(name, node, node_family)
+
+#define TEST_KEYS(name) \
+    TEST_KEYS_FOR(name, flat, flat_family) \
+    TEST_KEYS_FOR(name, node, node_family)
+
+// test_<name><F>() for both families
+#define TEST_FAMILIES(name) \
+    VX_TEST_CASE(name##_flat) \
     { \
-        test_##name<plain_set<int>>(); \
+        test_##name<flat_family>(); \
     } \
-    VX_TEST_CASE(name##_copyable) \
+    VX_TEST_CASE(name##_node) \
     { \
-        test_##name<plain_set<copyable_int>>(); \
-    } \
-    VX_TEST_CASE(name##_tracked_copyable) \
-    { \
-        test_##name<tracked_set<copyable_int>>(); \
+        test_##name<node_family>(); \
     }
 
-// Runs test_<name><K>() for every key type (for tests that pick their own set type).
-#define TEST_KEYS(name) \
+// test_<name><K>() for every key type, no family (tests that use both backends)
+#define TEST_PLAIN_KEYS(name) \
     VX_TEST_CASE(name##_int) \
     { \
         test_##name<int>(); \
@@ -550,6 +626,21 @@ void fill(S& s, int lo, int hi)
         test_##name<copyable_int>(); \
     } \
     VX_TEST_CASE(name##_movable) \
+    { \
+        test_##name<movable_int>(); \
+    }
+
+// test_<name><K>() for node_set only, every key type
+#define TEST_NODE_KEYS(name) \
+    VX_TEST_CASE(name##_node_int) \
+    { \
+        test_##name<int>(); \
+    } \
+    VX_TEST_CASE(name##_node_copyable) \
+    { \
+        test_##name<copyable_int>(); \
+    } \
+    VX_TEST_CASE(name##_node_movable) \
     { \
         test_##name<movable_int>(); \
     }
@@ -683,9 +774,10 @@ void test_construct_from_ranges()
 }
 TEST_SETS_COPYABLE(construct_from_ranges)
 
-VX_TEST_CASE(construct_from_input_iterators)
+template <typename F>
+void test_construct_from_input_iterators()
 {
-    using S = plain_set<int>;
+    using S = plain_set<F, int>;
 
     // true single-pass input iterators take the non-reserving insert path
     std::istringstream in("1 2 3 3 4 1 5");
@@ -697,6 +789,7 @@ VX_TEST_CASE(construct_from_input_iterators)
     VX_CHECK(t.insert(std::istream_iterator<int>(in2), std::istream_iterator<int>()));
     VX_CHECK(eq(t, { 10, 20, 30 }));
 }
+TEST_FAMILIES(construct_from_input_iterators)
 
 //=========================================================================
 // 3. insert / emplace / lookup
@@ -827,9 +920,10 @@ void test_emplace()
 }
 TEST_SETS(emplace)
 
-VX_TEST_CASE(emplace_multiple_arguments)
+template <typename F>
+void test_emplace_multiple_arguments()
 {
-    using S = vx::unordered_set<pt_key, pt_hash>;
+    using S = typename F::template set<pt_key, pt_hash>;
 
     S s;
     VX_CHECK(s.emplace(1, 2).value().inserted);
@@ -844,6 +938,7 @@ VX_TEST_CASE(emplace_multiple_arguments)
     VX_CHECK(s.emplace_assume_capacity(3, 3).inserted);
     VX_CHECK(s.size() == 3);
 }
+TEST_FAMILIES(emplace_multiple_arguments)
 
 // the _assume_capacity / _assume_unique variants of insert and emplace
 template <typename S>
@@ -971,11 +1066,170 @@ void test_erase()
         }
         VX_CHECK(s.begin() == s.end());
     }
+
+    VX_SECTION("conditional erase while iterating")
+    {
+        S s;
+        fill(s, 0, 200);
+        for (auto it = s.begin(); it != s.end();)
+        {
+            if (val(*it) % 3 == 0)
+            {
+                it = s.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        std::vector<int> expected;
+        for (int i = 0; i < 200; ++i)
+        {
+            if (i % 3 != 0)
+            {
+                expected.push_back(i);
+            }
+        }
+        VX_CHECK(eq_model(s, expected));
+    }
 }
 TEST_SETS(erase)
 
 //=========================================================================
-// 5. capacity
+// 5. merge
+//=========================================================================
+
+// merge moves elements out of the source, and leaves behind the ones the
+// target already has. Both sets are the same type.
+template <typename S>
+void test_merge()
+{
+    VX_SECTION("disjoint sets")
+    {
+        S a;
+        S b;
+        fill(a, 0, 10);
+        fill(b, 10, 20);
+        VX_CHECK(a.merge(b));
+        VX_CHECK(eq_model(a, range(0, 20)));
+        VX_CHECK(b.empty());
+        VX_CHECK(b.begin() == b.end());
+    }
+
+    VX_SECTION("duplicates stay in the source")
+    {
+        S a;
+        S b;
+        fill(a, 0, 10);
+        fill(b, 5, 15);
+        VX_CHECK(a.merge(b));
+        VX_CHECK(eq_model(a, range(0, 15)));
+        VX_CHECK(eq_model(b, range(5, 10)));
+    }
+
+    VX_SECTION("empty source / empty target")
+    {
+        S a;
+        S e;
+        fill(a, 0, 10);
+        VX_CHECK(a.merge(e));
+        VX_CHECK(eq_model(a, range(0, 10)));
+
+        S t;
+        VX_CHECK(t.merge(a));
+        VX_CHECK(eq_model(t, range(0, 10)));
+        VX_CHECK(a.empty());
+    }
+
+    VX_SECTION("self merge is a no-op")
+    {
+        S a;
+        fill(a, 0, 10);
+        VX_CHECK(a.merge(a));
+        VX_CHECK(eq_model(a, range(0, 10)));
+    }
+
+    VX_SECTION("rvalue source")
+    {
+        S a;
+        S b;
+        fill(a, 0, 5);
+        fill(b, 5, 10);
+        VX_CHECK(a.merge(std::move(b)));
+        VX_CHECK(eq_model(a, range(0, 10)));
+    }
+
+    VX_SECTION("large merge with growth")
+    {
+        S a;
+        S b;
+        fill(a, 0, 1000);
+        fill(b, 500, 1500);
+        VX_CHECK(a.merge(b));
+        VX_CHECK(eq_model(a, range(0, 1500)));
+        VX_CHECK(eq_model(b, range(500, 1000)));
+    }
+
+    VX_SECTION("both sets stay usable afterwards")
+    {
+        S a;
+        S b;
+        fill(a, 0, 20);
+        fill(b, 10, 30);
+        VX_CHECK(a.merge(b));
+        fill(b, 100, 110);
+        VX_CHECK(a.insert(typename S::key_type(999)));
+        VX_CHECK(a.size() == 31);
+        VX_CHECK(b.size() == 20);
+    }
+}
+TEST_SETS(merge)
+
+// merge only needs the same value_type, so flat and node sets can feed each other
+template <typename K>
+void test_merge_across_backends()
+{
+    using FS = plain_set<flat_family, K>;
+    using NS = plain_set<node_family, K>;
+
+    VX_SECTION("node into flat")
+    {
+        FS f;
+        NS n;
+        fill(f, 0, 10);
+        fill(n, 5, 20);
+        VX_CHECK(f.merge(n));
+        VX_CHECK(eq_model(f, range(0, 20)));
+        VX_CHECK(eq_model(n, range(5, 10)));
+    }
+
+    VX_SECTION("flat into node")
+    {
+        NS n;
+        FS f;
+        fill(n, 0, 10);
+        fill(f, 5, 20);
+        VX_CHECK(n.merge(f));
+        VX_CHECK(eq_model(n, range(0, 20)));
+        VX_CHECK(eq_model(f, range(5, 10)));
+    }
+
+    VX_SECTION("large, with growth in the target")
+    {
+        FS f;
+        NS n;
+        fill(f, 0, 100);
+        fill(n, 50, 3000);
+        VX_CHECK(f.merge(std::move(n)));
+        VX_CHECK(eq_model(f, range(0, 3000)));
+        VX_CHECK(eq_model(n, range(50, 100)));
+    }
+}
+TEST_PLAIN_KEYS(merge_across_backends)
+
+//=========================================================================
+// 6. capacity
 //=========================================================================
 
 template <typename S>
@@ -1108,6 +1362,7 @@ void test_load_boundary()
 TEST_SETS(load_boundary)
 
 // capacity must stay bounded when elements are constantly inserted and erased
+// (flat: tombstone cleanup; node: nothing accumulates)
 template <typename S>
 void test_tombstone_churn()
 {
@@ -1153,7 +1408,7 @@ void test_tombstone_churn()
 TEST_SETS(tombstone_churn)
 
 //=========================================================================
-// 6. copy / move / swap / assign / compare
+// 7. copy / move / swap / assign / compare
 //=========================================================================
 
 template <typename S>
@@ -1199,7 +1454,7 @@ void test_copy()
         VX_CHECK(b.empty());
     }
 
-    VX_SECTION("copy of a table with tombstones")
+    VX_SECTION("copy of a table with erased elements")
     {
         S a;
         fill(a, 0, 100);
@@ -1375,7 +1630,7 @@ void test_assign()
 TEST_SETS_COPYABLE(assign)
 
 //=========================================================================
-// 7. iteration
+// 8. iteration
 //=========================================================================
 
 template <typename S>
@@ -1474,12 +1729,13 @@ void test_iteration()
 TEST_SETS(iteration)
 
 //=========================================================================
-// 8. hashing
+// 9. hashing
 //=========================================================================
 
-VX_TEST_CASE(default_hasher)
+template <typename F>
+void test_default_hasher()
 {
-    using S = vx::unordered_set<int>;
+    using S = typename F::template set<int>;
 
     S s;
     for (int i = 0; i < 1000; ++i)
@@ -1501,11 +1757,12 @@ VX_TEST_CASE(default_hasher)
     VX_CHECK(s.insert(INT32_MAX));
     VX_CHECK(s.contains(-1) && s.contains(INT32_MIN) && s.contains(INT32_MAX));
 }
+TEST_FAMILIES(default_hasher)
 
-template <typename K>
+template <typename F, typename K>
 void test_degenerate_hash()
 {
-    using S = degenerate_set<K>;
+    using S = degenerate_set<F, K>;
 
     S s;
     for (int i = 0; i < 300; ++i)
@@ -1520,7 +1777,7 @@ void test_degenerate_hash()
     }
     VX_CHECK(!s.contains(K(300)));
 
-    // erase in the middle of long probe chains, then look everything up again
+    // erase in the middle of long chains, then look everything up again
     for (int i = 0; i < 300; i += 2)
     {
         VX_CHECK(s.erase(K(i)) == 1);
@@ -1530,14 +1787,14 @@ void test_degenerate_hash()
         VX_CHECK(s.contains(K(i)) == (i % 2 == 1));
     }
 
-    // tombstone-heavy reinsertion
+    // reinsertion after erase (flat: tombstone reuse)
     for (int i = 0; i < 300; i += 2)
     {
         VX_CHECK(s.insert(K(i)).value().inserted);
     }
     VX_CHECK(eq_model(s, range(0, 300)));
 
-    // churn through a single probe chain
+    // churn through a single chain
     for (int i = 300; i < 1500; ++i)
     {
         VX_CHECK(s.insert(K(i)).value().inserted);
@@ -1547,10 +1804,10 @@ void test_degenerate_hash()
 }
 TEST_KEYS(degenerate_hash)
 
-template <typename K>
+template <typename F, typename K>
 void test_avalanching_hash()
 {
-    using S = avalanche_set<K>;
+    using S = avalanche_set<F, K>;
 
     S s;
     fill(s, 0, 2000);
@@ -1572,9 +1829,10 @@ void test_avalanching_hash()
 }
 TEST_KEYS(avalanching_hash)
 
-VX_TEST_CASE(transparent_lookup)
+template <typename F>
+void test_transparent_lookup()
 {
-    using S = vx::unordered_set<wide_key, wide_hash, wide_eq>;
+    using S = typename F::template set<wide_key, wide_hash, wide_eq>;
 
     S s;
     for (int i = 0; i < 50; ++i)
@@ -1611,10 +1869,12 @@ VX_TEST_CASE(transparent_lookup)
     VX_CHECK(s.erase(wide_key(10)));
     VX_CHECK(s.size() == 47);
 }
+TEST_FAMILIES(transparent_lookup)
 
-VX_TEST_CASE(stateful_functors)
+template <typename F>
+void test_stateful_functors()
 {
-    using S = vx::unordered_set<int, seeded_hash, tagged_eq>;
+    using S = typename F::template set<int, seeded_hash, tagged_eq>;
 
     S a(seeded_hash(7), tagged_eq(9));
     VX_CHECK(a.hash_function().seed == 7);
@@ -1651,18 +1911,20 @@ VX_TEST_CASE(stateful_functors)
         VX_CHECK(a.contains(i));
     }
 }
+TEST_FAMILIES(stateful_functors)
 
 //=========================================================================
-// 9. element lifetime
+// 10. element lifetime
 //=========================================================================
 
 // movable_int has a deleted copy constructor, so the generic tests above
 // already prove that growth / relocation / move never copy a key. This just
 // checks that insert consumes its argument.
-VX_TEST_CASE(move_only_insert_consumes_argument)
+template <typename F>
+void test_move_only_insert_consumes_argument()
 {
     using K = movable_int;
-    using S = plain_set<K>;
+    using S = plain_set<F, K>;
 
     VX_STATIC_CHECK(!std::is_copy_constructible_v<K>);
 
@@ -1675,17 +1937,21 @@ VX_TEST_CASE(move_only_insert_consumes_argument)
     VX_CHECK(val(*r.value().it) == 5);
     VX_CHECK(!s.insert(K(5)).value().inserted);
 }
+TEST_FAMILIES(move_only_insert_consumes_argument)
 
 // constructs vs destroys, copies vs moves
-VX_TEST_CASE(lifetime_counted_keys)
+template <typename F>
+void test_lifetime_counted_keys()
 {
+    using CS = counted_set<F>;
+
     auto& st = counted_key::stats();
     counted_key::reset();
 
     {
-        counted_set s;
-        counted_set m;
-        counted_set o;
+        CS s;
+        CS m;
+        CS o;
 
         auto live_matches = [&]()
         {
@@ -1708,7 +1974,7 @@ VX_TEST_CASE(lifetime_counted_keys)
             fill(s, 0, 1000);
             VX_CHECK(s.size() == 1000);
             VX_CHECK(live_matches());
-            VX_CHECK(st.copies == 0); // relocation on growth moves
+            VX_CHECK(st.copies == 0); // relocation on growth moves (or does nothing)
 
             for (int i = 1000; i < 1100; ++i)
             {
@@ -1763,7 +2029,7 @@ VX_TEST_CASE(lifetime_counted_keys)
             const size_t copies_before = st.copies;
             VX_CHECK(s.shrink_to_fit());
             VX_CHECK(s.reserve(5000));
-            VX_CHECK(st.copies == copies_before); // rehash moves
+            VX_CHECK(st.copies == copies_before); // rehash never copies
             VX_CHECK(s.size() == 100);
 
             s.clear();
@@ -1777,7 +2043,7 @@ VX_TEST_CASE(lifetime_counted_keys)
             fill(s, 0, 100);
             const size_t copies_before = st.copies;
 
-            counted_set c(s);
+            CS c(s);
             VX_CHECK(st.copies - copies_before == 100); // one copy per element
             VX_CHECK(st.live == s.size() + c.size());
 
@@ -1798,8 +2064,22 @@ VX_TEST_CASE(lifetime_counted_keys)
             VX_CHECK(m == s);
             VX_CHECK(live_matches());
 
-            VX_CHECK(m.assign(counted_set()));
+            VX_CHECK(m.assign(CS()));
             VX_CHECK(m.empty());
+            VX_CHECK(live_matches());
+        }
+
+        VX_SECTION("merge never copies and keeps every key alive exactly once")
+        {
+            fresh();
+            fill(s, 0, 50);
+            fill(m, 25, 75);
+            const size_t copies_before = st.copies;
+
+            VX_CHECK(s.merge(m));
+            VX_CHECK(s.size() == 75);
+            VX_CHECK(m.size() == 25); // the duplicates stay behind
+            VX_CHECK(st.copies == copies_before);
             VX_CHECK(live_matches());
         }
 
@@ -1818,16 +2098,18 @@ VX_TEST_CASE(lifetime_counted_keys)
     VX_CHECK(st.constructed == st.destroyed);
     VX_CHECK(st.bad == 0);
 }
+TEST_FAMILIES(lifetime_counted_keys)
 
 //=========================================================================
-// 10. allocators
+// 11. allocators
 //=========================================================================
 
-VX_TEST_CASE(allocator_no_leaks)
+template <typename F>
+void test_allocator_no_leaks()
 {
     using K = copyable_int;
     using A = tracking_allocator<K>;
-    using S = tracked_set<K>;
+    using S = tracked_set<F, K>;
 
     allocator_stats stats;
     {
@@ -1840,7 +2122,7 @@ VX_TEST_CASE(allocator_no_leaks)
         VX_CHECK(stats.live_allocations > 0);
 
         s.clear();
-        VX_CHECK(stats.live_allocations > 0); // clear keeps the storage
+        VX_CHECK(stats.live_allocations > 0); // clear keeps the storage (flat: block, node: buckets)
         s.clear_and_deallocate();
         VX_CHECK(stats.live_allocations == 0);
         VX_CHECK(s.capacity() == 0);
@@ -1868,14 +2150,16 @@ VX_TEST_CASE(allocator_no_leaks)
     VX_CHECK(stats.live_allocations == 0);
     VX_CHECK(stats.allocate_calls == stats.deallocate_calls);
 }
+TEST_FAMILIES(allocator_no_leaks)
 
-VX_TEST_CASE(allocator_get_allocator_round_trips)
+template <typename F>
+void test_allocator_get_allocator_round_trips()
 {
     // the table rebinds the allocator internally: get_allocator() must still
     // return the original allocator type with the original state
     using K = copyable_int;
     using A = tracking_allocator<K>;
-    using S = tracked_set<K>;
+    using S = tracked_set<F, K>;
 
     allocator_stats stats;
     S s(test_hash<K>(), std::equal_to<K>(), A(42, &stats));
@@ -1886,12 +2170,14 @@ VX_TEST_CASE(allocator_get_allocator_round_trips)
     VX_CHECK(a.stats() == &stats);
     VX_STATIC_CHECK((std::is_same_v<typename S::allocator_type, A>));
 }
+TEST_FAMILIES(allocator_get_allocator_round_trips)
 
-VX_TEST_CASE(allocator_propagation)
+template <typename F>
+void test_allocator_propagation()
 {
     using K = copyable_int;
     using A = tracking_allocator<K>;
-    using S = tracked_set<K>;
+    using S = tracked_set<F, K>;
 
     allocator_stats s1;
     allocator_stats s2;
@@ -1913,12 +2199,14 @@ VX_TEST_CASE(allocator_propagation)
     VX_CHECK(s1.live_allocations == 0);
     VX_CHECK(s2.live_allocations == 0);
 }
+TEST_FAMILIES(allocator_propagation)
 
-VX_TEST_CASE(allocator_assign_and_swap)
+template <typename F>
+void test_allocator_assign_and_swap()
 {
     using K = copyable_int;
     using A = tracking_allocator<K>;
-    using S = tracked_set<K>;
+    using S = tracked_set<F, K>;
 
     allocator_stats s1;
     allocator_stats s2;
@@ -1954,9 +2242,10 @@ VX_TEST_CASE(allocator_assign_and_swap)
     VX_CHECK(s1.allocate_calls == s1.deallocate_calls);
     VX_CHECK(s2.allocate_calls == s2.deallocate_calls);
 }
+TEST_FAMILIES(allocator_assign_and_swap)
 
 //=========================================================================
-// 11. error reporting
+// 12. error reporting
 //
 // "Not found" and "already present" are results, not errors (covered by the
 // insert / erase tests above). Failures are one of:
@@ -2000,10 +2289,11 @@ void test_size_errors()
 }
 TEST_SETS(size_errors)
 
-VX_TEST_CASE(error_out_of_memory_first_allocation)
+template <typename F>
+void test_error_out_of_memory_first_allocation()
 {
     using A = failing_allocator<int>;
-    using S = failing_set<int>;
+    using S = failing_set<F, int>;
 
     fail_state st;
     {
@@ -2027,11 +2317,13 @@ VX_TEST_CASE(error_out_of_memory_first_allocation)
     }
     VX_CHECK(st.live == 0);
 }
+TEST_FAMILIES(error_out_of_memory_first_allocation)
 
-VX_TEST_CASE(error_out_of_memory_growth)
+template <typename F>
+void test_error_out_of_memory_growth()
 {
     using A = failing_allocator<int>;
-    using S = failing_set<int>;
+    using S = failing_set<F, int>;
 
     fail_state st;
     {
@@ -2061,13 +2353,16 @@ VX_TEST_CASE(error_out_of_memory_growth)
     }
     VX_CHECK(st.live == 0);
 }
+TEST_FAMILIES(error_out_of_memory_growth)
 
 // fail the Nth allocation for every N: the table must report the error,
-// keep exactly what was inserted so far, and stay usable
-VX_TEST_CASE(error_out_of_memory_insert_sweep)
+// keep exactly what was inserted so far, and stay usable.
+// (node_set also allocates once per element, so this hits node allocation too.)
+template <typename F>
+void test_error_out_of_memory_insert_sweep()
 {
     using A = failing_allocator<int>;
-    using S = failing_set<int>;
+    using S = failing_set<F, int>;
 
     for (long budget = 0; budget < 10; ++budget)
     {
@@ -2111,13 +2406,15 @@ VX_TEST_CASE(error_out_of_memory_insert_sweep)
         VX_CHECK(st.live == 0);
     }
 }
+TEST_FAMILIES(error_out_of_memory_insert_sweep)
 
 // same sweep with a lifetime-counting key: a failed insert must not leak
 // or double destroy the key that was being inserted
-VX_TEST_CASE(error_out_of_memory_leaks_no_elements)
+template <typename F>
+void test_error_out_of_memory_leaks_no_elements()
 {
     using A = failing_allocator<counted_key>;
-    using S = vx::unordered_set<counted_key, test_hash<counted_key>, std::equal_to<counted_key>, A>;
+    using S = typename F::template set<counted_key, test_hash<counted_key>, std::equal_to<counted_key>, A>;
 
     auto& ck = counted_key::stats();
 
@@ -2144,11 +2441,13 @@ VX_TEST_CASE(error_out_of_memory_leaks_no_elements)
         VX_CHECK(st.live == 0);
     }
 }
+TEST_FAMILIES(error_out_of_memory_leaks_no_elements)
 
-VX_TEST_CASE(error_out_of_memory_reserve_and_shrink)
+template <typename F>
+void test_error_out_of_memory_reserve_and_shrink()
 {
     using A = failing_allocator<int>;
-    using S = failing_set<int>;
+    using S = failing_set<F, int>;
 
     fail_state st;
     {
@@ -2175,11 +2474,13 @@ VX_TEST_CASE(error_out_of_memory_reserve_and_shrink)
     }
     VX_CHECK(st.live == 0);
 }
+TEST_FAMILIES(error_out_of_memory_reserve_and_shrink)
 
-VX_TEST_CASE(error_out_of_memory_create)
+template <typename F>
+void test_error_out_of_memory_create()
 {
     using A = failing_allocator<int>;
-    using S = failing_set<int>;
+    using S = failing_set<F, int>;
 
     fail_state st;
     {
@@ -2213,11 +2514,82 @@ VX_TEST_CASE(error_out_of_memory_create)
     }
     VX_CHECK(st.live == 0);
 }
+TEST_FAMILIES(error_out_of_memory_create)
 
-VX_TEST_CASE(error_out_of_memory_assign)
+// Fail the Nth allocation of a copy, for every N. node_set copies allocate one
+// block per element, so a failure midway must free the partially built copy.
+// flat_set needs a single allocation, so only budget 0 fails.
+template <typename F>
+void test_error_out_of_memory_copy_sweep()
 {
     using A = failing_allocator<int>;
-    using S = failing_set<int>;
+    using S = failing_set<F, int>;
+
+    fail_state st;
+    {
+        S a(test_hash<int>(), std::equal_to<int>(), A{ &st });
+        fill(a, 0, 40);
+        const long baseline = st.live;
+
+        bool saw_failure = false;
+        bool saw_success = false;
+
+        for (long budget = 0; budget < 64; ++budget)
+        {
+            st.countdown = budget;
+            {
+                auto c = S::create(a);
+                if (c)
+                {
+                    saw_success = true;
+                    VX_CHECK(c.value() == a);
+                }
+                else
+                {
+                    saw_failure = true;
+                }
+            }
+            st.countdown = -1;
+
+            // the copy (partial or complete) is gone, the original is untouched
+            VX_CHECK(st.live == baseline);
+            VX_CHECK(eq_model(a, range(0, 40)));
+        }
+
+        VX_CHECK(saw_failure);
+        VX_CHECK(saw_success);
+
+        // assign() has the same guarantee
+        S b(test_hash<int>(), std::equal_to<int>(), A{ &st });
+        fill(b, 100, 110);
+        const long baseline2 = st.live;
+        for (long budget = 0; budget < 64; ++budget)
+        {
+            st.countdown = budget;
+            const auto r = b.assign(a);
+            st.countdown = -1;
+
+            if (!r)
+            {
+                VX_CHECK(eq_model(b, range(100, 110)));
+                VX_CHECK(st.live == baseline2);
+            }
+            else
+            {
+                VX_CHECK(b == a);
+                break;
+            }
+        }
+    }
+    VX_CHECK(st.live == 0);
+}
+TEST_FAMILIES(error_out_of_memory_copy_sweep)
+
+template <typename F>
+void test_error_out_of_memory_assign()
+{
+    using A = failing_allocator<int>;
+    using S = failing_set<F, int>;
 
     fail_state st;
     {
@@ -2241,11 +2613,13 @@ VX_TEST_CASE(error_out_of_memory_assign)
     }
     VX_CHECK(st.live == 0);
 }
+TEST_FAMILIES(error_out_of_memory_assign)
 
-VX_TEST_CASE(error_out_of_memory_insert_range)
+template <typename F>
+void test_error_out_of_memory_insert_range()
 {
     using A = failing_allocator<int>;
-    using S = failing_set<int>;
+    using S = failing_set<F, int>;
 
     fail_state st;
     {
@@ -2269,9 +2643,10 @@ VX_TEST_CASE(error_out_of_memory_insert_range)
     }
     VX_CHECK(st.live == 0);
 }
+TEST_FAMILIES(error_out_of_memory_insert_range)
 
 //=========================================================================
-// 12. randomized stress (compared against std::set)
+// 13. randomized stress (compared against std::set)
 //=========================================================================
 
 template <typename S>
@@ -2349,14 +2724,410 @@ void test_stress()
 }
 TEST_SETS(stress)
 
-VX_TEST_CASE(stress_degenerate_hash)
+template <typename F>
+void test_stress_degenerate_hash()
 {
-    test_stress<degenerate_set<int>>();
+    test_stress<degenerate_set<F, int>>();
 }
+TEST_FAMILIES(stress_degenerate_hash)
 
-VX_TEST_CASE(stress_avalanching_hash)
+template <typename F>
+void test_stress_avalanching_hash()
 {
-    test_stress<avalanche_set<int>>();
+    test_stress<avalanche_set<F, int>>();
+}
+TEST_FAMILIES(stress_avalanching_hash)
+
+//=========================================================================
+// 14. node_set only: reference and iterator stability
+//
+// node_set promises:
+//   * references / pointers to elements survive EVERYTHING except erasing that
+//     element: growth, reserve, shrink_to_fit, erase of others, move, swap
+//   * iterators survive inserts that do not rehash, and erase of other elements
+//   * rehash invalidates iterators but not references
+//   * elements are never constructed, moved or copied by a rehash
+// flat_set promises none of this, so these tests are registered for node only.
+//=========================================================================
+
+template <typename K>
+void test_node_reference_stability_rehash()
+{
+    using S = plain_set<node_family, K>;
+
+    // Sections run one after another in the same call, so each one builds its
+    // own table instead of sharing state with the others.
+
+    // 100 elements, recording the address of each as it goes in
+    auto seed = [](S& s, std::vector<const K*>& ptrs)
+    {
+        for (int i = 0; i < 100; ++i)
+        {
+            auto r = s.insert(K(i));
+            VX_CHECK(r);
+            ptrs.push_back(&*r.value().it);
+        }
+    };
+
+    auto check_ptrs = [](const S& s, const std::vector<const K*>& ptrs, int lo, int hi, int step)
+    {
+        for (int i = lo; i < hi; i += step)
+        {
+            auto it = s.find(K(i));
+            VX_CHECK(it != s.end());
+            VX_CHECK(&*it == ptrs[static_cast<size_t>(i)]);
+            VX_CHECK(val(*ptrs[static_cast<size_t>(i)]) == i);
+        }
+    };
+
+    VX_SECTION("growth")
+    {
+        S s;
+        std::vector<const K*> ptrs;
+        seed(s, ptrs);
+
+        fill(s, 100, 5000);
+        check_ptrs(s, ptrs, 0, 100, 1);
+    }
+
+    VX_SECTION("reserve")
+    {
+        S s;
+        std::vector<const K*> ptrs;
+        seed(s, ptrs);
+
+        VX_CHECK(s.reserve(50000));
+        check_ptrs(s, ptrs, 0, 100, 1);
+    }
+
+    VX_SECTION("shrink_to_fit after erasing most elements")
+    {
+        S s;
+        std::vector<const K*> ptrs;
+        seed(s, ptrs);
+
+        fill(s, 100, 2000);
+        for (int i = 100; i < 2000; ++i)
+        {
+            VX_CHECK(s.erase(K(i)) == 1);
+        }
+        VX_CHECK(s.shrink_to_fit());
+        VX_CHECK(s.size() == 100);
+        check_ptrs(s, ptrs, 0, 100, 1);
+    }
+
+    VX_SECTION("erasing other elements")
+    {
+        S s;
+        std::vector<const K*> ptrs;
+        seed(s, ptrs);
+
+        // keep the odd ones, erase the even ones
+        for (int i = 0; i < 100; i += 2)
+        {
+            VX_CHECK(s.erase(K(i)) == 1);
+        }
+        check_ptrs(s, ptrs, 1, 100, 2);
+    }
+
+    VX_SECTION("insert / erase churn around a long-lived element")
+    {
+        S s;
+        std::vector<const K*> ptrs;
+        seed(s, ptrs);
+
+        const K* anchor = ptrs[7];
+        const int window = 8;
+        for (int i = 1000; i < 21000; ++i)
+        {
+            VX_CHECK(s.insert(K(i)).value().inserted);
+            if (i >= 1000 + window)
+            {
+                VX_CHECK(s.erase(K(i - window)) == 1);
+            }
+        }
+        VX_CHECK(&*s.find(K(7)) == anchor);
+        VX_CHECK(val(*anchor) == 7);
+    }
+}
+TEST_NODE_KEYS(node_reference_stability_rehash)
+
+template <typename K>
+void test_node_reference_stability_move_swap()
+{
+    using S = plain_set<node_family, K>;
+    using ptr_list = std::vector<const K*>;
+
+    auto addresses = [](const S& s, int lo, int hi)
+    {
+        ptr_list out;
+        for (int i = lo; i < hi; ++i)
+        {
+            auto it = s.find(K(i));
+            out.push_back(it == s.end() ? nullptr : &*it);
+        }
+        return out;
+    };
+
+    // Each section builds its own source table: a section that moves from `a`
+    // would otherwise leave a moved-from table for the next one.
+    auto build = [&](S& a)
+    {
+        fill(a, 0, 50);
+        ptr_list before = addresses(a, 0, 50);
+        VX_CHECK(std::find(before.begin(), before.end(), nullptr) == before.end());
+        return before;
+    };
+
+    VX_SECTION("move construct hands over the very same nodes")
+    {
+        S a;
+        const ptr_list before = build(a);
+
+        S b(std::move(a));
+        VX_CHECK(addresses(b, 0, 50) == before);
+    }
+
+    VX_SECTION("move assign hands over the very same nodes")
+    {
+        S a;
+        const ptr_list before = build(a);
+
+        S b;
+        fill(b, 500, 510);
+        b = std::move(a);
+        VX_CHECK(addresses(b, 0, 50) == before);
+    }
+
+    VX_SECTION("swap exchanges the nodes without moving them")
+    {
+        S a;
+        const ptr_list before = build(a);
+
+        S b;
+        fill(b, 100, 110);
+        const ptr_list b_before = addresses(b, 100, 110);
+
+        a.swap(b);
+        VX_CHECK(addresses(b, 0, 50) == before);
+        VX_CHECK(addresses(a, 100, 110) == b_before);
+    }
+
+    VX_SECTION("moved-into table keeps stable addresses while it grows")
+    {
+        S a;
+        const ptr_list before = build(a);
+
+        S b(std::move(a));
+        fill(b, 1000, 6000);
+        VX_CHECK(addresses(b, 0, 50) == before);
+    }
+}
+TEST_NODE_KEYS(node_reference_stability_move_swap)
+
+template <typename K>
+void test_node_iterator_stability()
+{
+    using S = plain_set<node_family, K>;
+    using It = typename S::iterator;
+
+    VX_SECTION("iterators survive inserts that do not rehash")
+    {
+        S s;
+        VX_CHECK(s.reserve(1000));
+        const size_t cap = s.capacity();
+        fill(s, 0, 10);
+
+        std::vector<It> its;
+        for (int i = 0; i < 10; ++i)
+        {
+            its.push_back(s.find(K(i)));
+        }
+
+        // stay within capacity: no rehash
+        fill(s, 10, static_cast<int>(cap));
+        VX_CHECK(s.capacity() == cap);
+
+        for (int i = 0; i < 10; ++i)
+        {
+            VX_CHECK(its[static_cast<size_t>(i)] == s.find(K(i)));
+            VX_CHECK(val(*its[static_cast<size_t>(i)]) == i);
+        }
+    }
+
+    VX_SECTION("iterators survive erase of other elements")
+    {
+        S s;
+        fill(s, 0, 100);
+
+        auto it = s.find(K(50));
+        VX_CHECK(it != s.end());
+
+        // erase every odd key; 50 is even so it stays
+        for (int i = 1; i < 100; i += 2)
+        {
+            VX_CHECK(s.erase(K(i)) == 1);
+        }
+
+        VX_CHECK(it == s.find(K(50)));
+        VX_CHECK(val(*it) == 50);
+
+        // walking on from the held iterator only visits survivors, and ends
+        size_t visited = 0;
+        for (; it != s.end(); ++it)
+        {
+            VX_CHECK(val(*it) % 2 == 0);
+            ++visited;
+            VX_CHECK(visited <= 50);
+        }
+        VX_CHECK(visited >= 1);
+    }
+
+    VX_SECTION("erase through a held iterator after other erases")
+    {
+        S s;
+        fill(s, 0, 100);
+
+        auto keep = s.find(K(10));
+        auto victim = s.find(K(90));
+
+        for (int i = 20; i < 80; ++i)
+        {
+            VX_CHECK(s.erase(K(i)) == 1);
+        }
+
+        VX_CHECK(val(*keep) == 10);
+        (void)s.erase(victim); // erase_at has to relink using the bucket it remembered
+        VX_CHECK(!s.contains(K(90)));
+        VX_CHECK(val(*keep) == 10);
+        VX_CHECK(s.size() == 100 - 60 - 1);
+    }
+
+    VX_SECTION("erase of an element in a shared chain keeps neighbours valid")
+    {
+        // every key collides, so all elements share one bucket chain
+        using D = degenerate_set<node_family, K>;
+        using DIt = typename D::iterator;
+
+        D s;
+        fill(s, 0, 50);
+
+        std::vector<DIt> its;
+        for (int i = 0; i < 50; ++i)
+        {
+            its.push_back(s.find(K(i)));
+        }
+
+        for (int i = 0; i < 50; i += 2)
+        {
+            (void)s.erase(its[static_cast<size_t>(i)]);
+        }
+
+        VX_CHECK(s.size() == 25);
+        for (int i = 1; i < 50; i += 2)
+        {
+            VX_CHECK(its[static_cast<size_t>(i)] == s.find(K(i)));
+            VX_CHECK(val(*its[static_cast<size_t>(i)]) == i);
+        }
+        for (int i = 0; i < 50; i += 2)
+        {
+            VX_CHECK(!s.contains(K(i)));
+        }
+    }
+
+    VX_SECTION("erase returns an iterator that stays valid for the rest of the walk")
+    {
+        S s;
+        fill(s, 0, 500);
+
+        // erase every third element, using the returned iterator to continue
+        size_t erased = 0;
+        for (auto it = s.begin(); it != s.end();)
+        {
+            if (val(*it) % 3 == 0)
+            {
+                it = s.erase(it);
+                ++erased;
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        VX_CHECK(erased == 167);
+        VX_CHECK(s.size() == 500 - erased);
+        for (int i = 0; i < 500; ++i)
+        {
+            VX_CHECK(s.contains(K(i)) == (i % 3 != 0));
+        }
+    }
+}
+TEST_NODE_KEYS(node_iterator_stability)
+
+// A rehash only relinks nodes: no element is constructed, moved, copied or
+// destroyed by reserve / growth / shrink_to_fit.
+VX_TEST_CASE(node_rehash_never_touches_elements)
+{
+    using S = counted_set<node_family>;
+
+    auto& st = counted_key::stats();
+    counted_key::reset();
+
+    {
+        S s;
+        fill(s, 0, 500);
+
+        VX_SECTION("reserve")
+        {
+            const counted_stats before = st;
+            VX_CHECK(s.reserve(20000));
+            VX_CHECK(st.constructed == before.constructed);
+            VX_CHECK(st.destroyed == before.destroyed);
+            VX_CHECK(st.moves == before.moves);
+            VX_CHECK(st.copies == before.copies);
+        }
+
+        VX_SECTION("growth through insert")
+        {
+            // only the new elements are constructed; the existing 500 are left alone
+            const counted_stats before = st;
+            fill(s, 500, 3000);
+            VX_CHECK(st.copies == before.copies);
+            VX_CHECK(s.size() == 3000);
+            VX_CHECK(st.live == s.size());
+        }
+
+        VX_SECTION("shrink_to_fit")
+        {
+            for (auto it = s.begin(); it != s.end();)
+            {
+                if (val(*it) >= 3)
+                {
+                    it = s.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+            VX_CHECK(s.size() == 3);
+
+            const counted_stats before = st;
+            VX_CHECK(s.shrink_to_fit());
+            VX_CHECK(st.constructed == before.constructed);
+            VX_CHECK(st.destroyed == before.destroyed);
+            VX_CHECK(st.moves == before.moves);
+            VX_CHECK(st.copies == before.copies);
+        }
+
+        VX_CHECK(st.live == s.size());
+        VX_CHECK(st.bad == 0);
+    }
+
+    VX_CHECK(st.live == 0);
+    VX_CHECK(st.constructed == st.destroyed);
+    VX_CHECK(st.bad == 0);
 }
 
 //=========================================================================

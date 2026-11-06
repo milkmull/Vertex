@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/std/memory.hpp"
+#include "vertex/std/algorithm.hpp"
 
 namespace vx {
 namespace _static_array_base_priv {
@@ -40,7 +40,7 @@ struct static_array_base<N, T, false>
     {
         if (m_data.size)
         {
-            mem::destroy_range(m_data.ptr, m_data.size);
+            range::destroy(m_data.ptr, m_data.size);
         }
     }
 };

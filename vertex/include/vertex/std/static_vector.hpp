@@ -353,7 +353,7 @@ private:
 
             VX_IF_CONSTEXPR (M == construct_method::fill_range)
             {
-                auto mid = range::fill_range(ptr, size, arg);
+                auto mid = range::fill(ptr, size, arg);
                 range::fill_uninitialized(mid, tail_count, arg);
             }
             else VX_IF_CONSTEXPR (M == construct_method::move_range)

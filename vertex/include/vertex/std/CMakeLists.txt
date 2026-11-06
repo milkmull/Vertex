@@ -12,8 +12,8 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_group.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_common.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_storage.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_flat.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_chain.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/flat_hash_table.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_hash/node_hash_table.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_hash/hash_table.hpp"
 
     # Core

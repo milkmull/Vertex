@@ -116,6 +116,11 @@ public:
         return (static_cast<uint32_t>(bit::countl_zero(m_bits)) - Pad) >> Shift;
     }
 
+    void remove_lowest() noexcept
+    {
+        m_bits &= (m_bits - 1);
+    }
+
     bit_mask begin() const noexcept
     {
         return *this;
@@ -133,7 +138,7 @@ public:
 
     bit_mask& operator++() noexcept
     {
-        m_bits &= (m_bits - 1);
+        remove_lowest();
         return *this;
     }
 

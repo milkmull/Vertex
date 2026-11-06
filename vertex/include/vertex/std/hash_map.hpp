@@ -1,12 +1,17 @@
 #pragma once
 
+#include <cstddef>
+#include <functional>
+#include <type_traits>
+#include <utility>
+
 #include "vertex/config/language_config.hpp"
+#include "vertex/std/_hash/flat_hash_table.hpp"
 #include "vertex/std/_hash/hash_common.hpp"
-#include "vertex/std/_hash/hash_functions.hpp"
-#include "vertex/std/_hash/hash_open.hpp"
-#include "vertex/std/_hash/hash_chain.hpp"
 #include "vertex/std/_hash/hash_table.hpp"
+#include "vertex/std/_hash/node_hash_table.hpp"
 #include "vertex/std/expected.hpp"
+#include "vertex/std/hash.hpp"
 
 namespace vx {
 namespace _hash_priv {
@@ -46,14 +51,14 @@ public:
     mapped_type* get(const typename base::template key_arg<Q>& key) noexcept
     {
         const iterator it = this->find(key);
-        return it != this->end() ? &it->second : nullptr;
+        return it != this->end() ? &it->value : nullptr;
     }
 
     template <typename Q = key_type>
     const mapped_type* get(const typename base::template key_arg<Q>& key) const noexcept
     {
         const const_iterator it = this->find(key);
-        return it != this->end() ? &it->second : nullptr;
+        return it != this->end() ? &it->value : nullptr;
     }
 
     //=========================================================================
@@ -90,14 +95,14 @@ private:
         const iterator found = this->find_with_hash(key, hash);
         if (found != this->end())
         {
-            return &found->second;
+            return &found->value;
         }
 
         const auto ok = m_b.emplace_new(hash, std::move(key));
         VX_RET_UNEXPECTED_ERR_IF(!ok, ok.error());
 
         const iterator it = ok.value();
-        return &it->second;
+        return &it->value;
     }
 
 public:
@@ -182,11 +187,11 @@ private:
         const iterator it = this->find_with_hash(key, hash);
         if (it != this->end())
         {
-            it->second = std::forward<M>(obj);
+            it->value = std::forward<M>(obj);
             return insert_result{ it, false };
         }
 
-        const auto ok = m_b.emplace_new(hash, std::move(key), std::move(obj));
+        const auto ok = m_b.emplace_new(hash, std::move(key), std::forward<M>(obj));
         VX_RET_UNEXPECTED_ERR_IF(!ok, ok.error());
 
         return insert_result{ ok.value(), true };
@@ -242,13 +247,13 @@ namespace vx {
 template <typename K, typename V>
 using map_pair = _hash_priv::map_pair<K, V>;
 
-template <typename K, typename V, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<vx::pair<const K, V>>, typename Growth = _hash_priv::pow2_growth>
-using flat_map = _hash_priv::basic_hash_map<_hash_priv::flat_ta<_hash_priv::map_policy<K, V>, Hash, Eq, Alloc, Growth>>;
+template <typename K, typename V, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<map_pair<const K, V>>, typename Sizing = _flat_hash_priv::default_sizing>
+using flat_map = _hash_priv::basic_hash_map<_flat_hash_priv::flat_table<_hash_priv::map_policy<K, V>, Hash, Eq, Alloc, Sizing>>;
 
-template <typename K, typename V, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<vx::pair<const K, V>>, typename Growth = _hash_priv::pow2_growth>
-using chain_map = _hash_priv::basic_hash_map<_hash_priv::chain_table<_hash_priv::map_policy<K, V>, Hash, Eq, Alloc, Growth>>;
+template <typename K, typename V, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<map_pair<const K, V>>, typename Sizing = _node_hash_priv::default_sizing>
+using node_map = _hash_priv::basic_hash_map<_node_hash_priv::node_table<_hash_priv::map_policy<K, V>, Hash, Eq, Alloc, Sizing>>;
 
-template <typename K, typename V, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<vx::pair<const K, V>>, typename Growth = _hash_priv::pow2_growth>
-using unordered_map = flat_map<K, V, Hash, Eq, Alloc, Growth>;
+template <typename K, typename V, typename Hash = default_hash<K>, typename Eq = std::equal_to<K>, typename Alloc = mem::default_allocator<map_pair<const K, V>>, typename Sizing = _flat_hash_priv::default_sizing>
+using hash_map = flat_map<K, V, Hash, Eq, Alloc, Sizing>;
 
 } // namespace vx

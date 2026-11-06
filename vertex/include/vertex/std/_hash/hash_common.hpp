@@ -180,7 +180,6 @@ struct map_pair
     K key;
     V value;
 
-    // value-initializes, like std::map_pair. Doesn't affect trivial copyability.
     constexpr map_pair() : key(), value()
     {}
 
@@ -196,10 +195,11 @@ struct map_pair
 
     template <typename U1, typename U2, VX_REQUIRES(std::is_constructible<K, U1&&>::value&& std::is_constructible<V, U2&&>::value)>
     constexpr map_pair(U1&& a, U2&& b)
-        : key(std::forward<U1>(a)), value(std::forward<U2>(b))
+        : key(std::forward<U1>(a))
+        , value(std::forward<U2>(b))
     {}
 
-    // map_pair<K, V> -> map_pair<const K, V>, and from std::map_pair
+    // map_pair<K, V> -> map_pair<const K, V>
     template <typename U1, typename U2, VX_REQUIRES(std::is_constructible<K, const U1&>::value&& std::is_constructible<V, const U2&>::value)>
     constexpr map_pair(const map_pair<U1, U2>& p)
         : key(p.key), value(p.value)
@@ -238,7 +238,7 @@ constexpr bool operator!=(const map_pair<K, V>& a, const map_pair<K, V>& b)
 }
 
 //=========================================================================
-// slot policies
+// set policy
 //=========================================================================
 
 template <typename K>
@@ -246,6 +246,7 @@ struct set_policy
 {
     using key_type = K;
     using slot_type = K;
+    using const_slot_type = K;
 
     static constexpr bool mutable_slots = false;
     static constexpr bool trivially_copyable_slots = std::is_trivially_copyable<slot_type>::value;
@@ -283,14 +284,16 @@ struct set_policy
 };
 
 //=========================================================================
+// map policy
+//=========================================================================
 
 template <typename K, typename V>
 struct map_policy
 {
     using key_type = K;
     using mapped_type = V;
-    using slot_type = map_pair<const K, V>;
-    using mutable_slot_type = map_pair<K, V>;
+    using slot_type = map_pair<K, V>;             // what is stored
+    using const_slot_type = map_pair<const K, V>; // what iterators show
 
     static constexpr bool mutable_slots = true;
     static constexpr bool trivially_copyable_slots = std::is_trivially_copyable<slot_type>::value;
@@ -300,14 +303,18 @@ struct map_policy
         return s.key;
     }
 
+    static const K& key(const const_slot_type& s) noexcept
+    {
+        return s.key;
+    }
+
     // (key, value args...): value is only constructed when we actually insert.
-    // Disabled for whole-map_pair arguments (slot_type or mutable_slot_type) so they
-    // reach the non-template overloads below instead of being treated as a key.
+    // Excluded for whole-pair arguments so they reach the overloads below.
     template <
         typename KK,
         typename... VArgs,
         VX_REQUIRES((!std::is_same<VX_STRIP_T(KK), slot_type>::value &&
-            !std::is_same<VX_STRIP_T(KK), mutable_slot_type>::value))>
+            !std::is_same<VX_STRIP_T(KK), const_slot_type>::value))>
     static void construct(slot_type* p, KK&& k, VArgs&&... v)
     {
         mem::construct_in_place(p, std::piecewise_construct,
@@ -315,7 +322,6 @@ struct map_policy
             std::forward_as_tuple(std::forward<VArgs>(v)...));
     }
 
-    // copy of an existing slot (table copy). Non-template, so it wins over the one above.
     static void construct(slot_type* p, const slot_type& s)
     {
         mem::construct_in_place(p, s);
@@ -326,15 +332,11 @@ struct map_policy
         mem::construct_in_place(p, std::move(s));
     }
 
-    // map_pair<K, V> -> map_pair<const K, V> (e.g. insert(std::make_pair(k, v)))
-    static void construct(slot_type* p, const mutable_slot_type& s)
+    // copy from the const-key view (e.g. copying out of an iterator).
+    // There is deliberately no && overload: a const K can only be copied.
+    static void construct(slot_type* p, const const_slot_type& s)
     {
         mem::construct_in_place(p, s);
-    }
-
-    static void construct(slot_type* p, mutable_slot_type&& s)
-    {
-        mem::construct_in_place(p, std::move(s));
     }
 
     static void destroy(slot_type* p) noexcept
@@ -342,26 +344,18 @@ struct map_policy
         mem::destroy_in_place(p);
     }
 
-    // Move the key too (a const K member would be copied otherwise).
-    //
-    // NOTE: this views a map_pair<const K, V> as a map_pair<K, V>. That works on every
-    // mainstream ABI (it is what older Abseil did) and is guarded by the size /
-    // alignment assert, but the standard does not guarantee the two layouts match.
+    // The stored type has a non-const key, so relocation is a plain move
+    // and the reinterpret_cast is gone.
     static void relocate(slot_type* dst, slot_type* src) noexcept(
-        std::is_nothrow_move_constructible<K>::value && std::is_nothrow_move_constructible<V>::value)
+        std::is_nothrow_move_constructible<slot_type>::value)
     {
-        VX_STATIC_ASSERT_MSG(sizeof(mutable_slot_type) == sizeof(slot_type) && alignof(mutable_slot_type) == alignof(slot_type),
-            "map_pair<K, V> and map_pair<const K, V> must be layout compatible");
-
         VX_IF_CONSTEXPR (trivially_copyable_slots)
         {
             mem::copy(dst, src, sizeof(slot_type));
         }
         else
         {
-            mem::construct_in_place(
-                reinterpret_cast<mutable_slot_type*>(dst),
-                std::move(*reinterpret_cast<mutable_slot_type*>(src)));
+            construct(dst, std::move(*src));
             destroy(src);
         }
     }

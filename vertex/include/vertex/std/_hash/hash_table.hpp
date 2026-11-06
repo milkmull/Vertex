@@ -55,19 +55,23 @@ public:
     using eq_type = typename Backend::eq_type;
     using allocator_type = typename Backend::allocator_type;
 
-    using size_type = size_t;
+    using size_type = typename Backend::size_type;
     using insert_result = typename Backend::insert_result;
 
     using iterator = typename Backend::iterator;
     using const_iterator = typename Backend::const_iterator;
 
-protected:
+public:
 
     static constexpr bool is_transparent =
         has_is_transparent<hasher_type>::value && has_is_transparent<eq_type>::value;
 
     template <typename Q>
     using key_arg = typename key_arg_impl<is_transparent>::template type<Q, key_type>;
+
+    // merge reaches into the source table's backend
+    template <typename, typename>
+    friend class hash_table_base;
 
     Backend m_b;
 
@@ -106,7 +110,7 @@ public:
         VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
         if (n != 0)
         {
-            const auto r = reserve(n);
+            const auto r = reserve_assume_empty(n);
             VX_VERIFY(r);
         }
         const auto r = insert(first, last);
@@ -135,7 +139,7 @@ public:
     static expected<Derived, error> create(size_type n, const hasher_type& h = hasher_type(), const eq_type& e = eq_type(), const allocator_type& a = allocator_type())
     {
         Derived d(h, e, a);
-        const auto ok = d.reserve(n);
+        const auto ok = d.reserve_assume_empty(n);
         VX_RET_UNEXPECTED_ERR_IF(!ok, ok);
         return d;
     }
@@ -148,7 +152,7 @@ public:
 
         if (n != 0)
         {
-            const auto reserved = d.reserve(n);
+            const auto reserved = d.reserve_assume_empty(n);
             VX_RET_UNEXPECTED_ERR_IF(!reserved, reserved);
         }
 
@@ -249,7 +253,7 @@ protected:
     //=========================================================================
 
     template <typename Q = key_type>
-    size_t hash_of(const key_arg<Q>& key) const noexcept
+    hash_t hash_of(const key_arg<Q>& key) const noexcept
     {
         return m_b.hash_of(key);
     }
@@ -259,23 +263,17 @@ protected:
     //=========================================================================
 
     template <typename Q = key_type>
-    iterator find_with_hash(const key_arg<Q>& key, size_t hash) noexcept
+    iterator find_with_hash(const key_arg<Q>& key, hash_t hash) noexcept
     {
         VX_ASSERT(hash == hash_of(key));
         return m_b.find_with_hash(key, hash);
     }
 
     template <typename Q = key_type>
-    const_iterator find_with_hash(const key_arg<Q>& key, size_t hash) const noexcept
+    const_iterator find_with_hash(const key_arg<Q>& key, hash_t hash) const noexcept
     {
         VX_ASSERT(hash == hash_of(key));
         return m_b.find_with_hash(key, hash);
-    }
-
-    template <typename Q = key_type>
-    bool contains_with_hash(const key_arg<Q>& key, size_t hash) const noexcept
-    {
-        return find_with_hash(key, hash) != end();
     }
 
 public:
@@ -295,7 +293,7 @@ public:
     template <typename Q = key_type>
     bool contains(const key_arg<Q>& key) const noexcept
     {
-        return find(key) != end();
+        return m_b.contains(key);
     }
 
     template <typename Q = key_type>
@@ -357,6 +355,11 @@ public:
         return m_b.reserve(n);
     }
 
+    success reserve_assume_empty(size_type n)
+    {
+        return m_b.reserve_assume_empty(n);
+    }
+
     success shrink_to_fit()
     {
         return m_b.shrink_to_fit();
@@ -400,7 +403,7 @@ public:
     {
         value_type val(std::forward<Args>(args)...);
         const key_type& key = slot_traits::key(val);
-        const size_t hash = hash_of(key);
+        const hash_t hash = hash_of(key);
 
         const iterator it = find_with_hash(key, hash);
         if (it != end())
@@ -418,9 +421,9 @@ public:
     {
         value_type val(std::forward<Args>(args)...);
         const key_type& key = slot_traits::key(val);
-        const size_t hash = hash_of(key);
+        VX_ASSERT(!contains(key));
 
-        VX_ASSERT(!contains_with_hash(key, hash));
+        const hash_t hash = hash_of(key);
         return m_b.emplace_new(hash, std::move(val));
     }
 
@@ -429,7 +432,7 @@ public:
     {
         value_type val(std::forward<Args>(args)...);
         const key_type& key = slot_traits::key(val);
-        const size_t hash = hash_of(key);
+        const hash_t hash = hash_of(key);
 
         const iterator it = find_with_hash(key, hash);
         if (it != end())
@@ -445,9 +448,9 @@ public:
     {
         value_type val(std::forward<Args>(args)...);
         const key_type& key = slot_traits::key(val);
-        const size_t hash = hash_of(key);
+        VX_ASSERT(!contains(key));
 
-        VX_ASSERT(!contains_with_hash(key, hash));
+        const hash_t hash = hash_of(key);
         return m_b.emplace_new_assume_capacity(hash, std::move(val));
     }
 
@@ -527,7 +530,7 @@ private:
     expected<insert_result, error> insert_value(V&& val)
     {
         const key_type& key = slot_traits::key(val);
-        const size_t hash = hash_of(key);
+        const hash_t hash = hash_of(key);
 
         const iterator it = find_with_hash(key, hash);
         if (it != end())
@@ -535,7 +538,7 @@ private:
             return insert_result{ it, false };
         }
 
-        const auto ok = m_b.emplace_new(hash, value_type(std::forward<V>(val)));
+        const auto ok = m_b.emplace_new(hash, std::forward<V>(val));
         VX_RET_UNEXPECTED_ERR_IF(!ok, ok.error());
         return insert_result{ ok.value(), true };
     }
@@ -563,7 +566,7 @@ public:
         {
             // key and hash are taken before the element is moved out of source
             const key_type& key = slot_traits::key(*it);
-            const size_t hash = hash_of(key);
+            const hash_t hash = hash_of(key);
 
             if (find_with_hash(key, hash) != end())
             {
@@ -571,7 +574,7 @@ public:
                 continue;
             }
 
-            m_b.emplace_new_assume_capacity(hash, std::move(m_b.value_at(it)));
+            m_b.emplace_new_assume_capacity(hash, std::move(source.m_b.value_at(it)));
 
             // erase returns the successor, valid for every backend
             it = source.erase(src_const_iterator(it));
@@ -597,7 +600,7 @@ protected:
     }
 
     template <typename Q = key_type>
-    bool erase_with_hash(const key_arg<Q>& key, size_t hash) noexcept
+    bool erase_with_hash(const key_arg<Q>& key, hash_t hash) noexcept
     {
         const iterator it = find_with_hash(key, hash);
         if (it == end())
@@ -623,16 +626,6 @@ public:
     bool erase(const key_arg<Q>& key) noexcept
     {
         return erase_with_hash(key, hash_of(key));
-    }
-
-    //=========================================================================
-    // comparison
-    //=========================================================================
-
-private:
-
-    bool contains_value(const_iterator it)
-    {
     }
 
 public:

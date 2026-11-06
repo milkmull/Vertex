@@ -34,7 +34,6 @@ public:
 
     void reset() noexcept
     {
-        VX_ASSERT(is_running());
         m_running = false;
         m_start_ticks.zero();
         m_stop_ticks.zero();
@@ -57,14 +56,14 @@ public:
 
     duration elapsed_stopped() const noexcept
     {
-        VX_ASSERT(is_running());
-        return os::get_ticks() - m_start_ticks;
+        VX_ASSERT(!is_running());
+        return m_stop_ticks - m_start_ticks;
     }
 
     duration elapsed_running() const noexcept
     {
-        VX_ASSERT(!is_running());
-        return m_stop_ticks - m_start_ticks;
+        VX_ASSERT(is_running());
+        return os::get_ticks() - m_start_ticks;
     }
 
     duration elapsed() const noexcept
