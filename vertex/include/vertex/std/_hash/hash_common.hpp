@@ -79,7 +79,7 @@ struct pow2_sizing_t
 {
     // smallest cap ever allocated We overallocate a little on the first
     // allocations so early rehashes are rarer.
-    static constexpr hash_size_t min_capacity = 7;
+    static constexpr hash_size_t min_capacity = 3;
     // log2 of the growth factor
     static constexpr hash_size_t growth_shift = 1;
 
@@ -148,24 +148,15 @@ using default_flat_sizing = pow2_sizing_t<load_7_8>;  // flat
 using default_chain_sizing = pow2_sizing_t<load_1_0>; // chain
 
 //-------------------------------------------------------------------------
-// Compile-time sizing tests
+// Compile-time sizing checks
 //-------------------------------------------------------------------------
 
+// Generic invariants every sizing policy must satisfy.
 template <typename Sizing>
-struct sizing_tests
+constexpr bool valid_sizing() noexcept
 {
-    static constexpr bool valid_sizing() noexcept
-    {
-        return Sizing::max_load(0) == 0 && is_mask(Sizing::min_capacity) && is_mask(Sizing::max_capacity) && Sizing::max_load(Sizing::min_capacity) >= 1;
-    }
-
-    VX_STATIC_ASSERT_MSG(valid_sizing(), "valid sizing");
-    VX_STATIC_ASSERT_MSG(is_mask(Sizing::max_capacity),
-        "max_capacity must be 2^k - 1");
-    VX_STATIC_ASSERT_MSG(
-        Sizing::max_capacity + 1 > Sizing::max_capacity,
-        "cap + 1 must not overflow");
-};
+    return Sizing::max_load(0) == 0 && is_mask(Sizing::min_capacity) && is_mask(Sizing::max_capacity) && Sizing::min_capacity <= Sizing::max_capacity && Sizing::max_load(Sizing::min_capacity) >= 1 && Sizing::max_capacity + 1 > Sizing::max_capacity; // cap + 1 must not overflow
+}
 
 //=========================================================================
 // map_pair

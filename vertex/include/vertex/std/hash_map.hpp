@@ -35,6 +35,7 @@ public:
     // constructors (including range / initializer_list) and insert(value / range / list) come from the base
     using base::base;
     using base::operator=; // operator=(initializer_list)
+    using base::swap;
 
     basic_hash_map() = default;
     basic_hash_map(const basic_hash_map&) = default;
@@ -42,6 +43,11 @@ public:
     basic_hash_map& operator=(const basic_hash_map&) = default;
     basic_hash_map& operator=(basic_hash_map&&) noexcept = default;
     ~basic_hash_map() = default;
+
+    friend void swap(basic_hash_map& a, basic_hash_map& b) noexcept
+    {
+        a.swap(b);
+    }
 
     //=========================================================================
     // get

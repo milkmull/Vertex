@@ -29,6 +29,7 @@ public:
     // constructors (including range / initializer_list) come from the base
     using base::base;
     using base::operator=; // operator=(initializer_list)
+    using base::swap;
 
     basic_hash_set() = default;
     basic_hash_set(const basic_hash_set&) = default;
@@ -36,6 +37,11 @@ public:
     basic_hash_set& operator=(const basic_hash_set&) = default;
     basic_hash_set& operator=(basic_hash_set&&) noexcept = default;
     ~basic_hash_set() = default;
+
+    friend void swap(basic_hash_set& a, basic_hash_set& b) noexcept
+    {
+        a.swap(b);
+    }
 };
 
 } // namespace _hash_priv

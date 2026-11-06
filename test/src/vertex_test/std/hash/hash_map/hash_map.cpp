@@ -18,7 +18,7 @@
 
 // Every generic test runs against BOTH backends:
 //   flat_family   vx::flat_map   (open addressing, Swiss-table style)
-//   chain_family  vx::chain_map  (chained, one allocation per node)
+//   node_family  vx::node_map  (nodeed, one allocation per node)
 // A "family" is a tiny struct exposing `map<K, V, Hash, Eq, Alloc>`, so a test
 // templated on the map type (or on family + key) is written once.
 //
@@ -28,7 +28,7 @@
 //   movable_int   move-only (copy deleted: an accidental copy is a compile error)
 //
 // Assumptions about code outside this file:
-//   * vertex/std/hash_map.hpp is the header that defines flat_map / chain_map
+//   * vertex/std/hash_map.hpp is the header that defines flat_map / node_map
 //   * value_type is map_pair<K, V>: public members `key` and `value`, and
 //     constructible from (K&&, V&&)
 //   * copyable_int / movable_int are constructible from int; tests that need a
@@ -45,7 +45,7 @@
 //   TEST_KEYS(name)             test_<name><F, K>()   map<K, K>, every key type
 //   TEST_FAMILIES(name)         test_<name><F>()
 //   TEST_PLAIN_KEYS(name)       test_<name><K>()      both backends inside
-//   TEST_CHAIN_KEYS(name)       test_<name><K>()      chain_map only (stability tests)
+//   TEST_CHAIN_KEYS(name)       test_<name><K>()      node_map only (stability tests)
 //
 // Layout:
 //   1. helpers          families, types, hashers, allocators, map aliases, macros
@@ -62,7 +62,176 @@
 //  12. allocators
 //  13. error reporting
 //  14. randomized stress
-//  15. chain_map only: reference and iterator stability
+//  15. node_map only: reference and iterator stability
+
+//-------------------------------------------------------------------------
+// families
+//-------------------------------------------------------------------------
+
+struct flat_family
+{
+    template <typename K,
+        typename V,
+        typename H = vx::default_hash<K>,
+        typename E = std::equal_to<K>,
+        typename A = vx::mem::default_allocator<vx::pair<const K, V>>>
+    using map = vx::flat_map<K, V, H, E, A>;
+};
+
+struct node_family
+{
+    template <typename K,
+        typename V,
+        typename H = vx::default_hash<K>,
+        typename E = std::equal_to<K>,
+        typename A = vx::mem::default_allocator<vx::pair<const K, V>>>
+    using map = vx::node_map<K, V, H, E, A>;
+};
+
+//=========================================================================
+// 0. compile-time policy checks
+//
+// Concrete numbers for the shipped policies. If this file compiles, they
+// hold; the message names the broken line. Generic invariants (valid sizing,
+// probe/sizing pow2 agreement) are asserted inside flat_table / node_table
+// themselves, so they also fire for user-supplied policies.
+//=========================================================================
+
+namespace {
+
+namespace flat = vx::_flat_hash_priv;
+namespace node = vx::_node_hash_priv;
+
+using flat_sizing = flat::default_sizing;
+using node_sizing = node::default_sizing;
+using flat_probe = flat::default_probe;
+
+// ---- flat sizing: 7/8 load, must always leave an EMPTY byte ----
+
+VX_STATIC_ASSERT_MSG(flat::valid_flat_sizing<flat_sizing>(), "flat default sizing is valid");
+
+VX_STATIC_ASSERT_MSG(vx::_hash_priv::valid_sizing<flat_sizing>(), "flat default sizing is valid");
+VX_STATIC_ASSERT_MSG(vx::_hash_priv::valid_sizing<node_sizing>(), "node default sizing is valid");
+VX_STATIC_ASSERT_MSG(!vx::_hash_priv::valid_sizing<node_sizing>() || !flat::valid_flat_sizing<node_sizing>(),
+    "node sizing (load 1.0) must be rejected as a flat sizing");
+
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(0) == 0, "flat: cap 0 holds nothing");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(1) == 0, "flat: cap 1 holds nothing");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(3) == 2, "flat: cap 3 -> 2");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(7) == 6, "flat: cap 7 -> 6");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(15) == 14, "flat: cap 15 -> 14");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(31) == 28, "flat: cap 31 -> 28");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(63) == 56, "flat: cap 63 -> 56");
+
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 1) == 3, "flat: first allocation");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 2) == 3, "flat: 2 fit in cap 3");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 3) == 7, "flat: 3 need cap 7");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 6) == 7, "flat: 6 fit in cap 7");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 7) == 15, "flat: 7 need cap 15");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 28) == 31, "flat: 28 fit in cap 31");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 29) == 63, "flat: 29 need cap 63");
+
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(3, 3) == 7, "flat: 3 -> 7");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(7, 7) == 15, "flat: 7 -> 15");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(15, 15) == 31, "flat: 15 -> 31");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(31, 1) == 63, "flat: always grows");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(7, 100) == 127, "flat: can skip levels");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(3, 0) == 7, "flat: required 0 is treated as 1");
+
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(flat_sizing::max_capacity, 1) == 0, "flat: no growth past max_capacity");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, std::numeric_limits<vx::_hash_priv::hash_size_t>::max()) == 0, "flat: unrepresentable request");
+
+// ---- node sizing: load 1.0, one element per bucket ----
+
+VX_STATIC_ASSERT_MSG(node_sizing::max_load(0) == 0, "node: cap 0 holds nothing");
+VX_STATIC_ASSERT_MSG(node_sizing::max_load(3) == 4, "node: cap 3 -> 4 buckets -> 4 elements");
+VX_STATIC_ASSERT_MSG(node_sizing::max_load(7) == 8, "node: cap 7 -> 8");
+
+VX_STATIC_ASSERT_MSG(node_sizing::next_capacity(0, 4) == 3, "node: 4 fit in cap 3");
+VX_STATIC_ASSERT_MSG(node_sizing::next_capacity(0, 5) == 7, "node: 5 need cap 7");
+VX_STATIC_ASSERT_MSG(node_sizing::next_capacity(3, 1) == 7, "node: always grows");
+
+// ---- probe ----
+
+VX_STATIC_ASSERT_MSG(flat_probe::requires_pow2, "triangular probe requires pow2");
+VX_STATIC_ASSERT_MSG(flat_probe::start(0x1234, 15) == 4, "probe: start masks the hash");
+VX_STATIC_ASSERT_MSG(flat_probe::wrap_lane(17, 15) == 1, "probe: wrap_lane masks");
+VX_STATIC_ASSERT_MSG(flat_probe::advance(14, 16, 15) == 14, "probe: advance wraps around the ring");
+
+// ---- cleanup policy: must trigger before the table is full ----
+
+VX_STATIC_ASSERT_MSG(flat::default_cleanup::cleanup_limit(28) < 28, "cleanup limit < max_load");
+VX_STATIC_ASSERT_MSG(flat::default_cleanup::cleanup_limit(32) == 25, "cleanup limit is 25/32 of max_load");
+
+// ---- backend type properties ----
+
+using flat_int_set = flat_family::map<int, int>;
+using node_int_set = node_family::map<int, int>;
+
+VX_STATIC_ASSERT_MSG(std::is_nothrow_move_constructible_v<flat_int_set>, "flat_set move ctor is noexcept");
+VX_STATIC_ASSERT_MSG(std::is_nothrow_move_constructible_v<node_int_set>, "node_set move ctor is noexcept");
+VX_STATIC_ASSERT_MSG(std::is_nothrow_move_assignable_v<flat_int_set>, "flat_set move assign is noexcept");
+VX_STATIC_ASSERT_MSG(std::is_nothrow_move_assignable_v<node_int_set>, "node_set move assign is noexcept");
+VX_STATIC_ASSERT_MSG(std::is_nothrow_swappable_v<flat_int_set>, "flat_set swap is noexcept");
+VX_STATIC_ASSERT_MSG(std::is_nothrow_swappable_v<node_int_set>, "node_set swap is noexcept");
+
+using vx::test::movable_int;
+
+VX_STATIC_ASSERT_MSG((!std::is_copy_constructible_v<flat_family::map<movable_int, movable_int>> ||
+                         std::is_copy_constructible_v<flat_family::map<movable_int, movable_int>>),
+    "placeholder: replace if you SFINAE copy on key copyability");
+
+} // namespace
+
+// Walks every capacity a sizing policy produces and checks the properties the
+// tables rely on. Runs against any policy, so a new load factor only needs one
+// more TEST registration below.
+template <typename Sizing>
+void check_sizing_progression(bool needs_free_slot)
+{
+    using size_type = vx::_hash_priv::hash_size_t;
+
+    size_type cap = Sizing::next_capacity(0, 1);
+    VX_CHECK(cap != 0);
+
+    size_type prev_load = 0;
+    for (int step = 0; step < 24 && cap != 0; ++step)
+    {
+        const size_type load = Sizing::max_load(cap);
+
+        VX_CHECK(((cap + 1) & cap) == 0); // 2^k - 1
+        VX_CHECK(load >= prev_load);      // monotonic
+        if (needs_free_slot)
+        {
+            VX_CHECK(load < cap); // an EMPTY byte always exists
+        }
+
+        // tightest fit really is tight
+        VX_CHECK(Sizing::next_capacity(0, load) <= cap);
+        VX_CHECK(Sizing::next_capacity(0, load + 1) > cap);
+
+        // growth always makes progress and always makes room
+        const size_type next = Sizing::next_capacity(cap, 1);
+        if (next != 0)
+        {
+            VX_CHECK(next > cap);
+            VX_CHECK(Sizing::max_load(next) > load);
+        }
+
+        prev_load = load;
+        cap = next;
+    }
+}
+
+VX_TEST_CASE(sizing_progression_flat)
+{
+    check_sizing_progression<vx::_flat_hash_priv::default_sizing>(true);
+}
+
+VX_TEST_CASE(sizing_progression_node)
+{
+    check_sizing_progression<vx::_node_hash_priv::default_sizing>(false);
+}
 
 //=========================================================================
 // 1. helpers
@@ -89,30 +258,6 @@ constexpr int mv(int k)
 {
     return k * 10 + 1;
 }
-
-//-------------------------------------------------------------------------
-// families
-//-------------------------------------------------------------------------
-
-struct flat_family
-{
-    template <typename K,
-        typename V,
-        typename H = vx::default_hash<K>,
-        typename E = std::equal_to<K>,
-        typename A = vx::mem::default_allocator<vx::pair<const K, V>>>
-    using map = vx::flat_map<K, V, H, E, A>;
-};
-
-struct chain_family
-{
-    template <typename K,
-        typename V,
-        typename H = vx::default_hash<K>,
-        typename E = std::equal_to<K>,
-        typename A = vx::mem::default_allocator<vx::pair<const K, V>>>
-    using map = vx::chain_map<K, V, H, E, A>;
-};
 
 //-------------------------------------------------------------------------
 // hashers
@@ -663,15 +808,15 @@ private:
 
 #define TEST_MAPS(name) \
     TEST_MAPS_FOR(name, flat, flat_family) \
-    TEST_MAPS_FOR(name, chain, chain_family)
+    TEST_MAPS_FOR(name, node, node_family)
 
 #define TEST_MAPS_COPYABLE(name) \
     TEST_MAPS_COPYABLE_FOR(name, flat, flat_family) \
-    TEST_MAPS_COPYABLE_FOR(name, chain, chain_family)
+    TEST_MAPS_COPYABLE_FOR(name, node, node_family)
 
 #define TEST_KEYS(name) \
     TEST_KEYS_FOR(name, flat, flat_family) \
-    TEST_KEYS_FOR(name, chain, chain_family)
+    TEST_KEYS_FOR(name, node, node_family)
 
 // test_<name><F>() for both families
 #define TEST_FAMILIES(name) \
@@ -679,9 +824,9 @@ private:
     { \
         test_##name<flat_family>(); \
     } \
-    VX_TEST_CASE(name##_chain) \
+    VX_TEST_CASE(name##_node) \
     { \
-        test_##name<chain_family>(); \
+        test_##name<node_family>(); \
     }
 
 // test_<name><K>() for every key type, no family (tests that use both backends)
@@ -699,17 +844,17 @@ private:
         test_##name<movable_int>(); \
     }
 
-// test_<name><K>() for chain_map only, every key type
+// test_<name><K>() for node_map only, every key type
 #define TEST_CHAIN_KEYS(name) \
-    VX_TEST_CASE(name##_chain_int) \
+    VX_TEST_CASE(name##_node_int) \
     { \
         test_##name<int>(); \
     } \
-    VX_TEST_CASE(name##_chain_copyable) \
+    VX_TEST_CASE(name##_node_copyable) \
     { \
         test_##name<copyable_int>(); \
     } \
-    VX_TEST_CASE(name##_chain_movable) \
+    VX_TEST_CASE(name##_node_movable) \
     { \
         test_##name<movable_int>(); \
     }
@@ -1814,14 +1959,14 @@ void test_merge()
 }
 TEST_MAPS(merge)
 
-// merge only needs the same value_type, so flat and chain maps can feed each other
+// merge only needs the same value_type, so flat and node maps can feed each other
 template <typename K>
 void test_merge_across_backends()
 {
     using FM = plain_map<flat_family, K, K>;
-    using CM = plain_map<chain_family, K, K>;
+    using CM = plain_map<node_family, K, K>;
 
-    VX_SECTION("chain into flat")
+    VX_SECTION("node into flat")
     {
         FM f;
         CM c;
@@ -1832,7 +1977,7 @@ void test_merge_across_backends()
         VX_CHECK(eq_model(c, range(5, 10)));
     }
 
-    VX_SECTION("flat into chain")
+    VX_SECTION("flat into node")
     {
         CM c;
         FM f;
@@ -2002,7 +2147,7 @@ void test_load_boundary()
 TEST_MAPS(load_boundary)
 
 // capacity must stay bounded when elements are constantly inserted and erased
-// (flat: tombstone cleanup; chain: nothing accumulates)
+// (flat: tombstone cleanup; node: nothing accumulates)
 template <typename M>
 void test_tombstone_churn()
 {
@@ -2464,7 +2609,7 @@ void test_degenerate_hash()
     }
     VX_CHECK(!m.contains(K(300)));
 
-    // erase in the middle of long chains, then look everything up again
+    // erase in the middle of long nodes, then look everything up again
     for (int i = 0; i < 300; i += 2)
     {
         VX_CHECK(m.erase(K(i)) == 1);
@@ -2484,13 +2629,13 @@ void test_degenerate_hash()
         VX_CHECK(val(*m.get(K(i))) == (i % 2 == 0 ? mv(i) + 1 : mv(i)));
     }
 
-    // the other API calls on a single chain
+    // the other API calls on a single node
     VX_CHECK(m.insert_or_assign(K(10), T(0)).value().inserted == false);
     VX_CHECK(val(*m.get(K(10))) == 0);
     VX_CHECK(m.try_emplace(K(1000), T(5)).value().inserted);
     VX_CHECK(m.erase(K(1000)) == 1);
 
-    // churn through a single chain
+    // churn through a single node
     for (int i = 300; i < 1500; ++i)
     {
         VX_CHECK(ins(m, i).value().inserted);
@@ -3175,7 +3320,7 @@ TEST_FAMILIES(error_out_of_memory_growth)
 
 // fail the Nth allocation for every N: the table must report the error,
 // keep exactly what was inserted so far, and stay usable.
-// (chain_map also allocates once per element, so this hits node allocation too.)
+// (node_map also allocates once per element, so this hits node allocation too.)
 template <typename F>
 void test_error_out_of_memory_insert_sweep()
 {
@@ -3354,7 +3499,7 @@ void test_error_out_of_memory_create()
 }
 TEST_FAMILIES(error_out_of_memory_create)
 
-// Fail the Nth allocation of a copy, for every N. chain_map copies allocate one
+// Fail the Nth allocation of a copy, for every N. node_map copies allocate one
 // block per element, so a failure midway must free the partially built copy.
 // flat_map needs a single allocation, so only budget 0 fails.
 template <typename F>
@@ -3662,22 +3807,22 @@ void test_stress_avalanching_hash()
 TEST_FAMILIES(stress_avalanching_hash)
 
 //=========================================================================
-// 15. chain_map only: reference and iterator stability
+// 15. node_map only: reference and iterator stability
 //
-// chain_map promises:
+// node_map promises:
 //   * references / pointers to elements AND to mapped values (the pointers
 //     get() hands out) survive everything except erasing that element:
 //     growth, reserve, shrink_to_fit, erase of others, move, swap
 //   * iterators survive inserts that do not rehash, and erase of other elements
 //   * rehash invalidates iterators but not references
 //   * elements are never constructed, moved or copied by a rehash
-// flat_map promises none of this, so these tests are registered for chain only.
+// flat_map promises none of this, so these tests are registered for node only.
 //=========================================================================
 
 template <typename K>
-void test_chain_reference_stability_rehash()
+void test_node_reference_stability_rehash()
 {
-    using M = plain_map<chain_family, K, K>;
+    using M = plain_map<node_family, K, K>;
     using P = typename M::value_type;
 
     // Sections run one after another in the same call, so each one builds its
@@ -3799,13 +3944,13 @@ void test_chain_reference_stability_rehash()
         VX_CHECK(val(anchor->value) == mv(7));
     }
 }
-TEST_CHAIN_KEYS(chain_reference_stability_rehash)
+TEST_CHAIN_KEYS(node_reference_stability_rehash)
 
 // the classic pattern: hold a reference from operator[] and keep inserting
 template <typename K>
-void test_chain_subscript_reference_stability()
+void test_node_subscript_reference_stability()
 {
-    using M = plain_map<chain_family, K, K>;
+    using M = plain_map<node_family, K, K>;
 
     if constexpr (std::is_default_constructible_v<K>)
     {
@@ -3834,12 +3979,12 @@ void test_chain_subscript_reference_stability()
         }
     }
 }
-TEST_CHAIN_KEYS(chain_subscript_reference_stability)
+TEST_CHAIN_KEYS(node_subscript_reference_stability)
 
 template <typename K>
-void test_chain_reference_stability_move_swap()
+void test_node_reference_stability_move_swap()
 {
-    using M = plain_map<chain_family, K, K>;
+    using M = plain_map<node_family, K, K>;
     using P = typename M::value_type;
     using ptr_list = std::vector<const P*>;
 
@@ -3908,12 +4053,12 @@ void test_chain_reference_stability_move_swap()
         VX_CHECK(addresses(b, 0, 50) == before);
     }
 }
-TEST_CHAIN_KEYS(chain_reference_stability_move_swap)
+TEST_CHAIN_KEYS(node_reference_stability_move_swap)
 
 template <typename K>
-void test_chain_iterator_stability()
+void test_node_iterator_stability()
 {
-    using M = plain_map<chain_family, K, K>;
+    using M = plain_map<node_family, K, K>;
     using It = typename M::iterator;
 
     VX_SECTION("iterators survive inserts that do not rehash")
@@ -4004,10 +4149,10 @@ void test_chain_iterator_stability()
         VX_CHECK(m.size() == 100 - 60 - 1);
     }
 
-    VX_SECTION("erase of an element in a shared chain keeps neighbours valid")
+    VX_SECTION("erase of an element in a shared node keeps neighbours valid")
     {
-        // every key collides, so all elements share one bucket chain
-        using D = degenerate_map<chain_family, K, K>;
+        // every key collides, so all elements share one bucket node
+        using D = degenerate_map<node_family, K, K>;
         using DIt = typename D::iterator;
 
         D m;
@@ -4065,13 +4210,13 @@ void test_chain_iterator_stability()
         }
     }
 }
-TEST_CHAIN_KEYS(chain_iterator_stability)
+TEST_CHAIN_KEYS(node_iterator_stability)
 
 // A rehash only relinks nodes: no key or value is constructed, moved, copied
 // or destroyed by reserve / growth / shrink_to_fit.
-VX_TEST_CASE(chain_rehash_never_touches_elements)
+VX_TEST_CASE(node_rehash_never_touches_elements)
 {
-    using CM = counted_map<chain_family>;
+    using CM = counted_map<node_family>;
 
     auto& ks = counted_key::stats();
     auto& vs = counted_val::stats();

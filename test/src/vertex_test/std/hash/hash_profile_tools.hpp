@@ -1,14 +1,21 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 #include <iterator>
+#include <random>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
+
+#if defined(_MSC_VER) && !defined(__clang__)
+    #include <intrin.h>
+    #pragma intrinsic(_ReadWriteBarrier)
+#endif
 
 #include "vertex/os/compiler.hpp"
 #include "vertex/std/hash_map.hpp" // assumed path: vx::node_map / flat_map
@@ -32,13 +39,64 @@ using umap_node = vx::node_map<uh_key, uh_key>; // == vx::hash_map<uh_key, uh_ke
 using umap_flat = vx::flat_map<uh_key, uh_key>;
 
 static constexpr size_t UR = 2000; // number of repetitions
-static constexpr size_t UN = 50;   // number of elements (>= 8)
+static constexpr size_t UN = 200;  // number of elements (>= 8)
+
+// Target number of lookups per timed lookup section. The inner repeat count is
+// derived from N so every size runs for a comparable amount of time.
+static constexpr size_t U_LOOKUPS_PER_SECTION = 4000000;
 
 //=========================================================================
 // helpers
 //=========================================================================
 
 namespace uprof {
+
+//-------------------------------------------------------------------------
+// optimizer barriers (self-contained, does not depend on vx::os)
+//-------------------------------------------------------------------------
+
+// A volatile slot the compiler must assume is read by someone else. Storing the
+// address of an object into it forces the object to live in memory with its
+// current value, and the memory barrier stops the compiler from moving or
+// dropping the surrounding work.
+inline const volatile void* volatile& escape_slot() noexcept
+{
+    static const volatile void* volatile slot = nullptr;
+    return slot;
+}
+
+// Marks v as read AND modified by unknown code.
+template <typename T>
+inline void escape(T& v) noexcept
+{
+#if defined(_MSC_VER) && !defined(__clang__)
+    escape_slot() = static_cast<const volatile void*>(&v);
+    _ReadWriteBarrier();
+#else
+    asm volatile("" : : "g"(&v) : "memory");
+#endif
+}
+
+// Marks all memory as clobbered (use after loops that only touch locals).
+inline void clobber() noexcept
+{
+#if defined(_MSC_VER) && !defined(__clang__)
+    _ReadWriteBarrier();
+#else
+    asm volatile("" : : : "memory");
+#endif
+}
+
+// Consumes a value so its computation cannot be discarded. Works for const lvalues.
+template <typename T>
+inline void sink(T& v)
+{
+    escape(v);
+}
+
+//-------------------------------------------------------------------------
+// keys
+//-------------------------------------------------------------------------
 
 // splitmix64: a bijection, so distinct i always give distinct keys
 inline uh_key make_key(size_t i) noexcept
@@ -103,14 +161,7 @@ inline uh_key key_of(const std::pair<uh_key, uh_key>& p) noexcept
     return p.first;
 }
 
-template <typename T>
-inline void sink(T& v)
-{
-    vx::os::do_not_optimize(v);
-}
-
-// vx fallible results (expected / success) are assumed to succeed, the same way
-// vx::vector does it internally: VX_VERIFY(ok). std results are just consumed.
+// vx fallible results (expected / success) are verified, std results are just consumed.
 template <typename R>
 inline void consume(R& r, std::true_type)
 {
@@ -151,6 +202,22 @@ inline std::vector<uh_key> make_keys(size_t count, size_t offset = 0)
         out.push_back(make_key(offset + i));
     }
     return out;
+}
+
+// Same keys as make_keys, in a fixed pseudo-random order (same on every run
+// and for every container, so comparisons see identical access patterns).
+inline std::vector<uh_key> make_shuffled_keys(size_t count, size_t offset = 0, uint64_t seed = 777)
+{
+    std::vector<uh_key> out = make_keys(count, offset);
+    std::mt19937_64 rng(seed);
+    vx::random::shuffle(out.begin(), out.end(), rng);
+    return out;
+}
+
+// Lookups per timed section for a table of N elements.
+inline size_t inner_repeats(size_t N) noexcept
+{
+    return std::max<size_t>(1, U_LOOKUPS_PER_SECTION / (N ? N : 1));
 }
 
 //-------------------------------------------------------------------------
@@ -333,6 +400,10 @@ struct label<umap_flat>
 
 //=========================================================================
 // constructors
+//
+// Every test below escapes the objects it builds or mutates BEFORE the timer
+// stops (and before it starts, for inputs), so the compiler cannot prove the
+// work is dead.
 //=========================================================================
 
 template <typename C>
@@ -340,6 +411,7 @@ VX_NO_INLINE void profile_default_constructor(size_t)
 {
     uh_start_timer("default construct");
     C c;
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -348,6 +420,7 @@ VX_NO_INLINE void profile_size_constructor(size_t N)
 {
     uh_start_timer("size construct");
     C c(N);
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -355,9 +428,11 @@ template <typename C>
 VX_NO_INLINE void profile_range_constructor(size_t N)
 {
     auto elems = uprof::make_elems<C>(N);
+    uprof::escape(elems);
 
     uh_start_timer("range construct");
     C c(elems.begin(), elems.end());
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -365,9 +440,11 @@ template <typename C>
 VX_NO_INLINE void profile_list_constructor(size_t)
 {
     auto e = uprof::make_elems<C>(4);
+    uprof::escape(e);
 
     uh_start_timer("list construct");
     C c{ e[0], e[1], e[2], e[3] };
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -375,9 +452,11 @@ template <typename C>
 VX_NO_INLINE void profile_copy_constructor(size_t N)
 {
     C c1 = uprof::make_filled<C>(N);
+    uprof::escape(c1);
 
     uh_start_timer("copy construct");
     C c2(c1);
+    uprof::escape(c2);
     uh_stop_timer();
 }
 
@@ -385,9 +464,12 @@ template <typename C>
 VX_NO_INLINE void profile_move_constructor(size_t N)
 {
     C src = uprof::make_filled<C>(N);
+    uprof::escape(src);
 
     uh_start_timer("move construct");
     C dst = std::move(src);
+    uprof::escape(dst);
+    uprof::escape(src);
     uh_stop_timer();
 }
 
@@ -407,8 +489,13 @@ VX_NO_INLINE void profile_destructor(size_t N)
         uprof::insert_one(*c, e);
     }
 
+    // c is an opaque pointer to a populated table; the destroy call cannot be elided
+    uprof::escape(c);
+    uprof::escape(*c);
+
     uh_start_timer("destruct");
     vx::mem::destroy_in_place(c);
+    uprof::clobber();
     uh_stop_timer();
 
     vx::mem::default_allocator<C>::deallocate(c, 1);
@@ -424,11 +511,12 @@ void profile_copy_assignment_grow(size_t N)
     C src = uprof::make_filled<C>(N);
     C dst = uprof::make_filled<C>(N / 2, N); // disjoint keys
 
-    vx::os::do_not_optimize(src);
-    vx::os::do_not_optimize(dst);
+    uprof::escape(src);
+    uprof::escape(dst);
 
     uh_start_timer("copy assign grow");
     dst = src;
+    uprof::escape(dst);
     uh_stop_timer();
 }
 
@@ -438,11 +526,12 @@ void profile_copy_assignment_shrink(size_t N)
     C src = uprof::make_filled<C>(N / 2);
     C dst = uprof::make_filled<C>(N, N); // disjoint keys
 
-    vx::os::do_not_optimize(src);
-    vx::os::do_not_optimize(dst);
+    uprof::escape(src);
+    uprof::escape(dst);
 
     uh_start_timer("copy assign shrink");
     dst = src;
+    uprof::escape(dst);
     uh_stop_timer();
 }
 
@@ -452,8 +541,12 @@ void profile_list_assignment(size_t N)
     C dst = uprof::make_filled<C>(N);
     auto e = uprof::make_elems<C>(5, N * 2);
 
+    uprof::escape(dst);
+    uprof::escape(e);
+
     uh_start_timer("list assign");
     dst = { e[0], e[1], e[2], e[3], e[4] };
+    uprof::escape(dst);
     uh_stop_timer();
 }
 
@@ -463,8 +556,13 @@ void profile_move_assignment(size_t N)
     C src = uprof::make_filled<C>(N);
     C dst = uprof::make_filled<C>(N / 2, N);
 
+    uprof::escape(src);
+    uprof::escape(dst);
+
     uh_start_timer("move assign");
     dst = std::move(src);
+    uprof::escape(dst);
+    uprof::escape(src);
     uh_stop_timer();
 }
 
@@ -476,9 +574,11 @@ template <typename C>
 void profile_reserve_grow(size_t N)
 {
     C c = uprof::make_filled<C>(N / 2);
+    uprof::escape(c);
 
     uh_start_timer("reserve grow");
     uprof::reserve(c, N * 4);
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -486,9 +586,11 @@ template <typename C>
 void profile_reserve_noop(size_t N)
 {
     C c = uprof::make_filled<C>(N);
+    uprof::escape(c);
 
     uh_start_timer("reserve no-op");
     uprof::reserve(c, N / 2);
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -497,9 +599,11 @@ void profile_shrink_to_fit(size_t N)
 {
     C c = uprof::make_filled<C>(N / 2);
     uprof::reserve(c, N * 8);
+    uprof::escape(c);
 
     uh_start_timer("shrink to fit");
     uprof::shrink(c);
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -507,9 +611,11 @@ template <typename C>
 void profile_clear(size_t N)
 {
     C c = uprof::make_filled<C>(N);
+    uprof::escape(c);
 
     uh_start_timer("clear");
     c.clear();
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -519,8 +625,13 @@ void profile_swap(size_t N)
     C c1 = uprof::make_filled<C>(N);
     C c2 = uprof::make_filled<C>(N / 2, N);
 
+    uprof::escape(c1);
+    uprof::escape(c2);
+
     uh_start_timer("swap");
     c1.swap(c2);
+    uprof::escape(c1);
+    uprof::escape(c2);
     uh_stop_timer();
 }
 
@@ -532,6 +643,7 @@ template <typename C>
 void profile_insert_grow(size_t N)
 {
     auto elems = uprof::make_elems<C>(N);
+    uprof::escape(elems);
     C c;
 
     uh_start_timer("insert grow");
@@ -539,6 +651,7 @@ void profile_insert_grow(size_t N)
     {
         uprof::insert_one(c, elems[i]);
     }
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -546,14 +659,17 @@ template <typename C>
 void profile_insert_reserved(size_t N)
 {
     auto elems = uprof::make_elems<C>(N);
+    uprof::escape(elems);
     C c;
     uprof::reserve(c, N);
+    uprof::escape(c);
 
     uh_start_timer("insert reserved");
     for (size_t i = 0; i < N; ++i)
     {
         uprof::insert_one(c, elems[i]);
     }
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -562,12 +678,15 @@ void profile_insert_duplicate(size_t N)
 {
     auto elems = uprof::make_elems<C>(N);
     C c = uprof::make_filled<C>(N);
+    uprof::escape(elems);
+    uprof::escape(c);
 
     uh_start_timer("insert duplicate");
     for (size_t i = 0; i < N; ++i)
     {
         uprof::insert_one(c, elems[i]);
     }
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -576,9 +695,12 @@ void profile_insert_range(size_t N)
 {
     auto elems = uprof::make_elems<C>(N);
     C c = uprof::make_filled<C>(N / 2); // half of the range already present
+    uprof::escape(elems);
+    uprof::escape(c);
 
     uh_start_timer("insert range");
     uprof::insert_range(c, elems.begin(), elems.end());
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -586,6 +708,7 @@ template <typename C>
 void profile_emplace_grow(size_t N)
 {
     auto elems = uprof::make_elems<C>(N);
+    uprof::escape(elems);
     C c;
 
     uh_start_timer("emplace grow");
@@ -593,6 +716,7 @@ void profile_emplace_grow(size_t N)
     {
         uprof::emplace_one(c, elems[i]);
     }
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -600,14 +724,17 @@ template <typename C>
 void profile_emplace_reserved(size_t N)
 {
     auto elems = uprof::make_elems<C>(N);
+    uprof::escape(elems);
     C c;
     uprof::reserve(c, N);
+    uprof::escape(c);
 
     uh_start_timer("emplace reserved");
     for (size_t i = 0; i < N; ++i)
     {
         uprof::emplace_one(c, elems[i]);
     }
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -616,126 +743,190 @@ void profile_merge(size_t N)
 {
     C dst = uprof::make_filled<C>(N / 2);
     C src = uprof::make_filled<C>(N, N / 4); // partial overlap with dst
+    uprof::escape(dst);
+    uprof::escape(src);
 
     uh_start_timer("merge");
     uprof::merge(dst, src);
+    uprof::escape(dst);
+    uprof::escape(src);
     uh_stop_timer();
 }
 
 //=========================================================================
 // lookup
+//
+// Every lookup result is accumulated into a counter, and the counter is
+// escaped once per outer repeat. Hit/miss counts are verified with VX_VERIFY
+// (stays on in release builds, unlike VX_ASSERT).
 //=========================================================================
 
 template <typename C>
 void profile_find_hit(size_t N)
 {
     C c = uprof::make_filled<C>(N);
-    auto keys = uprof::make_keys(N);
+    auto keys = uprof::make_shuffled_keys(N);
+    const size_t inner = uprof::inner_repeats(N);
+    size_t found = 0;
+
+    uprof::escape(c);
+    uprof::escape(keys);
 
     uh_start_timer("find hit");
-    for (size_t i = 0; i < N; ++i)
+    for (size_t r = 0; r < inner; ++r)
     {
-        auto it = c.find(keys[i]);
-        uprof::sink(it);
+        for (size_t i = 0; i < N; ++i)
+        {
+            found += (c.find(keys[i]) != c.end());
+        }
+        uprof::escape(found);
     }
     uh_stop_timer();
+
+    VX_VERIFY(found == N * inner);
 }
 
 template <typename C>
 void profile_find_miss(size_t N)
 {
     C c = uprof::make_filled<C>(N);
-    auto keys = uprof::make_keys(N, uprof::miss_offset);
+    auto keys = uprof::make_shuffled_keys(N, uprof::miss_offset);
+    const size_t inner = uprof::inner_repeats(N);
+    size_t found = 0;
+
+    uprof::escape(c);
+    uprof::escape(keys);
 
     uh_start_timer("find miss");
-    for (size_t i = 0; i < N; ++i)
+    for (size_t r = 0; r < inner; ++r)
     {
-        auto it = c.find(keys[i]);
-        uprof::sink(it);
+        for (size_t i = 0; i < N; ++i)
+        {
+            found += (c.find(keys[i]) != c.end());
+        }
+        uprof::escape(found);
     }
     uh_stop_timer();
+
+    VX_VERIFY(found == 0);
 }
 
 template <typename C>
 void profile_contains_hit(size_t N)
 {
     C c = uprof::make_filled<C>(N);
-    auto keys = uprof::make_keys(N);
-
-    constexpr size_t INNER = 20000; // 20000 * 50 = 1M lookups per section
+    auto keys = uprof::make_shuffled_keys(N);
+    const size_t inner = uprof::inner_repeats(N);
     size_t hits = 0;
 
-    // warm-up
+    uprof::escape(c);
+    uprof::escape(keys);
+
+    // warm-up (untimed)
     for (size_t i = 0; i < N; ++i)
+    {
         hits += uprof::contains_key(c, keys[i]);
+    }
+    uprof::escape(hits);
+    hits = 0;
 
     uh_start_timer("contains hit");
-    for (size_t r = 0; r < INNER; ++r)
+    for (size_t r = 0; r < inner; ++r)
+    {
         for (size_t i = 0; i < N; ++i)
+        {
             hits += uprof::contains_key(c, keys[i]);
+        }
+        uprof::escape(hits);
+    }
     uh_stop_timer();
 
-    VX_ASSERT(hits == N * (INNER + 1));
-    static volatile size_t g_sink;
-    g_sink = hits;
-    uprof::sink(hits);
+    VX_VERIFY(hits == N * inner);
 }
 
 template <typename C>
 void profile_contains_miss(size_t N)
 {
-    C c = uprof::make_filled<C>(N);         // elements 0..N-1
-    auto keys = uprof::make_elems<C>(N, N); // elements N..2N-1, all absent
-
-    vx::random::gen rng;
-    vx::random::shuffle(keys.begin(), keys.end(), rng);
-
-    constexpr size_t INNER = 20000;
+    C c = uprof::make_filled<C>(N);
+    // splitmix keys at miss_offset are disjoint from the filled keys 0..N-1,
+    // and make_keys (not make_elems) works for sets and maps alike
+    auto keys = uprof::make_shuffled_keys(N, uprof::miss_offset);
+    const size_t inner = uprof::inner_repeats(N);
     size_t hits = 0;
 
-    for (size_t i = 0; i < N; ++i) // warm-up
+    uprof::escape(c);
+    uprof::escape(keys);
+
+    // warm-up (untimed)
+    for (size_t i = 0; i < N; ++i)
+    {
         hits += uprof::contains_key(c, keys[i]);
+    }
+    uprof::escape(hits);
+    hits = 0;
 
     uh_start_timer("contains miss");
-    for (size_t r = 0; r < INNER; ++r)
+    for (size_t r = 0; r < inner; ++r)
+    {
         for (size_t i = 0; i < N; ++i)
+        {
             hits += uprof::contains_key(c, keys[i]);
+        }
+        uprof::escape(hits);
+    }
     uh_stop_timer();
 
-    VX_ASSERT(hits == 0);
-    static volatile size_t g_sink;
-    g_sink = hits;
-    uprof::sink(hits);
+    VX_VERIFY(hits == 0);
 }
 
 template <typename C>
 void profile_count_hit(size_t N)
 {
     C c = uprof::make_filled<C>(N);
-    auto keys = uprof::make_keys(N);
+    auto keys = uprof::make_shuffled_keys(N);
+    const size_t inner = uprof::inner_repeats(N);
+    size_t total = 0;
+
+    uprof::escape(c);
+    uprof::escape(keys);
 
     uh_start_timer("count hit");
-    for (size_t i = 0; i < N; ++i)
+    for (size_t r = 0; r < inner; ++r)
     {
-        auto n = c.count(keys[i]);
-        uprof::sink(n);
+        for (size_t i = 0; i < N; ++i)
+        {
+            total += static_cast<size_t>(c.count(keys[i]));
+        }
+        uprof::escape(total);
     }
     uh_stop_timer();
+
+    VX_VERIFY(total == N * inner);
 }
 
 template <typename C>
 void profile_count_miss(size_t N)
 {
     C c = uprof::make_filled<C>(N);
-    auto keys = uprof::make_keys(N, uprof::miss_offset);
+    auto keys = uprof::make_shuffled_keys(N, uprof::miss_offset);
+    const size_t inner = uprof::inner_repeats(N);
+    size_t total = 0;
+
+    uprof::escape(c);
+    uprof::escape(keys);
 
     uh_start_timer("count miss");
-    for (size_t i = 0; i < N; ++i)
+    for (size_t r = 0; r < inner; ++r)
     {
-        auto n = c.count(keys[i]);
-        uprof::sink(n);
+        for (size_t i = 0; i < N; ++i)
+        {
+            total += static_cast<size_t>(c.count(keys[i]));
+        }
+        uprof::escape(total);
     }
     uh_stop_timer();
+
+    VX_VERIFY(total == 0);
 }
 
 //=========================================================================
@@ -746,34 +937,45 @@ template <typename C>
 void profile_erase_key_hit(size_t N)
 {
     C c = uprof::make_filled<C>(N);
-    auto keys = uprof::make_keys(N);
+    auto keys = uprof::make_shuffled_keys(N);
+    uprof::escape(c);
+    uprof::escape(keys);
 
     uh_start_timer("erase key hit");
     for (size_t i = 0; i < N; ++i)
     {
         uprof::erase_key(c, keys[i]);
     }
+    uprof::escape(c);
     uh_stop_timer();
+
+    VX_VERIFY(c.size() == 0);
 }
 
 template <typename C>
 void profile_erase_key_miss(size_t N)
 {
     C c = uprof::make_filled<C>(N);
-    auto keys = uprof::make_keys(N, uprof::miss_offset);
+    auto keys = uprof::make_shuffled_keys(N, uprof::miss_offset);
+    uprof::escape(c);
+    uprof::escape(keys);
 
     uh_start_timer("erase key miss");
     for (size_t i = 0; i < N; ++i)
     {
         uprof::erase_key(c, keys[i]);
     }
+    uprof::escape(c);
     uh_stop_timer();
+
+    VX_VERIFY(c.size() == N);
 }
 
 template <typename C>
 void profile_erase_iterator(size_t N)
 {
     C c = uprof::make_filled<C>(N);
+    uprof::escape(c);
 
     uh_start_timer("erase iterator");
     for (size_t i = 0; i < N; ++i)
@@ -781,7 +983,10 @@ void profile_erase_iterator(size_t N)
         auto it = c.erase(c.begin());
         uprof::sink(it);
     }
+    uprof::escape(c);
     uh_stop_timer();
+
+    VX_VERIFY(c.size() == 0);
 }
 
 //=========================================================================
@@ -792,9 +997,10 @@ template <typename C>
 void profile_iterate(size_t N)
 {
     C c = uprof::make_filled<C>(N);
+    uprof::escape(c);
 
-    uh_start_timer("iterate");
     uint64_t sum = 0;
+    uh_start_timer("iterate");
     for (const auto& e : c)
     {
         sum += uprof::key_of(e);
@@ -810,10 +1016,15 @@ void profile_compare_equal(size_t N)
     C c2 = c1;
     bool equal = false;
 
+    uprof::escape(c1);
+    uprof::escape(c2);
+
     uh_start_timer("compare equal");
     equal = (c1 == c2);
     uprof::sink(equal);
     uh_stop_timer();
+
+    VX_VERIFY(equal);
 }
 
 template <typename C>
@@ -821,12 +1032,17 @@ void profile_compare_not_equal(size_t N)
 {
     C c1 = uprof::make_filled<C>(N);
     C c2 = uprof::make_filled<C>(N, 1); // same size, one key differs at each end
-    bool equal = false;
+    bool equal = true;
+
+    uprof::escape(c1);
+    uprof::escape(c2);
 
     uh_start_timer("compare not equal");
     equal = (c1 == c2);
     uprof::sink(equal);
     uh_stop_timer();
+
+    VX_VERIFY(!equal);
 }
 
 //=========================================================================
@@ -837,6 +1053,7 @@ template <typename C>
 VX_NO_INLINE void profile_vx_create_copy(size_t N)
 {
     C c1 = uprof::make_filled<C>(N);
+    uprof::escape(c1);
 
     uh_start_timer("create copy");
     auto r = C::create(c1);
@@ -848,6 +1065,7 @@ template <typename C>
 VX_NO_INLINE void profile_vx_create_range(size_t N)
 {
     auto elems = uprof::make_elems<C>(N);
+    uprof::escape(elems);
 
     uh_start_timer("create range");
     auto r = C::create(elems.begin(), elems.end());
@@ -859,6 +1077,7 @@ template <typename C>
 void profile_vx_insert_assume_unique(size_t N)
 {
     auto elems = uprof::make_elems<C>(N);
+    uprof::escape(elems);
     C c;
 
     uh_start_timer("insert assume unique");
@@ -867,6 +1086,7 @@ void profile_vx_insert_assume_unique(size_t N)
         auto r = c.insert_assume_unique(elems[i]);
         uprof::consume<C>(r);
     }
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -874,8 +1094,10 @@ template <typename C>
 void profile_vx_insert_assume_capacity(size_t N)
 {
     auto elems = uprof::make_elems<C>(N);
+    uprof::escape(elems);
     C c;
     uprof::reserve(c, N);
+    uprof::escape(c);
 
     uh_start_timer("insert assume capacity");
     for (size_t i = 0; i < N; ++i)
@@ -883,6 +1105,7 @@ void profile_vx_insert_assume_capacity(size_t N)
         auto r = c.insert_assume_capacity(elems[i]);
         uprof::sink(r);
     }
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -890,8 +1113,10 @@ template <typename C>
 void profile_vx_insert_assume_unique_and_capacity(size_t N)
 {
     auto elems = uprof::make_elems<C>(N);
+    uprof::escape(elems);
     C c;
     uprof::reserve(c, N);
+    uprof::escape(c);
 
     uh_start_timer("insert assume unique+cap");
     for (size_t i = 0; i < N; ++i)
@@ -899,6 +1124,7 @@ void profile_vx_insert_assume_unique_and_capacity(size_t N)
         auto it = c.insert_assume_unique_and_capacity(elems[i]);
         uprof::sink(it);
     }
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -906,9 +1132,11 @@ template <typename C>
 void profile_vx_clear_and_deallocate(size_t N)
 {
     C c = uprof::make_filled<C>(N);
+    uprof::escape(c);
 
     uh_start_timer("clear and deallocate");
     c.clear_and_deallocate();
+    uprof::escape(c);
     uh_stop_timer();
 }
 
@@ -937,53 +1165,53 @@ template <typename C>
 void collect_tests(std::vector<uh_test_fn>& out)
 {
     // constructors / destructor
-    //out.push_back(profile_default_constructor<C>);
-    //out.push_back(profile_size_constructor<C>);
-    //out.push_back(profile_range_constructor<C>);
-    //out.push_back(profile_list_constructor<C>);
-    //out.push_back(profile_copy_constructor<C>);
-    //out.push_back(profile_move_constructor<C>);
-    //out.push_back(profile_destructor<C>);
-    //
-    //// assignment
-    //out.push_back(profile_copy_assignment_grow<C>);
-    //out.push_back(profile_copy_assignment_shrink<C>);
-    //out.push_back(profile_list_assignment<C>);
-    //out.push_back(profile_move_assignment<C>);
-    //
-    //// reserve / shrink / clear / swap
-    //out.push_back(profile_reserve_grow<C>);
-    //out.push_back(profile_reserve_noop<C>);
-    //out.push_back(profile_shrink_to_fit<C>);
-    //out.push_back(profile_clear<C>);
-    //out.push_back(profile_swap<C>);
-    //
-    //// insert / emplace / merge
-    //out.push_back(profile_insert_grow<C>);
-    //out.push_back(profile_insert_reserved<C>);
-    //out.push_back(profile_insert_duplicate<C>);
-    //out.push_back(profile_insert_range<C>);
-    //out.push_back(profile_emplace_grow<C>);
-    //out.push_back(profile_emplace_reserved<C>);
-    //out.push_back(profile_merge<C>);
-    //
-    //// lookup
-    ////out.push_back(profile_find_hit<C>);
-    ////out.push_back(profile_find_miss<C>);
+    out.push_back(profile_default_constructor<C>);
+    out.push_back(profile_size_constructor<C>);
+    out.push_back(profile_range_constructor<C>);
+    out.push_back(profile_list_constructor<C>);
+    out.push_back(profile_copy_constructor<C>);
+    out.push_back(profile_move_constructor<C>);
+    out.push_back(profile_destructor<C>);
+
+    // assignment
+    out.push_back(profile_copy_assignment_grow<C>);
+    out.push_back(profile_copy_assignment_shrink<C>);
+    out.push_back(profile_list_assignment<C>);
+    out.push_back(profile_move_assignment<C>);
+
+    // reserve / shrink / clear / swap
+    out.push_back(profile_reserve_grow<C>);
+    out.push_back(profile_reserve_noop<C>);
+    out.push_back(profile_shrink_to_fit<C>);
+    out.push_back(profile_clear<C>);
+    out.push_back(profile_swap<C>);
+
+    // insert / emplace / merge
+    out.push_back(profile_insert_grow<C>);
+    out.push_back(profile_insert_reserved<C>);
+    out.push_back(profile_insert_duplicate<C>);
+    out.push_back(profile_insert_range<C>);
+    out.push_back(profile_emplace_grow<C>);
+    out.push_back(profile_emplace_reserved<C>);
+    out.push_back(profile_merge<C>);
+
+    // lookup
+    out.push_back(profile_find_hit<C>);
+    out.push_back(profile_find_miss<C>);
     out.push_back(profile_contains_hit<C>);
     out.push_back(profile_contains_miss<C>);
-    //out.push_back(profile_count_hit<C>);
-    //out.push_back(profile_count_miss<C>);
+    out.push_back(profile_count_hit<C>);
+    out.push_back(profile_count_miss<C>);
 
     // erase
-    //out.push_back(profile_erase_key_hit<C>);
-    //out.push_back(profile_erase_key_miss<C>);
-    //out.push_back(profile_erase_iterator<C>);
-    //
-    //// iterate / compare
-    //out.push_back(profile_iterate<C>);
-    //out.push_back(profile_compare_equal<C>);
-    //out.push_back(profile_compare_not_equal<C>);
+    out.push_back(profile_erase_key_hit<C>);
+    out.push_back(profile_erase_key_miss<C>);
+    out.push_back(profile_erase_iterator<C>);
+
+    // iterate / compare
+    out.push_back(profile_iterate<C>);
+    out.push_back(profile_compare_equal<C>);
+    out.push_back(profile_compare_not_equal<C>);
 
     // vx-only extras (no-op for std containers)
     //collect_vx_tests<C>(out, typename uprof::is_vx<C>::type{});
@@ -993,8 +1221,11 @@ void collect_tests(std::vector<uh_test_fn>& out)
 // driver
 //=========================================================================
 
-// Runs the tests for one or more container types, interleaved in random order
-// each repetition so every container sees the same cache/allocator conditions.
+// Runs the tests for one or more container types, interleaved in a random
+// order each repetition so every container sees the same cache/allocator
+// conditions. Each repetition runs every test exactly once (a shuffled
+// permutation, not sampling with replacement), and the order is seeded so it
+// is the same on every run.
 //
 //   run<uset_std, uset_node, uset_flat>(UN, UR);
 //   run<umap_std, umap_node, umap_flat>(UN, UR);
@@ -1005,14 +1236,14 @@ void run(size_t N, size_t R)
     int expand[] = { 0, (collect_tests<Cs>(tests), 0)... };
     (void)expand;
 
-    std::vector<uh_test_fn> selected(tests.size());
-    vx::random::gen rng;
+    std::vector<uh_test_fn> order = tests;
+    std::mt19937_64 rng(12345);
 
     for (size_t r = 0; r < R; ++r)
     {
-        vx::random::sample(tests.begin(), tests.end(), selected.data(), tests.size(), rng);
+        std::shuffle(order.begin(), order.end(), rng);
 
-        for (auto test : selected)
+        for (auto test : order)
         {
             test(N);
         }

@@ -8,26 +8,6 @@
 // Layout:
 //   buckets: [ head_0 | head_1 | ... | head_cap | END ]      (cap + 2 pointers)
 //   node:    [ next | slot ]
-//
-// The bucket count is cap + 1, the ring size of the sizing policy, so
-// (hash & cap) is the bucket index (capacities are 2^k - 1). The load limit is
-// Sizing::max_load(cap), exactly as in flat_table.
-//
-// The extra last bucket holds an END node. Iterators advance by scanning for
-// the next non-null bucket, and that scan always stops on END, so no bucket
-// count has to be carried in the iterator. end() is read from the array
-// itself (never compared against a global), which keeps it DLL-safe.
-//
-// An unallocated table points at a static two-element array { nullptr, END }:
-//   find   -> bucket 0 is empty, reports a miss (no null check)
-//   begin  == end
-// It is never written: cap == 0 means Sizing::max_load(0) == 0, so insert
-// takes the grow path first. Test cap == 0 before writing, never compare
-// pointers against the static array.
-//
-// Iterator invalidation: rehash (growth, reserve, shrink_to_fit) invalidates
-// iterators but NOT references or pointers to elements. Erase invalidates only
-// the erased element. Advancing end() is undefined.
 
 #include <cstddef>
 #include <cstdint>
@@ -52,27 +32,6 @@ using hash_size_t = _hash_priv::hash_size_t;
 //=========================================================================
 
 using default_sizing = _hash_priv::pow2_sizing_t<_hash_priv::load_1_0>;
-
-////-------------------------------------------------------------------------
-//// Chained sizing tests
-////-------------------------------------------------------------------------
-//
-//template <typename Sizing>
-//struct node_sizing_tests : _hash_priv::sizing_tests<Sizing>
-//{
-//    // One element per bucket.
-//    VX_STATIC_ASSERT_MSG(Sizing::max_load(0) == 0,
-//        "max_load(0) must be 0");
-//    VX_STATIC_ASSERT_MSG(Sizing::max_load(3) == 4,
-//        "cap 3 -> 4 buckets -> 4 elements");
-//
-//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(0, 4) == 3,
-//        "4 elements fit in cap 3");
-//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(0, 5) == 7,
-//        "5 elements need cap 7");
-//    VX_STATIC_ASSERT_MSG(Sizing::next_capacity(3, 1) == 7,
-//        "always grows");
-//};
 
 //=========================================================================
 // nodes
@@ -190,6 +149,7 @@ public:
             do
             {
                 ++m_bucket;
+
             } while (*m_bucket == nullptr);
 
             m_node = *m_bucket;
@@ -273,8 +233,12 @@ template <
     typename Sizing = default_sizing>
 class node_table
 {
-    //VX_STATIC_ASSERT_MSG(Sizing::pow2_capacity,
-    //    "bucket_of masks the hash, so node_table requires power-of-two capacities");
+    VX_STATIC_ASSERT_MSG(_hash_priv::valid_sizing<Sizing>(),
+        "invalid sizing: needs max_load(0) == 0, 2^k - 1 capacities, "
+        "min_capacity <= max_capacity, and no overflow of cap + 1");
+
+    VX_STATIC_ASSERT_MSG(Sizing::pow2_capacity,
+        "bucket_of masks the hash, so node_table requires power-of-two capacities");
 
 public:
 
@@ -983,11 +947,6 @@ public:
     void swap(node_table& other) noexcept
     {
         m_storage.swap(other.m_storage);
-    }
-
-    friend void swap(node_table& a, node_table& b) noexcept
-    {
-        a.swap(b);
     }
 
 private:

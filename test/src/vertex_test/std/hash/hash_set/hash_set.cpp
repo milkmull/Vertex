@@ -59,27 +59,6 @@
 //  13. randomized stress
 //  14. node_set only: reference and iterator stability
 
-//=========================================================================
-// 1. helpers
-//=========================================================================
-
-namespace {
-
-using vx::test::allocator_stats;
-using vx::test::copyable_int;
-using vx::test::movable_int;
-using vx::test::tracking_allocator;
-
-template <typename K>
-constexpr bool copyable = std::is_copy_constructible_v<K>;
-
-// works for int, copyable_int, movable_int, counted_key (all convert to int)
-template <typename T>
-int val(const T& t)
-{
-    return static_cast<int>(t);
-}
-
 //-------------------------------------------------------------------------
 // families
 //-------------------------------------------------------------------------
@@ -105,6 +84,172 @@ struct node_family
         typename A = vx::mem::default_allocator<K>>
     using set = vx::node_set<K, H, E, A>;
 };
+
+//=========================================================================
+// 0. compile-time policy checks
+//
+// Concrete numbers for the shipped policies. If this file compiles, they
+// hold; the message names the broken line. Generic invariants (valid sizing,
+// probe/sizing pow2 agreement) are asserted inside flat_table / node_table
+// themselves, so they also fire for user-supplied policies.
+//=========================================================================
+
+namespace {
+
+namespace flat = vx::_flat_hash_priv;
+namespace node = vx::_node_hash_priv;
+
+using flat_sizing = flat::default_sizing;
+using node_sizing = node::default_sizing;
+using flat_probe = flat::default_probe;
+
+// ---- flat sizing: 7/8 load, must always leave an EMPTY byte ----
+
+VX_STATIC_ASSERT_MSG(flat::valid_flat_sizing<flat_sizing>(), "flat default sizing is valid");
+
+VX_STATIC_ASSERT_MSG(vx::_hash_priv::valid_sizing<flat_sizing>(), "flat default sizing is valid");
+VX_STATIC_ASSERT_MSG(vx::_hash_priv::valid_sizing<node_sizing>(), "node default sizing is valid");
+VX_STATIC_ASSERT_MSG(!vx::_hash_priv::valid_sizing<node_sizing>() || !flat::valid_flat_sizing<node_sizing>(),
+    "node sizing (load 1.0) must be rejected as a flat sizing");
+
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(0) == 0, "flat: cap 0 holds nothing");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(1) == 0, "flat: cap 1 holds nothing");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(3) == 2, "flat: cap 3 -> 2");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(7) == 6, "flat: cap 7 -> 6");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(15) == 14, "flat: cap 15 -> 14");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(31) == 28, "flat: cap 31 -> 28");
+VX_STATIC_ASSERT_MSG(flat_sizing::max_load(63) == 56, "flat: cap 63 -> 56");
+
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 1) == 3, "flat: first allocation");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 2) == 3, "flat: 2 fit in cap 3");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 3) == 7, "flat: 3 need cap 7");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 6) == 7, "flat: 6 fit in cap 7");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 7) == 15, "flat: 7 need cap 15");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 28) == 31, "flat: 28 fit in cap 31");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, 29) == 63, "flat: 29 need cap 63");
+
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(3, 3) == 7, "flat: 3 -> 7");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(7, 7) == 15, "flat: 7 -> 15");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(15, 15) == 31, "flat: 15 -> 31");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(31, 1) == 63, "flat: always grows");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(7, 100) == 127, "flat: can skip levels");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(3, 0) == 7, "flat: required 0 is treated as 1");
+
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(flat_sizing::max_capacity, 1) == 0, "flat: no growth past max_capacity");
+VX_STATIC_ASSERT_MSG(flat_sizing::next_capacity(0, std::numeric_limits<vx::_hash_priv::hash_size_t>::max()) == 0, "flat: unrepresentable request");
+
+// ---- node sizing: load 1.0, one element per bucket ----
+
+VX_STATIC_ASSERT_MSG(node_sizing::max_load(0) == 0, "node: cap 0 holds nothing");
+VX_STATIC_ASSERT_MSG(node_sizing::max_load(3) == 4, "node: cap 3 -> 4 buckets -> 4 elements");
+VX_STATIC_ASSERT_MSG(node_sizing::max_load(7) == 8, "node: cap 7 -> 8");
+
+VX_STATIC_ASSERT_MSG(node_sizing::next_capacity(0, 4) == 3, "node: 4 fit in cap 3");
+VX_STATIC_ASSERT_MSG(node_sizing::next_capacity(0, 5) == 7, "node: 5 need cap 7");
+VX_STATIC_ASSERT_MSG(node_sizing::next_capacity(3, 1) == 7, "node: always grows");
+
+// ---- probe ----
+
+VX_STATIC_ASSERT_MSG(flat_probe::requires_pow2, "triangular probe requires pow2");
+VX_STATIC_ASSERT_MSG(flat_probe::start(0x1234, 15) == 4, "probe: start masks the hash");
+VX_STATIC_ASSERT_MSG(flat_probe::wrap_lane(17, 15) == 1, "probe: wrap_lane masks");
+VX_STATIC_ASSERT_MSG(flat_probe::advance(14, 16, 15) == 14, "probe: advance wraps around the ring");
+
+// ---- cleanup policy: must trigger before the table is full ----
+
+VX_STATIC_ASSERT_MSG(flat::default_cleanup::cleanup_limit(28) < 28, "cleanup limit < max_load");
+VX_STATIC_ASSERT_MSG(flat::default_cleanup::cleanup_limit(32) == 25, "cleanup limit is 25/32 of max_load");
+
+// ---- backend type properties ----
+
+using flat_int_set = flat_family::set<int>;
+using node_int_set = node_family::set<int>;
+
+VX_STATIC_ASSERT_MSG(std::is_nothrow_move_constructible_v<flat_int_set>, "flat_set move ctor is noexcept");
+VX_STATIC_ASSERT_MSG(std::is_nothrow_move_constructible_v<node_int_set>, "node_set move ctor is noexcept");
+VX_STATIC_ASSERT_MSG(std::is_nothrow_move_assignable_v<flat_int_set>, "flat_set move assign is noexcept");
+VX_STATIC_ASSERT_MSG(std::is_nothrow_move_assignable_v<node_int_set>, "node_set move assign is noexcept");
+VX_STATIC_ASSERT_MSG(std::is_nothrow_swappable_v<flat_int_set>, "flat_set swap is noexcept");
+VX_STATIC_ASSERT_MSG(std::is_nothrow_swappable_v<node_int_set>, "node_set swap is noexcept");
+
+using vx::test::movable_int;
+
+VX_STATIC_ASSERT_MSG((!std::is_copy_constructible_v<flat_family::set<movable_int>> ||
+                         std::is_copy_constructible_v<flat_family::set<movable_int>>),
+    "placeholder: replace if you SFINAE copy on key copyability");
+
+} // namespace
+
+// Walks every capacity a sizing policy produces and checks the properties the
+// tables rely on. Runs against any policy, so a new load factor only needs one
+// more TEST registration below.
+template <typename Sizing>
+void check_sizing_progression(bool needs_free_slot)
+{
+    using size_type = vx::_hash_priv::hash_size_t;
+
+    size_type cap = Sizing::next_capacity(0, 1);
+    VX_CHECK(cap != 0);
+
+    size_type prev_load = 0;
+    for (int step = 0; step < 24 && cap != 0; ++step)
+    {
+        const size_type load = Sizing::max_load(cap);
+
+        VX_CHECK(((cap + 1) & cap) == 0); // 2^k - 1
+        VX_CHECK(load >= prev_load);      // monotonic
+        if (needs_free_slot)
+        {
+            VX_CHECK(load < cap); // an EMPTY byte always exists
+        }
+
+        // tightest fit really is tight
+        VX_CHECK(Sizing::next_capacity(0, load) <= cap);
+        VX_CHECK(Sizing::next_capacity(0, load + 1) > cap);
+
+        // growth always makes progress and always makes room
+        const size_type next = Sizing::next_capacity(cap, 1);
+        if (next != 0)
+        {
+            VX_CHECK(next > cap);
+            VX_CHECK(Sizing::max_load(next) > load);
+        }
+
+        prev_load = load;
+        cap = next;
+    }
+}
+
+VX_TEST_CASE(sizing_progression_flat)
+{
+    check_sizing_progression<vx::_flat_hash_priv::default_sizing>(true);
+}
+
+VX_TEST_CASE(sizing_progression_node)
+{
+    check_sizing_progression<vx::_node_hash_priv::default_sizing>(false);
+}
+
+//=========================================================================
+// 1. helpers
+//=========================================================================
+
+namespace {
+
+using vx::test::allocator_stats;
+using vx::test::copyable_int;
+using vx::test::movable_int;
+using vx::test::tracking_allocator;
+
+template <typename K>
+constexpr bool copyable = std::is_copy_constructible_v<K>;
+
+// works for int, copyable_int, movable_int, counted_key (all convert to int)
+template <typename T>
+int val(const T& t)
+{
+    return static_cast<int>(t);
+}
 
 //-------------------------------------------------------------------------
 // hashers

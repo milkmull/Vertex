@@ -64,6 +64,12 @@ using default_probe = triangular_probe;
 
 using default_sizing = _hash_priv::pow2_sizing_t<_hash_priv::load_7_8>;
 
+template <typename Sizing>
+constexpr bool valid_flat_sizing() noexcept
+{
+    return _hash_priv::valid_sizing<Sizing>() && Sizing::max_load(Sizing::min_capacity) < Sizing::min_capacity;
+}
+
 //template <typename Sizing>
 //struct flat_sizing_tests : _hash_priv::sizing_tests<Sizing>
 //{
@@ -419,11 +425,13 @@ template <
     typename Cleanup = default_cleanup>
 class flat_table
 {
-    //VX_STATIC_ASSERT_MSG(_hash_priv::valid_flat_sizing<Sizing>(),
-    //    "invalid flat sizing policy (needs max_load(cap) < cap so an EMPTY slot always exists)");
-    //
-    //VX_STATIC_ASSERT_MSG(!Probe::requires_pow2 || Sizing::pow2_capacity,
-    //    "this probe policy requires power-of-two capacities");
+    VX_STATIC_ASSERT_MSG(valid_flat_sizing<Sizing>(),
+        "invalid flat sizing: needs max_load(0) == 0, 2^k - 1 capacities, "
+        "min_capacity <= max_capacity, no overflow of cap + 1, and max_load(cap) < cap "
+        "so an EMPTY slot always exists");
+
+    VX_STATIC_ASSERT_MSG(!Probe::requires_pow2 || Sizing::pow2_capacity,
+        "this probe policy requires power-of-two capacities");
 
 public:
 
@@ -1226,11 +1234,6 @@ public:
     void swap(flat_table& other) noexcept
     {
         m_storage.swap(other.m_storage);
-    }
-
-    friend void swap(flat_table& a, flat_table& b) noexcept
-    {
-        a.swap(b);
     }
 
 private:
