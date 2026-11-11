@@ -1,120 +1,55 @@
 #include "vertex/config/assert.hpp"
+#include "vertex/os/error.hpp"
 #include "vertex/os/io.hpp"
-#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
+#include "vertex_impl/os/_platform/windows/windows_error_helpers.hpp"
 
 namespace vx {
 namespace os {
 
-#define assert_is_open(h) VX_ASSERT(h.is_valid())
-
-static HANDLE get_handle(stream s)
-{
-    switch (s)
-    {
-        case stream::in:
-        {
-            return ::GetStdHandle(STD_INPUT_HANDLE);
-        }
-        case stream::out:
-        {
-            return ::GetStdHandle(STD_OUTPUT_HANDLE);
-        }
-        case stream::err:
-        {
-            return ::GetStdHandle(STD_ERROR_HANDLE);
-        }
-    }
-
-    return INVALID_HANDLE_VALUE;
-}
-
-static rw_result read_impl(HANDLE h, uint8_t* data, size_t size)
+rw_result read(native_handle h, uint8_t* data, size_t size)
 {
     size_t total = 0;
 
     while (size > 0)
     {
-        DWORD read = 0;
+        DWORD got = 0;
 
         const DWORD chunk = size > static_cast<size_t>(MAXDWORD)
             ? MAXDWORD
             : static_cast<DWORD>(size);
 
-        if (!::ReadFile(h, data, chunk, &read, NULL))
+        if (!::ReadFile(h, data, chunk, &got, nullptr))
         {
-            err::set_last_os_error("ReadFile");
-            return { total, err::system_error };
+            // ERROR_BROKEN_PIPE / ERROR_HANDLE_EOF map to err::eof (no message formatting)
+            return { total, fail("ReadFile").value };
         }
 
-        if (read == 0)
+        if (got == 0)
         {
             return { total, err::eof };
         }
 
-        data += read;
-        size -= read;
-        total += static_cast<size_t>(read);
+        data += got;
+        size -= got;
+        total += static_cast<size_t>(got);
     }
 
     return { total, err::none };
 }
 
-static rw_result write_impl(HANDLE h, const uint8_t* data, size_t size, bool allow_error)
+rw_result write(native_handle h, const uint8_t* data, size_t size)
 {
-    size_t total = 0;
-
-    while (size > 0)
+    const rw_result res = _stream_priv::write_impl(h, data, size);
+    if (res.err == err::system_error)
     {
-        DWORD written = 0;
-
-        const DWORD chunk = size > static_cast<size_t>(MAXDWORD)
-            ? MAXDWORD
-            : static_cast<DWORD>(size);
-
-        if (!::WriteFile(h, data, chunk, &written, nullptr))
-        {
-            if (allow_error)
-            {
-                err::set_last_os_error("WriteFile");
-            }
-            return { total, err::system_error };
-        }
-
-        if (written == 0)
-        {
-            return { total, err::failed };
-        }
-
-        data += written;
-        size -= written;
-        total += static_cast<size_t>(written);
+        err::set_last_os_error("WriteFile");
     }
 
-    return { total, err::none };
+    return res;
 }
 
-rw_result read_stream(stream s, char* data, size_t size)
+success open(native_handle h, const native_cstring p, typename rw_mode::enum_type mode)
 {
-    HANDLE h = get_handle(s);
-    return read_impl(h, reinterpret_cast<uint8_t*>(data), size);
-}
-
-rw_result _os_io_priv::write_stream_impl(stream s, const char* data, size_t size, bool allow_error)
-{
-    HANDLE h = get_handle(s);
-    return write_impl(h, reinterpret_cast<const uint8_t*>(data), size, allow_error);
-}
-
-bool file_exists(const path& p)
-{
-    const DWORD attrs = ::GetFileAttributesW(p.c_str());
-    return (attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY));
-}
-
-success open(handle& h, const path& p, typename rw_mode::enum_type mode)
-{
-    VX_ASSERT(!h.is_valid());
-
     DWORD access = 0;
     DWORD creation = 0;
 
@@ -159,7 +94,7 @@ success open(handle& h, const path& p, typename rw_mode::enum_type mode)
     }
 
     h = ::CreateFileW(
-        p.c_str(),
+        p,
         access,
         FILE_SHARE_READ | FILE_SHARE_WRITE, // allow read and write sharing
         NULL,
@@ -167,61 +102,63 @@ success open(handle& h, const path& p, typename rw_mode::enum_type mode)
         FILE_ATTRIBUTE_NORMAL,
         NULL);
 
-    if (!h.is_valid())
+    if (!is_valid_handle(h))
     {
-        err::set_last_os_error("CreateFileW");
-        return err::system_error;
+        return fail("CreateFileW");
     }
 
     return success{};
 }
 
-rw_result read(handle& h, uint8_t* data, size_t size)
+success flush(native_handle h)
 {
-    assert_is_open(h);
-    return read_impl(h.get(), data, size);
-}
-
-
-rw_result write(handle& h, const uint8_t* data, size_t size)
-{
-    assert_is_open(h);
-    return write_impl(h.get(), data, size, true);
-}
-
-success flush(handle& h)
-{
-    assert_is_open(h);
-
-    if (!::FlushFileBuffers(h.get()))
+    if (!::FlushFileBuffers(h))
     {
-        err::set_last_os_error("FlushFileBuffers");
-        return err::system_error;
+        const DWORD e = ::GetLastError();
+
+        // consoles and pipes have nothing to flush and reject FlushFileBuffers
+        if ((e == ERROR_INVALID_HANDLE || e == ERROR_INVALID_FUNCTION) && ::GetFileType(h) != FILE_TYPE_DISK)
+        {
+            return success{};
+        }
+
+        ::SetLastError(e);
+        return fail("FlushFileBuffers");
     }
 
     return success{};
 }
 
-expected<file_position, error> tell(const handle& h)
+success truncate(native_handle h, uint64_t size)
 {
-    assert_is_open(h);
+    // does not move the file pointer, unlike SetFilePointerEx + SetEndOfFile
+    FILE_END_OF_FILE_INFO eof{};
+    eof.EndOfFile.QuadPart = static_cast<LONGLONG>(size);
 
+    if (!::SetFileInformationByHandle(h, FileEndOfFileInfo, &eof, sizeof(eof)))
+    {
+        return fail("SetFileInformationByHandle");
+    }
+
+    return success{};
+}
+
+success tell(const native_handle h, file_position& pos)
+{
     LARGE_INTEGER off{};
 
     // Use SetFilePointerEx to query the current position
-    if (!::SetFilePointerEx(h.get(), off, &off, FILE_CURRENT))
+    if (!::SetFilePointerEx(h, off, &off, FILE_CURRENT))
     {
-        err::set_last_os_error("SetFilePointerEx");
-        return make_unexpected<error>(err::system_error);
+        return fail("SetFilePointerEx");
     }
 
-    return static_cast<file_position>(off.QuadPart);
+    pos = static_cast<file_position>(off.QuadPart);
+    return success{};
 }
 
-success seek(handle& h, file_offset off, stream_position from)
+success seek(native_handle h, file_offset off, stream_position from)
 {
-    assert_is_open(h);
-
     LARGE_INTEGER distance{ 0 };
     distance.QuadPart = off;
 
@@ -245,28 +182,46 @@ success seek(handle& h, file_offset off, stream_position from)
         }
     }
 
-    if (!::SetFilePointerEx(h.get(), distance, &distance, method))
+    if (!::SetFilePointerEx(h, distance, &distance, method))
     {
-        err::set_last_os_error("SetFilePointerEx");
-        return err::system_error;
+        return fail("SetFilePointerEx");
     }
 
     return success{};
 }
 
-expected<size_t, error> file_size(const handle& h)
+success file_size(const native_handle h, uint64_t& size)
 {
-    assert_is_open(h);
+    LARGE_INTEGER lsize{};
 
-    LARGE_INTEGER file_size{};
-
-    if (!::GetFileSizeEx(h.get(), &file_size))
+    if (!::GetFileSizeEx(h, &lsize))
     {
-        err::set_last_os_error("GetFileSizeEx");
-        return make_unexpected<error>(err::system_error);
+        return fail("GetFileSizeEx");
     }
 
-    return static_cast<size_t>(file_size.QuadPart);
+    size = static_cast<uint64_t>(lsize.QuadPart);
+    return success{};
+}
+
+success set_file_size(native_handle h, uint64_t size)
+{
+    if (size > static_cast<uint64_t>(INT64_MAX))
+    {
+        ::SetLastError(ERROR_INVALID_PARAMETER);
+        return fail("set_file_size");
+    }
+
+    // Does not move the file pointer, unlike SetFilePointerEx + SetEndOfFile.
+    // The handle needs FILE_WRITE_DATA (so not an append-only handle).
+    FILE_END_OF_FILE_INFO eof{};
+    eof.EndOfFile.QuadPart = static_cast<LONGLONG>(size);
+
+    if (!::SetFileInformationByHandle(h, FileEndOfFileInfo, &eof, sizeof(eof)))
+    {
+        return fail("SetFileInformationByHandle");
+    }
+
+    return success{};
 }
 
 } // namespace os

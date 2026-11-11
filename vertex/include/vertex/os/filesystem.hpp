@@ -1,68 +1,72 @@
 #pragma once
 
-#include <memory>
+#include <cstdint>
 
 #include "vertex/config/flags.hpp"
-#include "vertex/os/path.hpp"
-#include "vertex/std/time.hpp"
+#include "vertex/os/handle.hpp"
+#include "vertex/os/io.hpp"
+#include "vertex/os/native_string.hpp"
+#include "vertex/std/temporary_string.hpp"
+#include "vertex/std/time/time.hpp"
 
 namespace vx {
 namespace os {
-namespace filesystem {
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // File Types
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 enum class file_type
 {
-    none,
+    none, // not queried
     not_found,
     regular,
     directory,
     symlink,
+    block,
+    character,
+    fifo,
+    socket,
     unknown
 };
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // File Permissions
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
-// https://en.cppreference.com/w/cpp/filesystem/perms
+// https://en.cppreference.com/w/cpp/filesystem/file_permissions
 
-VX_FLAGS_UT_DECLARE_BEGIN(file_permissions, unsigned int)
-{
-    none = 0,             // No permissions
+VX_FLAGS_UT_DECLARE_BEGIN(file_permissions, unsigned int){
+    none = 0, // No permissions
 
-    owner_read = 0400,    // Owner has read permission
-    owner_write = 0200,   // Owner has write permission
-    owner_exec = 0100,    // Owner has execute permission
-    owner_all = 0700,     // Owner has all permissions
+    owner_read = 0400,  // Owner has read permission
+    owner_write = 0200, // Owner has write permission
+    owner_exec = 0100,  // Owner has execute permission
+    owner_all = 0700,   // Owner has all permissions
 
-    group_read = 040,     // Group has read permission
-    group_write = 020,    // Group has write permission
-    group_exec = 010,     // Group has execute permission
-    group_all = 070,      // Group has all permissions
+    group_read = 040,  // Group has read permission
+    group_write = 020, // Group has write permission
+    group_exec = 010,  // Group has execute permission
+    group_all = 070,   // Group has all permissions
 
-    others_read = 04,     // Others have read permission
-    others_write = 02,    // Others have write permission
-    others_exec = 01,     // Others have execute permission
-    others_all = 07,      // Others have all permissions
+    others_read = 04,  // Others have read permission
+    others_write = 02, // Others have write permission
+    others_exec = 01,  // Others have execute permission
+    others_all = 07,   // Others have all permissions
 
-    all_read = owner_read | group_read | others_read,             // All users have read permission
-    all_write = owner_write | group_write | others_write,         // All users have write permission
-    all_read_write = all_read | all_write,                        // All users have read and write permissions
-    all_exec = owner_exec | group_exec | others_exec,             // All users have execute permission
+    all_read = owner_read | group_read | others_read,     // All users have read permission
+    all_write = owner_write | group_write | others_write, // All users have write permission
+    all_read_write = all_read | all_write,                // All users have read and write permissions
+    all_exec = owner_exec | group_exec | others_exec,     // All users have execute permission
 
-    all = 0777,           // All permissions for owner, group, and others
+    all = 0777, // All permissions for owner, group, and others
 
-    set_uid = 04000,      // Set user ID on execution
-    get_gid = 02000,      // Set group ID on execution
+    set_uid = 04000, // Set user ID on execution
+    set_gid = 02000, // Set group ID on execution
 
-    mask = 07777,         // Bitmask for all permissions and special bits
-    unknown = 0xffff      // Unknown or invalid permissions
-}
-VX_FLAGS_DECLARE_END(file_permissions)
+    mask = 07777,    // Bitmask for all permissions and special bits
+    unknown = 0xffff // Unknown or invalid permissions
+} VX_FLAGS_DECLARE_END(file_permissions);
 
 enum class file_permission_operator
 {
@@ -71,275 +75,112 @@ enum class file_permission_operator
     remove
 };
 
-/**
- * @brief Updates the permissions of a file or directory.
- *
- * @param p The path to the target file or directory.
- * @param permissions The new permissions to apply.
- * @param op The operation to perform on the current permissions
- * (replace, add, or remove). Defaults to replace.
- * @param follow_symlinks If true, symbolic links will be followed;
- * otherwise, permissions are applied to the link itself.
- *
- * @return True on success; false on failure.
- *
- * @note This operation is platform-dependent. If the target cannot be modified,
- * or the path is invalid, the function will fail.
- */
-VX_API bool update_permissions(
-    const path& p,
-    file_permissions permissions,
-    file_permission_operator op = file_permission_operator::replace,
-    bool follow_symlinks = false
-);
+using file_time = time::time_point;
 
-///////////////////////////////////////////////////////////////////////////////
-// File Info
-///////////////////////////////////////////////////////////////////////////////
-
-struct file_info
+struct file_id
 {
-    file_type type = file_type::none;
-    file_permissions permissions = file_permissions::none;
-    size_t size = 0;
-    time::time_point create_time;
-    time::time_point modify_time;
+    uint64_t device; // st_dev / volume serial number
+    uint64_t index;  // st_ino / file index (high and low combined)
 
-    /**
-     * @brief Checks whether the file exists.
-     * @return True if the file exists; false otherwise.
-     */
-    constexpr bool exists() const noexcept { return !(type == file_type::none || type == file_type::not_found); }
-
-    /**
-     * @brief Checks if the file is a regular file.
-     * @return True if the file is regular; false otherwise.
-     */
-    constexpr bool is_regular_file() const noexcept { return type == file_type::regular; }
-
-    /**
-     * @brief Checks if the file is a directory.
-     * @return True if the file is a directory; false otherwise.
-     */
-    constexpr bool is_directory() const noexcept { return type == file_type::directory; }
-
-    /**
-     * @brief Checks if the file is a symbolic link.
-     * @return True if the file is a symlink; false otherwise.
-     */
-    constexpr bool is_symlink() const noexcept { return type == file_type::symlink; }
-
-    /**
-     * @brief Checks if the file is not a regular file, directory, or symlink.
-     * @return True if the file is of another type; false otherwise.
-     */
-    constexpr bool is_other() const noexcept { return !(is_regular_file() || is_directory() || is_symlink()); }
-
+    bool operator==(const file_id& o) const noexcept
+    {
+        return device == o.device && index == o.index;
+    }
 };
 
-/**
- * @brief Retrieves information about a file or directory.
- *
- * @param p The path to query.
- * @return A file_info structure containing file metadata. If the file does not exist, type is NOT_FOUND or NONE.
- */
-VX_API file_info get_file_info(const path& p);
-
-/**
- * @brief Retrieves information about a file or directory without following symbolic links.
- *
- * @param p The path to query.
- * @return A file_info structure. If the path is a symbolic link, the metadata reflects the link itself.
- */
-VX_API file_info get_symlink_info(const path& p);
-
-/**
- * @brief Returns the number of hard links to the file.
- *
- * @param p The path to the file.
- * @return Number of hard links. Returns 0 if the path is invalid or the file does not exist.
- */
-VX_API size_t hard_link_count(const path& p);
-
-/**
- * @brief Gets the last modification time of a file or symbolic link.
- *
- * @param p The path to the file.
- * @return The last modification time. Returns an empty time_point if the file does not exist.
- *
- * @note If the file does not exist, an error is set and the return is default-initialized.
- */
-inline time::time_point get_modify_time(const path& p)
+struct file_stat
 {
-    const file_info info = get_symlink_info(p);
-    
-    if (!info.exists())
-    {
-        err::set(err::invalid_argument);
-        return time::time_point{};
-    }
+    file_type type;
+    file_permissions permissions;
+    uint64_t size;
+    uint64_t hard_links;
+    file_time modified;
+    file_time accessed;
+    file_time changed; // ctime on POSIX, creation/change time on Windows
+    file_id id;        // used to implement equivalent()
+};
 
-    return info.modify_time;
-}
-
-/**
- * @brief Sets the last modification time of a file.
- *
- * @param p The path to the file.
- * @param t The new modification time.
- * @return True on success; false on failure.
- */
-VX_API bool set_modify_time(const path& p, time::time_point t);
-
-///////////////////////////////////////////////////////////////////////////////
-// Read Symlink
-///////////////////////////////////////////////////////////////////////////////
-
-/**
- * @brief Reads the target of a symbolic link.
- *
- * @param p The path to the symbolic link.
- * @return The target path if successful; an empty path if the input is not a valid symlink or the operation fails.
- *
- * @note This function does not resolve chains of symlinks or verify if the target exists.
- */
-VX_API path read_symlink(const path& p);
-
-///////////////////////////////////////////////////////////////////////////////
-// boolean checks
-///////////////////////////////////////////////////////////////////////////////
-
-
-/**
- * @brief Checks if the file or directory at the given path exists.
- *
- * @param p The path to check.
- * @return True if the file or directory exists; false otherwise.
- */
-inline bool exists(const path& p)
+struct space_info
 {
-    return get_file_info(p).exists();
-}
+    uint64_t capacity;
+    uint64_t free;
+    uint64_t available; // free space available to the calling user
+};
 
-/**
- * @brief Checks if the path refers to a regular file.
- *
- * @param p The path to check.
- * @return True if the path refers to a regular file; false otherwise.
- */
-inline bool is_regular_file(const path& p)
+struct directory_entry
 {
-    return get_file_info(p).is_regular_file();
-}
+    const native_cstring name; // entry name only, not the full path ("." and ".." are skipped)
+    file_type type;            // from d_type / WIN32_FIND_DATA, or unknown if the OS did not report it
+};
 
-/**
- * @brief Checks if the path refers to a directory.
- *
- * @param p The path to check.
- * @return True if the path refers to a directory; false otherwise.
- */
-inline bool is_directory(const path& p)
+enum class copy_options
 {
-    return get_file_info(p).is_directory();
-}
+    none,
+    overwrite_existing,
+    fail_if_exists
+};
 
-/**
- * @brief Checks if the path refers to a symbolic link.
- *
- * @param p The path to check.
- * @return True if the path is a symbolic link; false otherwise.
- */
-inline bool is_symlink(const path& p)
+//=========================================================================
+// metadata
+//=========================================================================
+
+VX_API expected<file_stat, error> stat(const native_cstring p);  // follows symlinks
+VX_API expected<file_stat, error> lstat(const native_cstring p); // does not follow symlinks
+VX_API expected<file_stat, error> fstat(native_handle h);
+
+VX_API success set_permissions(const native_cstring p, file_permissions mode, bool follow_symlinks = true);
+VX_API success set_permissions(native_handle h, file_permissions mode);
+
+VX_API success set_modified_time(const native_cstring p, file_time t);
+VX_API success set_modified_time(native_handle h, file_time t);
+
+// io.hpp has flush; truncate is data-stream related but lives here until you add it to io
+VX_API expected<size_t, error> file_size(const native_cstring p);
+VX_API success resize_file(const native_cstring p, uint64_t size);
+
+//=========================================================================
+// files and directories
+//=========================================================================
+
+VX_API bool exists(const native_cstring p);
+
+VX_API success create_directory(const native_cstring p, file_permissions mode = file_permissions::all); // single level
+VX_API success remove_file(const native_cstring p);                                                     // unlink, not for directories
+VX_API success remove_directory(const native_cstring p);                                                // rmdir, must be empty
+VX_API success rename(const native_cstring from, const native_cstring to);                              // replaces target where the OS allows
+
+//=========================================================================
+// directory iteration
+//=========================================================================
+
+struct directory; // opaque, defined per platform in the .cpp
+using directory_handle = directory*;
+
+struct directory_entry
 {
-    return get_symlink_info(p).is_symlink();
-}
+    native_cstring name; // valid until the next read_directory / close_directory (drop the const)
+    file_type type;
+};
 
-/**
- * @brief Checks if the path refers to something other than a regular file, directory, or symlink.
- *
- * @param p The path to check.
- * @return True if the path refers to another type of file system object; false otherwise.
- */
-inline bool is_other(const path& p)
-{
-    return get_file_info(p).is_other();
-}
+VX_API expected<directory_handle, error> open_directory(const native_cstring p);
+VX_API expected<bool, error> read_directory(directory_handle d, directory_entry& entry); // false at end
+VX_API success close_directory(directory_handle d);
 
-///////////////////////////////////////////////////////////////////////////////
-// Path Operators
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// links
+//=========================================================================
 
-/**
- * @brief Retrieves the current working directory.
- *
- * @return The current path on success; an empty path if the operation fails.
- */
-VX_API path get_current_path();
+VX_API success create_symlink(const native_cstring target, const native_cstring link, bool target_is_directory);
+VX_API success create_hard_link(const native_cstring target, const native_cstring link);
+VX_API expected<size_t, error> read_symlink(const native_cstring p, native_char* buf, size_t size);
 
-/**
- * @brief Sets the current working directory.
- *
- * @param p The path to set as the current working directory.
- * @return True on success; false on failure.
- */
-VX_API bool set_current_path(const path& p);
+//=========================================================================
+// path resolution
+//=========================================================================
 
-// https://en.cppreference.com/w/cpp/filesystem/absolute
-
-/**
- * @brief Returns the absolute form of a path.
- *
- * @param p The input path.
- * @return An absolute path if successful; an empty path on failure.
- *
- * @note The returned path is platform-specific and normalized.
- */
-VX_API path absolute(const path& p);
-
-/**
- * @brief Computes the relative path from a base path.
- *
- * @param p The target path.
- * @param base The base path to compute from. Defaults to the current path.
- * @return The relative path from base to p; empty on failure.
- *
- * @note If the paths do not share a common root, this operation may fail.
- */
-VX_API path relative(const path& p, const path& base = get_current_path());
-
-/**
- * @brief Resolves a path to its canonical (absolute, normalized) form.
- *
- * @param p The path to resolve.
- * @return A canonical path if successful; an empty path on failure.
- *
- * @note This function resolves symbolic links and removes redundant elements.
- */
-VX_API path canonical(const path& p);
-
-/**
- * @brief Determines whether two paths refer to the same file or directory.
- *
- * @param p1 First path.
- * @param p2 Second path.
- * @return True if both paths resolve to the same file or directory; false otherwise.
- *
- * @note This check accounts for symbolic links and filesystem-level identity.
- */
-VX_API bool equivalent(const path& p1, const path& p2);
-
-///////////////////////////////////////////////////////////////////////////////
-// System Paths
-///////////////////////////////////////////////////////////////////////////////
-
-/**
- * @brief Retrieves the path to the system temporary directory.
- *
- * @return A valid temporary directory path on success; an empty path on failure.
- *
- * @note This path is determined using platform-specific environment variables or APIs.
- */
-VX_API path get_temp_path();
+VX_API expected<size_t, error> canonical(const native_cstring p, native_char* buf, size_t size);
+VX_API expected<size_t, error> current_directory(native_char* buf, size_t size);
+VX_API expected<size_t, error> temp_directory(native_char* buf, size_t size);
 
 enum class user_folder
 {
@@ -352,533 +193,17 @@ enum class user_folder
     videos
 };
 
-/**
- * @brief Retrieves the path to a specified user folder.
- *
- * @param folder The user folder to retrieve.
- * @return The corresponding path if available; an empty path on failure.
- *
- * @note This function is platform-specific and may not support all folder types on all systems.
- */
-VX_API path get_user_folder(user_folder folder);
+VX_API expected<size_t, error> user_directory(user_folder folder, native_char* buf, size_t cap);
 
-///////////////////////////////////////////////////////////////////////////////
-// Create
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// space and copy
+//=========================================================================
 
-/**
- * @brief Creates an empty file at the specified path.
- *
- * If the file already exists, it will be truncated.
- *
- * @param p The path where the file will be created.
- * @return True if the file is successfully created or already exists; false on failure.
- */
-VX_API bool create_file(const path& p);
+VX_API expected<space_info, error> space(const native_cstring p);
 
-/**
- * @brief Creates a directory at the specified path.
- *
- * If the directory already exists, the function will succeed.
- *
- * @param p The path of the directory to create.
- * @return True if the directory is successfully created or already exists; false on failure.
- */
-VX_API bool create_directory(const path& p);
+// fast path: reflink / copy_file_range / sendfile / CopyFileEx
+// returns not_supported if no fast path exists so the front end can fall back to read/write
+VX_API success copy_file_native(const native_cstring from, const native_cstring to, copy_options options);
 
-/**
- * @brief Recursively creates a directory and any necessary parent directories.
- *
- * If any directories already exist, they will be ignored.
- *
- * @param p The path to create.
- * @return True if the directory and all parent directories are successfully created or already exist; false on failure.
- */
-VX_API bool create_directories(const path& p);
-
-/**
- * @brief Creates a symbolic link at the given link path pointing to the target.
- *
- * If the symlink already exists, it will be overwritten.
- * The target does not need to exist for the symlink to be created.
- *
- * @param target The path the symlink should point to.
- * @param link The path where the symlink will be created.
- * @return True on success; false on failure.
- */
-VX_API bool create_symlink(const path& target, const path& link);
-
-/**
- * @brief Creates a symbolic link specifically for a directory.
- *
- * If the symlink already exists, it will be overwritten.
- * The target does not need to exist for the symlink to be created.
- *
- * @param target The target directory the symlink should point to.
- * @param link The path where the symlink will be created.
- * @return True on success; false on failure.
- */
-VX_API bool create_directory_symlink(const path& target, const path& link);
-
-/**
- * @brief Creates a hard link to an existing file.
- *
- * Hard links are supported only for regular files and must be created on the same filesystem.
- *
- * @param target The existing file to link to.
- * @param link The path where the new hard link will be created.
- * @return True if the hard link is successfully created; false on failure.
- */
-VX_API bool create_hard_link(const path& target, const path& link);
-
-///////////////////////////////////////////////////////////////////////////////
-// Copy
-///////////////////////////////////////////////////////////////////////////////
-
-VX_FLAGS_UT_DECLARE_BEGIN(copy_options, uint32_t)
-{
-    none                = 0,            // No options set
-    overwrite_existing  = VX_BIT(1),    // Overwrite the destination file if it already exists
-    skip_symlinks       = VX_BIT(2),    // Skip copying symlinks
-    directories_only    = VX_BIT(3),    // Copy only directories, skipping files
-    recursive           = VX_BIT(4)     // Copy directories and their contents recursively
-}
-VX_FLAGS_DECLARE_END(copy_options)
-
-/**
- * @brief Copies a regular file to a new location.
- *
- * If the destination file exists, it will be overwritten if the `overwrite_existing` option is set.
- *
- * @param from The source file path to copy from.
- * @param to The destination file path to copy to.
- * @param overwrite_existing Flag indicating whether to overwrite an existing file at the destination.
- * @return True on success; false on failure.
- *
- * @note If the source file does not exist, or if the source is not a regular file, the operation will fail.
- * @note If the destination file exists and `overwrite_existing` is false, no operation will occur.
- */
-VX_API bool copy_file(const path& from, const path& to, bool overwrite_existing = true);
-
-/**
- * @brief Copies a symbolic link to a new location.
- *
- * Only the symlink itself is copied, not the target it points to.
- *
- * @param from The source symlink path to copy from.
- * @param to The destination path to copy the symlink to.
- * @return True on success; false on failure.
- *
- * @note The target of the symlink does not need to exist for the symlink copy to succeed.
- */
-VX_API bool copy_symlink(const path& from, const path& to);
-
-/**
- * @brief Copies a file or directory to a new location.
- *
- * The copy operation may overwrite the destination if it already exists, depending on the options specified.
- * For directories, all contents will be copied recursively unless the `copy_options::RECURSIVE` flag is not set.
- * The target symlink is copied as well if the source is a symlink.
- *
- * @param from The source path to copy from.
- * @param to The destination path to copy to.
- * @param options Options to control the copy behavior (e.g., overwrite, recursive).
- * @return True on success; false on failure.
- *
- * @note If the source and destination paths are equivalent, the operation will fail.
- * @note If the source is unsupported (not a regular file, symlink, or directory), the operation will fail.
- */
-VX_API bool copy(const path& from, const path& to, copy_options options = copy_options::none);
-
-///////////////////////////////////////////////////////////////////////////////
-// Rename
-///////////////////////////////////////////////////////////////////////////////
-
-/**
- * @brief Renames or moves a file or directory.
- *
- * If the destination path already exists, it will be replaced by the source. The operation behaves like a move,
- * so the source will no longer exist after the operation.
- *
- * @param from The path of the file or directory to rename or move.
- * @param to The new path for the file or directory.
- * @return True on success; false on failure.
- */
-VX_API bool rename(const path& from, const path& to);
-
-///////////////////////////////////////////////////////////////////////////////
-// Remove
-///////////////////////////////////////////////////////////////////////////////
-
-namespace _priv {
-
-enum class remove_error
-{
-    none,
-    path_not_found,
-    directory_not_empty,
-    other
-};
-
-} // namespace _priv
-
-/**
- * @brief Removes a file or an empty directory.
- *
- * If the path refers to a directory, the directory must be empty for the removal to succeed.
- * If the path refers to a file, the file will be deleted.
- *
- * @param p The path to the file or directory to remove.
- * @return True on success; false on failure.
- *
- * @note If the directory is not empty, the operation will fail.
- */
-VX_API bool remove(const path& p);
-
-/**
- * @brief Recursively removes a directory and all its contents.
- *
- * This function removes the directory and all files and subdirectories contained within it.
- * If any files or directories cannot be removed, they will be skipped, and the function will continue removing the rest.
- *
- * @param p The path to the directory to remove.
- * @return The number of files and directories removed.
- */
-VX_API size_t remove_all(const path& p);
-
-///////////////////////////////////////////////////////////////////////////////
-// Directory Entry
-///////////////////////////////////////////////////////////////////////////////
-
-struct directory_entry
-{
-    /**
-     * @brief Refreshes the file information for the entry.
-     *
-     * This function re-fetches the file information, including type and existence, from the system.
-     * It should be called if the underlying file or directory may have changed.
-     */
-    void refresh()
-    {
-        if (!path.empty())
-        {
-            info = get_symlink_info(path);
-        }
-    }
-
-    /**
-     * @brief Checks if the entry exists.
-     *
-     * @return True if the entry exists, false otherwise.
-     */
-    constexpr bool exists() const noexcept { return info.exists(); }
-
-    /**
-     * @brief Checks if the entry is a regular file.
-     *
-     * @return True if the entry is a regular file, false otherwise.
-     */
-    constexpr bool is_regular_file() const noexcept { return info.is_regular_file(); }
-
-    /**
-     * @brief Checks if the entry is a directory.
-     *
-     * @return True if the entry is a directory, false otherwise.
-     */
-    constexpr bool is_directory() const noexcept { return info.is_directory(); }
-
-    /**
-     * @brief Checks if the entry is a symbolic link.
-     *
-     * @return True if the entry is a symlink, false otherwise.
-     */
-    constexpr bool is_symlink() const noexcept { return info.is_symlink(); }
-
-    /**
-     * @brief Checks if the entry is of an unknown type.
-     *
-     * @return True if the entry is neither a regular file, directory, nor symlink.
-     */
-    constexpr bool is_other() const noexcept { return info.is_other(); }
-
-    os::path path;  // The path to the file or directory entry
-    file_info info{}; // The file information associated with the path
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Directory Iterator
-///////////////////////////////////////////////////////////////////////////////
-
-/**
- * @brief Iterator for iterating over the entries of a directory.
- *
- * This class provides functionality to iterate through the contents of a directory. It is similar to an input iterator
- * and can be used to access each entry in a directory one by one.
- */
-class directory_iterator
-{
-public:
-
-    using value_type = directory_entry;
-    using difference_type = ptrdiff_t;
-    using pointer = const directory_entry*;
-    using reference = const directory_entry&;
-    using iterator_category = std::input_iterator_tag;
-
-public:
-
-    /**
-     * @brief Constructs a directory iterator for the specified directory path.
-     *
-     * This constructor initializes the iterator to start iterating over the given directory.
-     *
-     * @param p The path to the directory to iterate over.
-     */
-    VX_API directory_iterator(const path& p);
-
-    directory_iterator() noexcept = default;
-    ~directory_iterator() noexcept = default;
-
-    directory_iterator(const directory_iterator&) noexcept = default;
-    directory_iterator(directory_iterator&&) noexcept = default;
-
-    directory_iterator& operator=(const directory_iterator&) noexcept = default;
-    directory_iterator& operator=(directory_iterator&&) noexcept = default;
-
-public:
-
-    VX_API reference operator*() const;
-    VX_API pointer operator->() const;
-
-    VX_API directory_iterator& operator++();
-
-    bool operator==(const directory_iterator& rhs) const noexcept
-    {
-        return m_impl == rhs.m_impl;
-    }
-
-    bool operator!=(const directory_iterator& rhs) const noexcept
-    {
-        return m_impl != rhs.m_impl;
-    }
-
-    /**
-     * @brief Checks if the iterator is valid (i.e., it points to a valid directory entry).
-     *
-     * @return True if the iterator is valid, false otherwise.
-     */
-    VX_API bool is_valid() const noexcept;
-
-private:
-
-    void validate() noexcept;
-
-private:
-
-    class directory_iterator_impl;
-    std::shared_ptr<directory_iterator_impl> m_impl;
-};
-
-
-/**
- * @brief Returns the beginning iterator for a directory iteration.
- *
- * @param it The directory iterator to return.
- * @return The same directory iterator passed as an argument.
- */
-inline directory_iterator begin(directory_iterator it) noexcept
-{
-    return it;
-}
-
-/**
- * @brief Returns the end iterator for a directory iteration.
- *
- * @param it The directory iterator to return the end iterator for.
- * @return A default-constructed directory iterator indicating the end.
- */
-inline directory_iterator end(directory_iterator) noexcept
-{
-    return {};
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Recursive Directory Iterator
-///////////////////////////////////////////////////////////////////////////////
-
-/**
- * @brief Iterator for recursively iterating over the entries of a directory and its subdirectories.
- *
- * This class allows iterating over all files and subdirectories within a given directory, including the files in
- * nested directories. It is similar to an input iterator and can be used to traverse directories recursively.
- */
-class recursive_directory_iterator
-{
-public:
-
-    using value_type = directory_entry;
-    using difference_type = ptrdiff_t;
-    using pointer = const directory_entry*;
-    using reference = const directory_entry&;
-    using iterator_category = std::input_iterator_tag;
-
-public:
-
-    /**
-     * @brief Constructs a recursive directory iterator for the specified directory path.
-     *
-     * This constructor initializes the iterator to start iterating over the given directory and its subdirectories.
-     *
-     * @param p The path to the directory to iterate over.
-     */
-    VX_API recursive_directory_iterator(const path& p);
-
-    recursive_directory_iterator() noexcept = default;
-    ~recursive_directory_iterator() noexcept = default;
-
-    recursive_directory_iterator(const recursive_directory_iterator&) noexcept = default;
-    recursive_directory_iterator(recursive_directory_iterator&&) noexcept = default;
-
-    recursive_directory_iterator& operator=(const recursive_directory_iterator&) noexcept = default;
-    recursive_directory_iterator& operator=(recursive_directory_iterator&&) noexcept = default;
-
-public:
-
-    VX_API reference operator*() const;
-    VX_API pointer operator->() const;
-
-    VX_API recursive_directory_iterator& operator++();
-
-    bool operator==(const recursive_directory_iterator& rhs) const noexcept
-    {
-        return m_impl == rhs.m_impl;
-    }
-
-    bool operator!=(const recursive_directory_iterator& rhs) const noexcept
-    {
-        return m_impl != rhs.m_impl;
-    }
-
-public:
-
-    /**
-     * @brief Returns the depth of the current directory entry in the recursive directory structure.
-     *
-     * @return The current depth of the directory.
-     */
-    VX_API size_t depth() const noexcept;
-
-    /**
-     * @brief Checks if there are pending directories for recursion.
-     *
-     * @return True if there are directories pending for recursion, false otherwise.
-     */
-    VX_API bool recursion_pending() const noexcept;
-
-    /**
-     * @brief Disables pending recursion.
-     *
-     * This function stops recursion for directories that are yet to be processed.
-     */
-    VX_API void disable_pending_recursion() noexcept;
-
-    /**
-     * @brief Pops the current directory from the recursion stack.
-     *
-     * This removes the current directory from the recursion stack, effectively "going up" one level in the directory tree.
-     */
-    VX_API void pop();
-
-    /**
-     * @brief Checks if the iterator is valid (i.e., it points to a valid directory entry).
-     *
-     * @return True if the iterator is valid, false otherwise.
-     */
-    VX_API bool is_valid() const noexcept;
-
-private:
-
-    void validate() noexcept;
-
-private:
-
-    class recursive_directory_iterator_impl;
-    std::shared_ptr<recursive_directory_iterator_impl> m_impl;
-};
-
-/**
- * @brief Returns the beginning iterator for a recursive directory iteration.
- *
- * @param it The recursive directory iterator to return.
- * @return The same recursive directory iterator passed as an argument.
- */
-inline recursive_directory_iterator begin(recursive_directory_iterator it) noexcept
-{
-    return it;
-}
-
-/**
- * @brief Returns the end iterator for a recursive directory iteration.
- *
- * @param it The recursive directory iterator to return the end iterator for.
- * @return A default-constructed recursive directory iterator indicating the end.
- */
-inline recursive_directory_iterator end(recursive_directory_iterator) noexcept
-{
-    return {};
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Space
-///////////////////////////////////////////////////////////////////////////////
-
-struct space_info
-{
-    size_t capacity;   // Total space available on the disk or volume (in bytes)
-    size_t free;       // Free space available on the disk or volume (in bytes)
-    size_t available;  // Available space for non-root users (in bytes)
-};
-
-/**
- * @brief Retrieves the disk space information for the directory or volume that contains the specified path.
- *
- * This function provides details about the total space, free space, and available space (for non-root users) on the
- * volume containing the specified path. The information is returned in a `space_info` struct.
- *
- * @param p The path whose containing volume's space information is to be retrieved.
- * @return A `space_info` struct containing the total, free, and available space (in bytes).
- */
-VX_API space_info space(const path& p);
-
-///////////////////////////////////////////////////////////////////////////////
-// is_empty
-///////////////////////////////////////////////////////////////////////////////
-
-/**
- * @brief Checks if the specified file or directory is empty.
- *
- * This function determines if the given path refers to an empty directory or an empty file.
- * For a file, the check is based on its size being zero. For a directory, the check is done
- * by confirming whether the directory contains any entries.
- *
- * @param p The path to the file or directory to check.
- * @return `true` if the file or directory is empty, `false` otherwise.
- *
- * @note If the specified path does not exist, an error is set and the function returns `false`.
- */
-inline bool is_empty(const os::path& p)
-{
-    const file_info info = get_file_info(p);
-
-    if (!info.exists())
-    {
-        err::set(err::invalid_argument);
-        return false;
-    }
-
-    return info.is_directory() ? !directory_iterator(p).is_valid() : (info.size == 0);
-}
-
-} // namespace filesystem
 } // namespace os
 } // namespace vx

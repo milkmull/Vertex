@@ -5,9 +5,13 @@
 
 # Source files for vertex/include/vertex/os
 file(GLOB VX_OS_HEADER_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/error_type.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/error.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/native_error.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/error_code.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/error_format.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/io.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/stream.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/filesystem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/locale.hpp"

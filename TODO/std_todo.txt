@@ -1,0 +1,70 @@
+std testing and finishing:
+
+base utils:
+- type traits
+- memory
+x utf
+x iterator
+- char traits
+- char utils
+- error
+
+tools:
+- aligned storage
+- variant storage
+- expected
+- bit
+- endian
+- algorithm
+- defer
+- char traits
+- char utils
+
+memory:
+- unique ptr
+- shared ptr
+- weak ptr
+
+string:
+- string
+- string view
+- cstring view
+- string utils
+- native string
+- string cast
+
+std:
+- array
+- vector
+- list
+- forward list
+- bitset
+- span
+
+hash:
+- hash
+- hash set
+- hash map
+
+io:
+- convert
+- format
+- scan
+- io
+
+os:
+- time
+- path
+- file
+- filesystem
+- shared library
+- atomic
+- thread
+- mutex
+- process
+- system info
+
+extra
+- random
+- crypto
+- base64

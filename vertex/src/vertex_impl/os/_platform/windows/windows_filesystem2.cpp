@@ -1,0 +1,1308 @@
+#include <shlobj_core.h>
+#include <winioctl.h> // FSCTL_GET_REPARSE_POINT
+
+#include "vertex_impl/os/_platform/windows/windows_filesystem.hpp"
+#include "vertex/system/error.hpp"
+#include "vertex/os/shared_library.hpp"
+#include "vertex/util/memory/memory.hpp"
+
+// https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/ns-ntifs-_reparse_data_buffer
+
+typedef struct REPARSE_DATA_BUFFER {
+    ULONG  ReparseTag;
+    USHORT ReparseDataLength;
+    USHORT Reserved;
+    union {
+        struct {
+            USHORT SubstituteNameOffset;
+            USHORT SubstituteNameLength;
+            USHORT PrintNameOffset;
+            USHORT PrintNameLength;
+            ULONG  Flags;
+            WCHAR  PathBuffer[1];
+        } SymbolicLinkReparseBuffer;
+        struct {
+            USHORT SubstituteNameOffset;
+            USHORT SubstituteNameLength;
+            USHORT PrintNameOffset;
+            USHORT PrintNameLength;
+            WCHAR  PathBuffer[1];
+        } MountPointReparseBuffer;
+        struct {
+            UCHAR DataBuffer[1];
+        } GenericReparseBuffer;
+    } DUMMYUNIONNAME;
+} REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
+
+namespace vx {
+namespace os {
+namespace filesystem {
+
+///////////////////////////////////////////////////////////////////////////////
+// File Permissions
+///////////////////////////////////////////////////////////////////////////////
+
+static bool update_file_permissions_internal(
+    const path& p,
+    bool read_only,
+    bool follow_symlinks
+)
+{
+    const DWORD attrs = ::GetFileAttributesW(p.c_str());
+    if (attrs == INVALID_FILE_ATTRIBUTES)
+    {
+        err::set_last_os_error("GetFileAttributesW");
+        return false;
+    }
+
+    const DWORD read_only_test = read_only ? FILE_ATTRIBUTE_READONLY : 0;
+
+    if ((attrs & FILE_ATTRIBUTE_REPARSE_POINT) && follow_symlinks)
+    {
+        // Resolve the symbolic link
+        handle h = ::CreateFileW(
+            p.c_str(),
+            FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES,
+            NULL,
+            NULL,
+            OPEN_EXISTING,
+            FILE_FLAG_BACKUP_SEMANTICS,
+            NULL
+        );
+
+        if (!h.is_valid())
+        {
+            err::set_last_os_error("CreateFileW");
+            return false;
+        }
+        
+        FILE_BASIC_INFO basic_info{};
+        if (!::GetFileInformationByHandleEx(h.get(), FileBasicInfo, &basic_info, sizeof(basic_info)))
+        {
+            err::set_last_os_error("GetFileInformationByHandleEx");
+            return false;
+        }
+
+        if ((basic_info.FileAttributes & FILE_ATTRIBUTE_READONLY) == read_only_test)
+        {
+            // Nothing to do
+            return true;
+        }
+
+        basic_info.FileAttributes ^= FILE_ATTRIBUTE_READONLY;
+        if (!::SetFileInformationByHandle(h.get(), FileBasicInfo, &basic_info, sizeof(basic_info)))
+        {
+            err::set_last_os_error("SetFileInformationByHandle");
+            return false;
+        }
+    }
+    else
+    {
+        if ((attrs & FILE_ATTRIBUTE_READONLY) == read_only_test)
+        {
+            // Nothing to do
+            return true;
+        }
+
+        if (!::SetFileAttributesW(p.c_str(), attrs ^ FILE_ATTRIBUTE_READONLY))
+        {
+            err::set_last_os_error("SetFileAttributesW");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool update_permissions_impl(
+    const path& p,
+    file_permissions permissions,
+    file_permission_operator op,
+    bool follow_symlinks
+)
+{
+    const auto write_perms = (permissions & file_permissions::all_write);
+    bool read_only = false;
+
+    switch (op)
+    {
+        case file_permission_operator::replace:
+        {
+            // always apply FILE_ATTRIBUTE_READONLY according to permissions
+            read_only = (write_perms == file_permissions::none);
+            break;
+        }
+        case file_permission_operator::add:
+        {
+            if (write_perms == file_permissions::none)
+            {
+                // if we aren't adding any write bits, then we won't change
+                // FILE_ATTRIBUTE_READONLY, so there's nothing to do
+                return true;
+            }
+
+            read_only = false;
+            break;
+        }
+        case file_permission_operator::remove:
+        {
+            if (write_perms != file_permissions::all_write)
+            {
+                // if we aren't removing all write bits, then we won't change
+                // FILE_ATTRIBUTE_READONLY, so there's nothing to do
+                return true;
+            }
+
+            read_only = true;
+            break;
+        }
+    }
+
+    return update_file_permissions_internal(p, read_only, follow_symlinks);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// File Info
+///////////////////////////////////////////////////////////////////////////////
+
+union reparse_point_data
+{
+    REPARSE_DATA_BUFFER rdb;
+    BYTE buffer_type[MAXIMUM_REPARSE_DATA_BUFFER_SIZE];
+};
+
+static bool get_reparse_point_data_from_handle(
+    const handle& h,
+    std::unique_ptr<reparse_point_data>& data
+)
+{
+    data = std::make_unique<reparse_point_data>();
+    DWORD count = 0;
+
+    if (!::DeviceIoControl(
+        h.get(),
+        FSCTL_GET_REPARSE_POINT,
+        NULL,
+        0,
+        data->buffer_type,
+        static_cast<DWORD>(sizeof(data->buffer_type)),
+        &count,
+        NULL))
+    {
+        err::set_last_os_error("DeviceIoControl");
+        return false;
+    }
+
+    return true;
+}
+
+static bool get_reparse_point_data(const path& p, std::unique_ptr<reparse_point_data>& data, bool throw_on_fail)
+{
+    // Open the file to check if it's a symbolic link
+    handle h = ::CreateFileW(
+        p.c_str(),
+        0,
+        0,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_BACKUP_SEMANTICS,
+        NULL
+    );
+
+    if (!h.is_valid())
+    {
+        if (throw_on_fail)
+        {
+            err::set_last_os_error("CreateFileW");
+        }
+
+        return false;
+    }
+
+    return get_reparse_point_data_from_handle(h, data);
+}
+
+// https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/stl/inc/filesystem#L3117
+// transforms /s in the root-name to \s, and all other directory-separators into single \s
+// example: a/\/b -> a\b
+// example: //server/a////////b////////c////////d -> \\server\a\b\c\d
+static os::path normalize_symlink_target(const os::path& target)
+{
+    const os::path::string_type& text = target.native();
+    const size_t size = text.size();
+    const size_t root_directory_start = os::_priv::path_parser::find_root_directory_start(text.c_str(), size);
+
+    typename os::path::string_type normalized;
+    normalized.reserve(size);
+    bool last_was_slash = false;
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        if (os::_priv::path_parser::is_directory_separator(text[i]))
+        {
+            if (i < root_directory_start || !last_was_slash)
+            {
+                normalized.push_back(os::path::preferred_separator);
+            }
+
+            last_was_slash = true;
+        }
+        else
+        {
+            normalized.push_back(text[i]);
+            last_was_slash = false;
+        }
+    }
+
+    return normalized;
+}
+
+// https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L1684
+
+#define is_symlink_reparse_tag(tag) ((tag) == IO_REPARSE_TAG_SYMLINK)
+
+static file_type get_file_type(const path& p, const DWORD attrs)
+{
+    if (attrs == INVALID_FILE_ATTRIBUTES)
+    {
+        const DWORD error = ::GetLastError();
+        return (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND) ? file_type::not_found : file_type::unknown;
+    }
+
+    if (attrs & FILE_ATTRIBUTE_REPARSE_POINT)
+    {
+        std::unique_ptr<reparse_point_data> reparse_data;
+
+        if (get_reparse_point_data(p, reparse_data, false) &&
+            is_symlink_reparse_tag(reparse_data->rdb.ReparseTag))
+        {
+            return file_type::symlink;
+        }
+    }
+
+    if (attrs & FILE_ATTRIBUTE_DIRECTORY)
+    {
+        return file_type::directory;
+    }
+
+    return file_type::regular;
+}
+
+static file_type file_type_from_error(const DWORD error)
+{
+    if (error == ENOENT || error == ENOTDIR)
+    {
+        return file_type::not_found;
+    }
+    else if (error == ERROR_SHARING_VIOLATION)
+    {
+        return file_type::unknown;
+    }
+
+    return file_type::none;
+}
+
+// https://github.com/boostorg/filesystem/blob/0848f5347b69bd9f8f0459dc0cb88e7a52714448/src/windows_tools.hpp#L89
+
+static file_permissions get_file_permissions(const path& p, const DWORD attrs)
+{
+    if (attrs == INVALID_FILE_ATTRIBUTES)
+    {
+        return file_permissions::none;
+    }
+
+    file_permissions permissions = file_permissions::owner_read | file_permissions::group_read | file_permissions::others_read;
+
+    if (!(attrs & FILE_ATTRIBUTE_READONLY))
+    {
+        permissions |= permissions | file_permissions::group_write | file_permissions::others_write;
+    }
+
+    const auto& ext = p.extension().native();
+    if ((ext == L".exe" || ext == L".EXE") ||
+        (ext == L".com" || ext == L".COM") ||
+        (ext == L".bat" || ext == L".BAT") ||
+        (ext == L".cmd" || ext == L".CMD"))
+    {
+        permissions |= file_permissions::owner_exec | file_permissions::group_exec | file_permissions::others_exec;
+    }
+
+    return permissions;
+}
+
+static file_info create_file_info(
+    const path& p,
+    const DWORD dwFileAttributes,
+    const DWORD nFileSizeHigh,
+    const DWORD nFileSizeLow,
+    const FILETIME ftCreationTime,
+    const FILETIME ftLastWriteTime
+)
+{
+    return file_info{
+        get_file_type(p, dwFileAttributes),
+        get_file_permissions(p, dwFileAttributes),
+        (static_cast<size_t>(nFileSizeHigh) << 32) | nFileSizeLow,
+        windows::time_point_from_file_time(ftCreationTime.dwLowDateTime, ftCreationTime.dwHighDateTime),
+        windows::time_point_from_file_time(ftLastWriteTime.dwLowDateTime, ftLastWriteTime.dwHighDateTime)
+    };
+}
+
+static file_info file_info_from_handle(const handle& h, const path& p)
+{
+    file_info info{};
+
+    if (!h.is_valid())
+    {
+        return info;
+    }
+
+    BY_HANDLE_FILE_INFORMATION fi;
+    if (!::GetFileInformationByHandle(h.get(), &fi))
+    {
+        err::set_last_os_error("GetFileInformationByHandle");
+        return info;
+    }
+
+    info = create_file_info(
+        p,
+        fi.dwFileAttributes,
+        fi.nFileSizeHigh,
+        fi.nFileSizeLow,
+        fi.ftCreationTime,
+        fi.ftLastWriteTime
+    );
+
+    return info;
+}
+
+file_info get_file_info_impl(const path& p)
+{
+    file_info info = get_symlink_info_impl(p);
+
+    if (info.type == file_type::symlink)
+    {
+        // Resolve the symbolic link
+        handle h = CreateFileW(
+            p.c_str(),
+            FILE_READ_ATTRIBUTES | FILE_READ_EA,
+            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+            NULL,
+            OPEN_EXISTING,
+            FILE_FLAG_BACKUP_SEMANTICS,
+            NULL
+        );
+
+        if (!h.is_valid())
+        {
+            err::set_last_os_error("CreateFileW");
+            info.type = file_type_from_error(GetLastError());
+        }
+        else
+        {
+            info = file_info_from_handle(h, p);
+        }
+    }
+
+    return info;
+}
+
+file_info get_symlink_info_impl(const path& p)
+{
+    handle h = ::CreateFileW(
+        p.c_str(),
+        FILE_READ_ATTRIBUTES | FILE_READ_EA,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
+        NULL
+    );
+
+    if (!h.is_valid())
+    {
+        //err::set_last_os_error("CreateFileW");
+        return {};
+    }
+
+    return file_info_from_handle(h, p);
+}
+
+size_t hard_link_count_impl(const path& p)
+{
+    handle h = ::CreateFileW(
+        p.c_str(),
+        FILE_READ_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL
+    );
+
+    if (!h.is_valid())
+    {
+        err::set_last_os_error("CreateFileW");
+        return 0;
+    }
+
+    BY_HANDLE_FILE_INFORMATION fi;
+    if (!::GetFileInformationByHandle(h.get(), &fi))
+    {
+        err::set_last_os_error("GetFileInformationByHandle");
+        return 0;
+    }
+    
+    return static_cast<size_t>(fi.nNumberOfLinks);
+}
+
+bool set_modify_time_impl(const path& p, time::time_point t)
+{
+    handle h = ::CreateFileW(
+        p.c_str(),
+        FILE_WRITE_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL
+    );
+
+    if (!h.is_valid())
+    {
+        err::set_last_os_error("CreateFileW");
+        return 0;
+    }
+
+    FILETIME ft{};
+    windows::time_point_to_file_time(t, ft.dwLowDateTime, ft.dwHighDateTime);
+
+    if (!::SetFileTime(h.get(), NULL, NULL, &ft))
+    {
+        err::set_last_os_error("SetFileTime");
+        return false;
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Read Symlink
+///////////////////////////////////////////////////////////////////////////////
+
+// https://github.com/microsoft/STL/blob/90820002693fe6eaaec2e55884472c654186207e/stl/src/filesystem.cpp#L542
+
+path read_symlink_impl(const path& p)
+{
+    path symlink_path;
+
+    std::unique_ptr<reparse_point_data> reparse_data;
+    if (!get_reparse_point_data(p, reparse_data, true))
+    {
+        return symlink_path;
+    }
+
+    const wchar_t* buffer_type = nullptr;
+    size_t size = 0;
+    size_t offset = 0;
+
+    switch (reparse_data->rdb.ReparseTag)
+    {
+        case IO_REPARSE_TAG_SYMLINK:
+        {
+            buffer_type = reinterpret_cast<const wchar_t*>(reparse_data->rdb.SymbolicLinkReparseBuffer.PathBuffer);
+
+            if (reparse_data->rdb.SymbolicLinkReparseBuffer.PrintNameLength != 0)
+            {
+                size = reparse_data->rdb.SymbolicLinkReparseBuffer.PrintNameLength / sizeof(wchar_t);
+                offset = reparse_data->rdb.SymbolicLinkReparseBuffer.PrintNameOffset / sizeof(wchar_t);
+            }
+            else
+            {
+                size = reparse_data->rdb.SymbolicLinkReparseBuffer.SubstituteNameLength / sizeof(wchar_t);
+                offset = reparse_data->rdb.SymbolicLinkReparseBuffer.SubstituteNameOffset / sizeof(wchar_t);
+            }
+
+            break;
+        }
+        default:
+        {
+            return symlink_path;
+        }
+    }
+
+    symlink_path.assign(buffer_type + offset, buffer_type + offset + size);
+    return symlink_path;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Path Operators
+///////////////////////////////////////////////////////////////////////////////
+
+path get_current_path_impl()
+{
+    WCHAR buffer_type[MAX_PATH]{};
+    if (!::GetCurrentDirectoryW(MAX_PATH, buffer_type))
+    {
+        err::set_last_os_error("GetCurrentDirectoryW");
+        return {};
+    }
+
+    return path{ buffer_type };
+}
+
+bool set_current_path_impl(const path& p)
+{
+    if (!::SetCurrentDirectoryW(p.c_str()))
+    {
+        err::set_last_os_error("SetCurrentDirectoryW");
+        return false;
+    }
+
+    return true;
+}
+
+// https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L2686
+
+path canonical_impl(const path& p)
+{
+    path res;
+
+    handle h = ::CreateFileW(
+        p.c_str(),
+        FILE_READ_ATTRIBUTES | FILE_READ_EA,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL
+    );
+
+    if (!h.is_valid())
+    {
+        err::set_last_os_error("CreateFileW");
+        return res;
+    }
+
+    DWORD flags = FILE_NAME_NORMALIZED;
+    DWORD size = ::GetFinalPathNameByHandleW(h.get(), NULL, 0, flags);
+
+    if (size == 0)
+    {
+        if (!(flags & VOLUME_NAME_NT) && ::GetLastError() == ERROR_PATH_NOT_FOUND)
+        {
+            // Drive letter does not exist, obtain an NT path
+            flags |= VOLUME_NAME_NT;
+            size = ::GetFinalPathNameByHandleW(h.get(), NULL, 0, flags);
+        }
+
+        if (size == 0)
+        {
+            err::set_last_os_error("GetFinalPathNameByHandleW");
+            return res;
+        }
+    }
+
+    std::vector<WCHAR> buffer_type(size);
+    if (::GetFinalPathNameByHandleW(h.get(), buffer_type.data(), size, flags) == 0)
+    {
+        err::set_last_os_error("GetFinalPathNameByHandleW");
+        return res;
+    }
+
+    size -= 1; // ignore null terminator
+    WCHAR* data = buffer_type.data();
+
+    if (!(flags & VOLUME_NAME_NT))
+    {
+        // If the input path did not contain a long path prefix, convert
+        // "\\?\X:" to "X:" and "\\?\UNC\" to "\\". Otherwise, preserve the prefix.
+        const auto* p_str = p.c_str();
+
+        if (p.size() < 4 ||
+            !os::_priv::path_parser::is_directory_separator(p_str[0]) ||
+            !os::_priv::path_parser::is_directory_separator(p_str[1]) ||
+            p_str[2] != L'?' ||
+            !os::_priv::path_parser::is_directory_separator(p_str[3]))
+        {
+            // "\\?\*"
+            if (size > 6 && 
+                os::_priv::path_parser::is_directory_separator(data[0]) &&
+                os::_priv::path_parser::is_directory_separator(data[1]) &&
+                data[2] == L'?' &&
+                os::_priv::path_parser::is_directory_separator(data[3]))
+            {
+                // "\\?\X:"
+                if (os::_priv::path_parser::is_letter(data[4]) && data[5] == L':')
+                {
+                    data += 4;
+                    size -= 4;
+                }
+
+                // "\\?\UNC\*"
+                else if (size >= 8 &&
+                    (data[4] == L'U' || data[4] == L'u') &&
+                    (data[5] == L'N' || data[5] == L'n') &&
+                    (data[6] == L'C' || data[6] == L'c') &&
+                    os::_priv::path_parser::is_directory_separator(data[7]))
+                {
+                    // trim off "\\?\UN" and replace C with \ to end up with "\\" prefix
+                    data += 6;
+                    size -= 6;
+                    data[0] = path::preferred_separator;
+                }
+            }
+
+            res.assign(data, data + size);
+        }
+    }
+    else
+    {
+        // result is in the NT namespace, so apply the DOS to NT namespace prefix
+        res.assign(L"\\\\?\\GLOBALROOT");
+        res.concat(data, data + size);
+    }
+
+    return res;
+}
+
+bool equivalent_impl(const path& p1, const path& p2)
+{
+    handle h1 = ::CreateFileW(
+        p1.c_str(),
+        FILE_READ_ATTRIBUTES, // Only need attributes
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS, // needed for directories
+        NULL
+    );
+
+    if (!h1.is_valid())
+    {
+        err::set_last_os_error("CreateFileW");
+        return false;
+    }
+
+    handle h2 = ::CreateFileW(
+        p2.c_str(),
+        FILE_READ_ATTRIBUTES, // Only need attributes
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS, // needed for directories
+        NULL
+    );
+
+    if (!h2.is_valid())
+    {
+        err::set_last_os_error("CreateFileW");
+        return false;
+    }
+
+    BY_HANDLE_FILE_INFORMATION info1{};
+    if (!::GetFileInformationByHandle(h1.get(), &info1))
+    {
+        err::set_last_os_error("GetFileInformationByHandle");
+        return false;
+    }
+
+    BY_HANDLE_FILE_INFORMATION info2{};
+    if (!::GetFileInformationByHandle(h2.get(), &info2))
+    {
+        err::set_last_os_error("GetFileInformationByHandle");
+        return false;
+    }
+
+    // Compare volume serial numbers and file IDs
+    return (info1.dwVolumeSerialNumber == info2.dwVolumeSerialNumber)
+        && (info1.nFileIndexHigh == info2.nFileIndexHigh)
+        && (info1.nFileIndexLow == info2.nFileIndexLow);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// System Paths
+///////////////////////////////////////////////////////////////////////////////
+
+static inline std::wstring wgetenv(const wchar_t* name)
+{
+    std::wstring env;
+    const DWORD size = ::GetEnvironmentVariableW(name, NULL, 0);
+
+    if (size > 0)
+    {
+        std::vector<WCHAR> buffer_type(size);
+        if (::GetEnvironmentVariableW(name, buffer_type.data(), size) > 0)
+        {
+            env.assign(buffer_type.data());
+        }
+    }
+
+    return env;
+}
+
+// https://github.com/boostorg/filesystem/blob/c7e14488032b98ba81ffaf1aa813ada422dd4da1/src/operations.cpp#L4772
+
+path get_temp_path_impl()
+{
+    const wchar_t* env_list[] = { L"TMP", L"TEMP", L"LOCALAPPDATA", L"USERPROFILE" };
+    const wchar_t* tmp_dir = L"Temp";
+
+    path tmp;
+    for (size_t i = 0; i < mem::array_size(env_list); ++i)
+    {
+        tmp = wgetenv(env_list[i]);
+        if (!tmp.empty())
+        {
+            if (i >= 2)
+            {
+                tmp /= tmp_dir;
+            }
+
+            if (is_directory(tmp))
+            {
+                break;
+            }
+        }
+    }
+
+    if (tmp.empty())
+    {
+        const UINT size = ::GetWindowsDirectoryW(NULL, 0);
+        if (size == 0)
+        {
+            error:
+            {
+                err::set_last_os_error("GetWindowsDirectoryW");
+                return {};
+            }
+        }
+
+        std::vector<WCHAR> buffer_type(size);
+        if (::GetWindowsDirectoryW(buffer_type.data(), size) == 0)
+        {
+            goto error;
+        }
+
+        tmp.assign(buffer_type.data());
+        tmp /= tmp_dir;
+    }
+
+    return tmp;
+}
+
+path get_user_folder_impl(user_folder folder)
+{
+    path p;
+
+    KNOWNFOLDERID id{};
+    switch (folder)
+    {
+        case user_folder::home:
+        {
+            id = FOLDERID_Profile;
+            break;
+        }
+        case user_folder::desktop:
+        {
+            id = FOLDERID_Desktop;
+            break;
+        }
+        case user_folder::documents:
+        {
+            id = FOLDERID_Documents;
+            break;
+        }
+        case user_folder::downloads:
+        {
+            id = FOLDERID_Downloads;
+            break;
+        }
+        case user_folder::music:
+        {
+            id = FOLDERID_Music;
+            break;
+        }
+        case user_folder::pictures:
+        {
+            id = FOLDERID_Pictures;
+            break;
+        }
+        case user_folder::videos:
+        {
+            id = FOLDERID_Videos;
+            break;
+        }
+    }
+
+    PWSTR szPath;
+    if (SUCCEEDED(::SHGetKnownFolderPath(id, 0, NULL, &szPath)))
+    {
+        p.assign(szPath);
+    }
+    else
+    {
+        err::set_last_os_error("SHGetKnownFolderPath");
+    }
+    ::CoTaskMemFree(szPath);
+
+    return p;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Create
+///////////////////////////////////////////////////////////////////////////////
+
+bool create_file_impl(const path& p)
+{
+    const handle h = ::CreateFileW(
+        p.c_str(),
+        GENERIC_WRITE,
+        0,
+        NULL,
+        OPEN_ALWAYS, // Open the file if it exists, or create it if it doesn't
+        FILE_ATTRIBUTE_NORMAL,
+        NULL
+    );
+
+    if (!h.is_valid())
+    {
+        err::set_last_os_error("CreateFileW");
+        return false;
+    }
+
+    return true;
+}
+
+bool create_directory_impl(const path& p)
+{
+    // Note: CreateDirectoryW will return error 123 ("The filename, directory name,  
+    // or volume label syntax is incorrect.") if any individual directory name  
+    // exceeds 255 characters. Using the long path prefix ("\\?\") allows the total  
+    // path length to exceed 260 characters, but each individual directory in the  
+    // path must still be 255 characters or fewer.
+
+    if (!::CreateDirectoryW(p.c_str(), NULL))
+    {
+        if (::GetLastError() == ERROR_ALREADY_EXISTS)
+        {
+            // Check if the existing path is a directory
+            const DWORD attrs = ::GetFileAttributesW(p.c_str());
+            if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
+            {
+                return true;
+            }
+
+            // Exists but is not a directory
+        }
+
+        err::set_last_os_error("CreateDirectoryW");
+        return false;
+    }
+
+    return true;
+}
+
+// https://github.com/microsoft/STL/blob/main/stl/src/filesystem.cpp#L26
+// https://github.com/microsoft/STL/blob/main/stl/src/filesystem.cpp#L84
+
+static bool create_symlink_impl(const path& target, const path& link, DWORD flags)
+{
+#if defined(_CRT_APP)
+
+    ::SetLastError(ERROR_NOT_SUPPORTED);
+    err::set_last_os_error("CreateSymbolicLinkW");
+    return false;
+
+#else
+
+    const os::path normalized_target = normalize_symlink_target(target);
+
+    if (!::CreateSymbolicLinkW(link.c_str(), normalized_target.c_str(), flags | SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE))
+    {
+        if (::GetLastError() != ERROR_INVALID_PARAMETER || !::CreateSymbolicLinkW(link.c_str(), normalized_target.c_str(), flags))
+        {
+            err::set_last_os_error("CreateSymbolicLinkW");
+            return false;
+        }
+    }
+
+    return true;
+
+#endif // _CRT_APP
+}
+
+bool create_symlink_impl(const path& target, const path& link)
+{
+    return create_symlink_impl(target, link, 0);
+}
+
+bool create_directory_symlink_impl(const path& target, const path& link)
+{
+    return create_symlink_impl(target, link, SYMBOLIC_LINK_FLAG_DIRECTORY);
+}
+
+bool create_hard_link_impl(const path& target, const path& link)
+{
+#if defined(_CRT_APP)
+
+    ::SetLastError(ERROR_NOT_SUPPORTED);
+    err::set_last_os_error("CreateHardLinkW");
+    return false;
+
+#else
+
+    if (!::CreateHardLinkW(link.c_str(), target.c_str(), NULL))
+    {
+        err::set_last_os_error("CreateHardLinkW");
+        return false;
+    }
+
+    return true;
+
+#endif // _CRT_APP
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Copy
+///////////////////////////////////////////////////////////////////////////////
+
+// https://en.cppreference.com/w/cpp/filesystem/copy_file
+
+bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
+{
+    if (!::CopyFileW(from.c_str(), to.c_str(), !overwrite_existing))
+    {
+        err::set_last_os_error("CopyFileW");
+        return false;
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Rename
+///////////////////////////////////////////////////////////////////////////////
+
+// https://github.com/microsoft/STL/blob/04081522161549b18fa0b0fae0d2a531ee967958/stl/src/filesystem.cpp#L720
+
+bool rename_impl(const path& from, const path& to)
+{
+    if (!::MoveFileExW(from.c_str(), to.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING))
+    {
+        err::set_last_os_error("MoveFileExW");
+        return false;
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Remove
+///////////////////////////////////////////////////////////////////////////////
+
+static bool clear_readonly_attribute(const path& p, DWORD attrs)
+{
+    if (!::SetFileAttributesW(p.c_str(), attrs & ~FILE_ATTRIBUTE_READONLY))
+    {
+        err::set_last_os_error("SetFileAttributesW");
+        return false;
+    }
+    return true;
+}
+
+static void restore_readonly_attributes(const path& p, DWORD attrs)
+{
+    ::SetFileAttributesW(p.c_str(), attrs);
+}
+
+static _priv::remove_error remove_directory(const path& p, bool in_recursive_remove, DWORD attrs)
+{
+    if (!::RemoveDirectoryW(p.c_str()))
+    {
+        restore_readonly_attributes(p, attrs);
+
+        const bool not_empty = (::GetLastError() == ERROR_DIR_NOT_EMPTY);
+        if (!not_empty || (not_empty && !in_recursive_remove))
+        {
+            // don't report an error in recursive remove
+            err::set_last_os_error("RemoveDirectoryW");
+        }
+
+        return not_empty
+            ? _priv::remove_error::directory_not_empty
+            : _priv::remove_error::other;
+    }
+
+    return _priv::remove_error::none;
+}
+
+static _priv::remove_error remove_file(const path& p, DWORD attrs)
+{
+    if (!::DeleteFileW(p.c_str()))
+    {
+        restore_readonly_attributes(p, attrs);
+
+        err::set_last_os_error("DeleteFileW");
+        return _priv::remove_error::other;
+    }
+
+    return _priv::remove_error::none;
+}
+
+// https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L1494
+
+#define not_found_error(e) ( \
+    e == ERROR_FILE_NOT_FOUND       || /* "tools/jam/src/:sys:stat.h", "//foo" */   \
+    e == ERROR_PATH_NOT_FOUND       ||                                              \
+    e == ERROR_INVALID_NAME         ||                                              \
+    e == ERROR_INVALID_DRIVE        || /* USB card reader with no card inserted */  \
+    e == ERROR_NOT_READY            || /* CD/DVD drive with no disc inserted */     \
+    e == ERROR_INVALID_PARAMETER    || /* ":sys:stat.h" */                          \
+    e == ERROR_BAD_PATHNAME         || /* "//no-host" on Win64 */                   \
+    e == ERROR_BAD_NETPATH          || /* "//no-host" on Win32 */                   \
+    e == ERROR_BAD_NET_NAME)           /* "//no-host/no-share" on Win10 x64 */
+
+
+_priv::remove_error remove_impl(const path& p, bool in_recursive_remove)
+{
+    WIN32_FILE_ATTRIBUTE_DATA data{};
+    if (!::GetFileAttributesExW(p.c_str(), GetFileExInfoStandard, &data))
+    {
+        const DWORD e = ::GetLastError();
+        if (not_found_error(e))
+        {
+            // path or file is already gone
+            return _priv::remove_error::path_not_found;
+        }
+
+        err::set_last_os_error("GetFileAttributesExW");
+        return _priv::remove_error::other;
+    }
+
+    if (data.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+    {
+        // RemoveDirectoryW and DeleteFileW do not allow to
+        // remove a read-only file, so we have to drop the attribute
+        if (!clear_readonly_attribute(p, data.dwFileAttributes))
+        {
+            return _priv::remove_error::other;
+        }
+    }
+
+    return (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        ? remove_directory(p, in_recursive_remove, data.dwFileAttributes)
+        : remove_file(p, data.dwFileAttributes);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Space
+///////////////////////////////////////////////////////////////////////////////
+
+space_info space_impl(const path& p)
+{
+    ULARGE_INTEGER capacity{};
+    ULARGE_INTEGER free{};
+    ULARGE_INTEGER available{};
+
+    if (!::GetDiskFreeSpaceExW(p.c_str(), &available, &capacity, &free))
+    {
+        err::set_last_os_error("GetDiskFreeSpaceExW");
+        return {};
+    }
+
+    return space_info{
+        capacity.QuadPart,
+        free.QuadPart,
+        available.QuadPart
+    };
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Directory Iterator Helpers
+///////////////////////////////////////////////////////////////////////////////
+
+static bool is_dot_or_dotdot(const wchar_t* filename)
+{
+    if (filename[0] != L'.')
+    {
+        return false;
+    }
+
+    const wchar_t second_char = filename[1];
+    if (second_char == 0)
+    {
+        return true;
+    }
+
+    if (second_char != L'.')
+    {
+        return false;
+    }
+
+    return filename[2] == 0;
+}
+
+static void close_directory_iterator(handle& h)
+{
+    if (h.is_valid() && !::FindClose(h.get()))
+    {
+        std::abort();
+    }
+
+    h.reset();
+}
+
+static void update_directory_iterator_entry(const path& p, directory_entry& entry, const WIN32_FIND_DATAW& find_data)
+{
+    entry.path = p / find_data.cFileName;
+    entry.info = create_file_info(
+        entry.path,
+        find_data.dwFileAttributes,
+        find_data.nFileSizeHigh,
+        find_data.nFileSizeLow,
+        find_data.ftCreationTime,
+        find_data.ftLastAccessTime
+    );
+}
+
+static bool advance_directory_iterator_once(handle& h, WIN32_FIND_DATAW& find_data, bool advance_first)
+{
+    while (advance_first || is_dot_or_dotdot(find_data.cFileName))
+    {
+        if (!::FindNextFileW(h.get(), &find_data))
+        {
+            close_directory_iterator(h);
+            break;
+        }
+
+        advance_first = false;
+    }
+
+    return h.is_valid();
+}
+
+static void advance_directory_iterator(
+    const path& p,
+    directory_entry& entry,
+    handle& h,
+    WIN32_FIND_DATAW& find_data,
+    bool advance_first
+)
+{
+    if (advance_directory_iterator_once(h, find_data, advance_first))
+    {
+        update_directory_iterator_entry(p, entry, find_data);
+    }
+}
+
+static void open_directory_iterator(const path& p, directory_entry& entry, handle& h, WIN32_FIND_DATAW& find_data)
+{
+    close_directory_iterator(h);
+
+    const size_t null_term_size = std::wcslen(p.c_str());
+    if (null_term_size == 0 || null_term_size != p.size())
+    {
+        ::SetLastError(ERROR_PATH_NOT_FOUND);
+    }
+    else
+    {
+        // Append wildcard to search for all items
+        const path pattern = p / L"*";
+
+        h = ::FindFirstFileExW(
+            pattern.c_str(),
+            FindExInfoBasic,
+            &find_data,
+            FindExSearchNameMatch,
+            NULL,
+            0
+        );
+    }
+
+    if (!h.is_valid())
+    {
+        err::set_last_os_error("FindFirstFileExW");
+        return;
+    }
+
+    advance_directory_iterator(p, entry, h, find_data, false);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Directory Iterator
+///////////////////////////////////////////////////////////////////////////////
+
+void directory_iterator::directory_iterator_impl::open()
+{
+    open_directory_iterator(m_path, m_entry, m_handle, m_find_data);
+}
+
+void directory_iterator::directory_iterator_impl::close()
+{
+    close_directory_iterator(m_handle);
+}
+
+void directory_iterator::directory_iterator_impl::advance()
+{
+    advance_directory_iterator(m_path, m_entry, m_handle, m_find_data, true);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Recursive Directory Iterator
+///////////////////////////////////////////////////////////////////////////////
+
+bool recursive_directory_iterator::recursive_directory_iterator_impl::push_stack()
+{
+    m_path /= m_entry.path.filename();
+    handle h;
+    open_directory_iterator(m_path, m_entry, h, m_find_data);
+
+    if (!h.is_valid())
+    {
+        m_path.pop_back();
+        return false;
+    }
+
+    m_stack.push_back(std::move(h));
+    return true;
+}
+
+void recursive_directory_iterator::recursive_directory_iterator_impl::pop_stack()
+{
+    m_path.pop_back();
+    close_directory_iterator(m_stack.back());
+    m_stack.pop_back();
+}
+
+void recursive_directory_iterator::recursive_directory_iterator_impl::advance()
+{
+    handle* current = &m_stack.back();
+
+    if (m_recursion_pending && push_stack())
+    {
+        current = &m_stack.back();
+    }
+    else
+    {
+        advance_directory_iterator(m_path, m_entry, *current, m_find_data, true);
+    }
+
+    while (!current->is_valid())
+    {
+        pop_stack();
+        if (m_stack.empty())
+        {
+            break;
+        }
+
+        current = &m_stack.back();
+        advance_directory_iterator(m_path, m_entry, *current, m_find_data, true);
+    }
+
+    m_recursion_pending = m_entry.is_directory();
+}
+
+} // namespace filesystem
+} // namespace os
+} // namespace vx

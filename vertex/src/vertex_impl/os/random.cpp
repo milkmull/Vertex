@@ -1,13 +1,13 @@
-#include "vertex/config/language_config.hpp"
-#include "vertex_impl/os/_platform/platform_random.hpp"
-
-namespace vx {
-namespace os {
-
-success get_entropy(uint8_t* bytes, size_t count)
-{
-    return get_entropy_impl(bytes, count);
-}
-
-} // namespace os
-} // namespace vx
+//#include "vertex/config/language_config.hpp"
+//#include "vertex_impl/os/_platform/platform_random.hpp"
+//
+//namespace vx {
+//namespace os {
+//
+//success get_entropy(uint8_t* bytes, size_t count)
+//{
+//    return get_entropy_impl(bytes, count);
+//}
+//
+//} // namespace os
+//} // namespace vx

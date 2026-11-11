@@ -5,19 +5,23 @@ x dynamic array base
 
 x span
 x vector
-- static vector
 
 x string view
-- static string
 x string
-
+x temporary string
 - packed string array
-x single link list
-- double link list
-- hash
-- unordered_set
-- unordered_map
+
+- static string
+- static vector
+
+- list
+- forward list
+
+x hash
+x unordered_set
+x unordered_map
 x bitset
+
 - type_traits
 - locale
 
@@ -30,3 +34,17 @@ x fix empty string sentinel
 x fix if consteval spots
 - check is_forward_iterator in places that use vx::distance
 - add other common types to natvis
+
+os:
+
+- atomic
+- file
+- filesystem
+- io
+- mutex
+- thread
+- process
+- shared library
+- time
+- random
+- system info

@@ -7,103 +7,78 @@
 namespace vx {
 namespace os {
 
-class handle
-{
-public:
-
 #if defined(VX_OS_WINDOWS)
 
-    using native_handle = void*;
-#   define VX_INVALID_HANDLE (native_handle)(intptr_t)(-1)
+using native_handle = void*;
 
 #else
 
-    using native_handle = int;
-#   define VX_INVALID_HANDLE -1
+using native_handle = int;
 
 #endif
 
-    static bool is_valid_handle(native_handle h) noexcept
-    {
-#   if defined(VX_OS_WINDOWS)
-        return h != NULL && h != VX_INVALID_HANDLE;
-#   else
-        return h >= 0;
-#   endif
-    }
+inline native_handle invalid_handle() noexcept
+{
+#if defined(VX_OS_WINDOWS)
 
+    return (native_handle)(intptr_t)(-1);
+
+#else
+
+    return -1;
+
+#endif
+}
+
+inline bool is_valid_handle(native_handle h) noexcept
+{
+#if defined(VX_OS_WINDOWS)
+    return h != NULL && h != invalid_handle();
+#else
+    return h >= 0;
+#endif
+}
+
+VX_API void close_handle(native_handle h) noexcept;
+
+class handle_guard
+{
 public:
 
-    handle() noexcept : m_handle(VX_INVALID_HANDLE) {}
-    ~handle() noexcept { close(); }
+    explicit handle_guard(native_handle h) noexcept
+        : m_h(h)
+    {}
 
-    handle(const handle&) = default;
-    handle& operator=(const handle&) = default;
-
-    handle(handle&& h) noexcept : m_handle(h.m_handle)
+    ~handle_guard()
     {
-        h.reset();
-    }
-
-    handle& operator=(handle&& h) noexcept
-    {
-        if (this != &h)
+        if (is_valid_handle(m_h))
         {
-            m_handle = h.m_handle;
-            h.reset();
+            close_handle(m_h);
         }
-
-        return *this;
     }
 
-    handle(const native_handle h) noexcept : m_handle(h) {}
+    handle_guard(const handle_guard&) = delete;
+    handle_guard& operator=(const handle_guard&) = delete;
 
-    handle& operator=(const native_handle h) noexcept
+    handle_guard(handle_guard&& o) noexcept
+        : m_h(o.m_h)
     {
-        close();
-        m_handle = h;
-        return *this;
+        o.m_h = invalid_handle();
     }
 
-public:
-
-    bool operator==(const handle& h) { return m_handle == h.m_handle; }
-    bool operator!=(const handle& h) { return m_handle != h.m_handle; }
-
-public:
-
-    bool is_valid() const noexcept { return is_valid_handle(m_handle); }
-
-    native_handle& get() noexcept { return m_handle; }
-    const native_handle& get() const noexcept { return m_handle; }
-
-    void reset() noexcept { m_handle = VX_INVALID_HANDLE; }
-
-    void close() noexcept
+    bool valid() const noexcept
     {
-        if (is_valid())
-        {
-            close_impl();
-        }
-        reset();
+        return is_valid_handle(m_h);
     }
 
-    native_handle release() noexcept
+    native_handle get() const noexcept
     {
-        native_handle h = m_handle;
-        reset();
-        return h;
+        return m_h;
     }
 
 private:
 
-#if defined(VX_OS_DUMMY)
-    void close_impl() noexcept {}
-#else
-    void close_impl() noexcept;
-#endif
-
-    native_handle m_handle;
+    native_handle m_h;
 };
 
 } // namespace os

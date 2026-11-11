@@ -3,18 +3,12 @@
 #include "vertex/config/flags.hpp"
 #include "vertex/config/os.hpp"
 #include "vertex/os/handle.hpp"
-#include "vertex/os/path.hpp"
-#include "vertex/std/expected.hpp"
+#include "vertex/os/native_string.hpp"
+#include "vertex/os/stream.hpp"
+#include "vertex/std/error/error_code.hpp"
 
 namespace vx {
 namespace os {
-
-enum class stream
-{
-    in,
-    out,
-    err
-};
 
 enum class stream_position
 {
@@ -40,56 +34,50 @@ VX_FLAGS_DECLARE_BEGIN(rw_mode){
 
 } VX_FLAGS_DECLARE_END(rw_mode);
 
-struct rw_result
-{
-    size_t bytes; // bytes successfully transferred
-    error err;    // error terminating the operation, or none
-};
-
 //=========================================================================
-// stream ops
+// streams
 //=========================================================================
 
-VX_API rw_result read_stream(stream s, char* data, size_t size);
+VX_API success open(native_handle, const native_cstring p, typename rw_mode::enum_type mode);
 
-namespace _os_io_priv {
-
-// used by error system to prevent infinite recursion when printing errors
-VX_API rw_result write_stream_impl(stream s, const char* data, size_t size, bool allow_error);
-
-} // namespace _os_io_priv
-
-inline rw_result write_stream(stream s, const char* data, size_t size)
+inline void close(native_handle h) noexcept
 {
-    return _os_io_priv::write_stream_impl(s, data, size, false);
+    close_handle(h);
 }
 
-//=========================================================================
+VX_API rw_result read(native_handle h, uint8_t* data, size_t size);
+VX_API rw_result write(native_handle h, const uint8_t* data, size_t size);
 
-VX_API bool file_exists(const path& p);
-
-//=========================================================================
-// file ops
-//=========================================================================
-
-VX_API success open(handle& h, const path& p, typename rw_mode::enum_type mode);
-
-inline void close(handle& h) noexcept
-{
-    h.close();
-}
-
-VX_API rw_result read(handle& h, uint8_t* data, size_t size);
-VX_API rw_result write(handle& h, const uint8_t* data, size_t size);
-VX_API success flush(handle& h);
+VX_API success flush(native_handle h);
+VX_API success truncate(native_handle h, uint64_t size);
 
 using file_position = int64_t;
 using file_offset = int64_t;
 
-VX_API expected<file_position, error> tell(const handle& h);
-VX_API success seek(handle& h, file_offset off, stream_position from);
+VX_API success tell(const native_handle h, file_position& pos);
+VX_API success seek(native_handle h, file_offset off, stream_position from);
 
-VX_API expected<size_t, error> file_size(const handle& h);
+VX_API success file_size(native_handle h, uint64_t& size);
+VX_API success set_file_size(native_handle h, uint64_t size);
+
+//=========================================================================
+// standard stream helpers
+//=========================================================================
+
+inline rw_result read_in(uint8_t* data, size_t size)
+{
+    return read(get_stream_handle(stream::in), data, size);
+}
+
+inline rw_result write_out(const uint8_t* data, size_t size)
+{
+    return write(get_stream_handle(stream::out), data, size);
+}
+
+inline rw_result write_err(const uint8_t* data, size_t size)
+{
+    return write(get_stream_handle(stream::err), data, size);
+}
 
 } // namespace os
 } // namespace vx

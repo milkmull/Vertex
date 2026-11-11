@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cstddef>
+#include <cstdlib>
+#include <version> // defines __cpp_lib_char8_t; must precede the #if checks below
+
 namespace vx {
 namespace test {
 
@@ -96,10 +100,10 @@ constexpr const char32_t* get_string_literal<char32_t>(
 
 struct allocator_stats
 {
-    size_t allocate_calls = 0;
-    size_t deallocate_calls = 0;
-    size_t reallocate_calls = 0;
-    size_t live_allocations = 0; // allocate() calls not yet matched by deallocate()
+    std::size_t allocate_calls = 0;
+    std::size_t deallocate_calls = 0;
+    std::size_t reallocate_calls = 0;
+    std::size_t live_allocations = 0; // allocate() calls not yet matched by deallocate()
 };
 
 template <typename T>
@@ -136,7 +140,7 @@ public:
         return m_stats;
     }
 
-    T* allocate(size_t n)
+    T* allocate(std::size_t n)
     {
         T* p = static_cast<T*>(std::malloc(n * sizeof(T)));
 
@@ -149,7 +153,7 @@ public:
         return p;
     }
 
-    void deallocate(T* p, size_t /*n*/) noexcept
+    void deallocate(T* p, std::size_t /*n*/) noexcept
     {
         if (m_stats)
         {
@@ -164,7 +168,7 @@ public:
     // trivially-copyable/destructible buffers). realloc() preserves bytes,
     // which is required there since no move-construct/destroy happens on
     // that path.
-    T* reallocate(T* p, size_t n)
+    T* reallocate(T* p, std::size_t n)
     {
         if (m_stats)
         {
@@ -241,6 +245,19 @@ public:
         return *this;
     }
 
+    copyable_int(copyable_int&& x) noexcept
+        : val(x.val)
+    {
+        x.val = -1;
+    }
+
+    copyable_int& operator=(copyable_int&& x) noexcept
+    {
+        val = x.val;
+        x.val = -1;
+        return *this;
+    }
+
     operator int() const
     {
         return val;
@@ -260,19 +277,6 @@ public:
     {
         return val < x.val;
     }
-
-    copyable_int(copyable_int&& x) noexcept
-        : val(x.val)
-    {
-        x.val = -1;
-    }
-
-    copyable_int& operator=(copyable_int&& x) noexcept
-    {
-        val = x.val;
-        x.val = -1;
-        return *this;
-    }
 };
 
 class movable_int
@@ -287,23 +291,19 @@ public:
 
     movable_int(int v1, int v2)
         : val(v2 + (v1 << 4))
-    { // construct from two values
-    }
+    {}
 
     movable_int(int v1, int v2, int v3)
         : val(v3 + (v2 << 4) + (v1 << 8))
-    { // construct from three values
-    }
+    {}
 
     movable_int(int v1, int v2, int v3, int v4)
         : val(v4 + (v3 << 4) + (v2 << 8) + (v1 << 12))
-    { // construct from four values
-    }
+    {}
 
     movable_int(int v1, int v2, int v3, int v4, int v5)
         : val(v5 + (v4 << 4) + (v3 << 8) + (v2 << 12) + (v1 << 16))
-    { // construct from five values
-    }
+    {}
 
     movable_int(movable_int&& right) noexcept
         : val(right.val)
@@ -320,6 +320,9 @@ public:
         }
         return *this;
     }
+
+    movable_int(const movable_int&) = delete;
+    movable_int& operator=(const movable_int&) = delete;
 
     operator int() const
     {
@@ -340,9 +343,6 @@ public:
     {
         return val < x.val;
     }
-
-    movable_int(const movable_int&) = delete;
-    movable_int& operator=(const movable_int&) = delete;
 };
 
 } // namespace test

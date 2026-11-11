@@ -1,19 +1,19 @@
-#include "vertex_impl/os/_platform/platform_locale.hpp"
-
-namespace vx {
-namespace os {
-namespace locale {
-
-bool get_country_code(std::string& country_code)
-{
-    return get_country_code_impl(country_code);
-}
-
-bool get_language(std::string& language)
-{
-    return get_language_impl(language);
-}
-
-} // namespace locale
-} // namespace os
-} // namespace vx
+//#include "vertex_impl/os/_platform/platform_locale.hpp"
+//
+//namespace vx {
+//namespace os {
+//namespace locale {
+//
+//bool get_country_code(std::string& country_code)
+//{
+//    return get_country_code_impl(country_code);
+//}
+//
+//bool get_language(std::string& language)
+//{
+//    return get_language_impl(language);
+//}
+//
+//} // namespace locale
+//} // namespace os
+//} // namespace vx

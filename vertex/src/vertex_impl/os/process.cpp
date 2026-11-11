@@ -1,158 +1,158 @@
-#include "vertex_impl/os/_platform/platform_process.hpp"
-#include "vertex/system/error.hpp"
-
-namespace vx {
-namespace os {
-
-process::process() {}
-
-process::~process() {}
-
-process::process(process&& other) noexcept
-    : m_impl(std::move(other.m_impl))
-{
-    std::move(
-        std::begin(other.m_streams),
-        std::end(other.m_streams),
-        std::begin(m_streams)
-    );
-
-    other.m_impl = nullptr;
-}
-
-process& process::operator=(process&& other) noexcept
-{
-    if (this != &other)
-    {
-        m_impl = std::move(other.m_impl);
-        std::move(
-            std::begin(other.m_streams),
-            std::end(other.m_streams),
-            std::begin(m_streams)
-        );
-
-        other.m_impl = nullptr;
-    }
-
-    return *this;
-}
-
-bool process::start(const config& cfg)
-{
-    if (is_valid())
-    {
-        err::set(err::unsupported_operation, "process already started");
-        return false;
-    }
-
-    if (cfg.args.empty())
-    {
-        err::set(err::invalid_argument, "no arguments were specified");
-        return false;
-    }
-
-    m_impl = std::make_unique<process_impl>();
-    if (!m_impl)
-    {
-        m_impl = nullptr;
-        return false;
-    }
-
-    if (!m_impl->start(this, cfg))
-    {
-        m_impl = nullptr;
-        return false;
-    }
-
-    return true;
-}
-
-process::id process::get_pid() const
-{
-    return is_valid() ? m_impl->get_pid() : 0;
-}
-
-bool process::is_valid() const
-{
-    return m_impl && m_impl->is_valid();
-}
-
-bool process::is_alive() const
-{
-    return is_valid() ? m_impl->is_alive() : false;
-}
-
-bool process::is_complete() const
-{
-    return is_valid() ? m_impl->is_complete() : false;
-}
-
-bool process::join()
-{
-    return is_valid() ? m_impl->join() : false;
-}
-
-bool process::kill(bool force)
-{
-    return is_valid() ? m_impl->kill(force) : false;
-}
-
-bool process::get_exit_code(int* exit_code) const
-{
-    return (exit_code && is_complete()) ? m_impl->get_exit_code(exit_code) : false;
-}
-
-io_stream& process::get_stdin()  { return m_streams[stdin_index ]; }
-io_stream& process::get_stdout() { return m_streams[stdout_index]; }
-io_stream& process::get_stderr() { return m_streams[stderr_index]; }
-
-///////////////////////////////////////////////////////////////////////////////
-// this_process
-///////////////////////////////////////////////////////////////////////////////
-
-namespace this_process {
-
-process::id get_pid()
-{
-    return get_pid_impl();
-}
-
-process::environment get_environment()
-{
-    return get_environment_impl();
-}
-
-std::string get_environment_variable(const std::string& name)
-{
-    return get_environment_variable_impl(name);
-}
-
-bool set_environment_variable(const std::string& name, const std::string& value)
-{
-    return set_environment_variable_impl(name, value);
-}
-
-bool clear_environment_variable(const std::string& name)
-{
-    return clear_environment_variable_impl(name);
-}
-
-io_stream get_stdin()
-{
-    return get_stdin_impl();
-}
-
-io_stream get_stdout()
-{
-    return get_stdout_impl();
-}
-
-io_stream get_stderr()
-{
-    return get_stderr_impl();
-}
-
-} // namespace this_process
-
-} // namespace os
-} // namespace vx
+//#include "vertex_impl/os/_platform/platform_process.hpp"
+//#include "vertex/system/error.hpp"
+//
+//namespace vx {
+//namespace os {
+//
+//process::process() {}
+//
+//process::~process() {}
+//
+//process::process(process&& other) noexcept
+//    : m_impl(std::move(other.m_impl))
+//{
+//    std::move(
+//        std::begin(other.m_streams),
+//        std::end(other.m_streams),
+//        std::begin(m_streams)
+//    );
+//
+//    other.m_impl = nullptr;
+//}
+//
+//process& process::operator=(process&& other) noexcept
+//{
+//    if (this != &other)
+//    {
+//        m_impl = std::move(other.m_impl);
+//        std::move(
+//            std::begin(other.m_streams),
+//            std::end(other.m_streams),
+//            std::begin(m_streams)
+//        );
+//
+//        other.m_impl = nullptr;
+//    }
+//
+//    return *this;
+//}
+//
+//bool process::start(const config& cfg)
+//{
+//    if (is_valid())
+//    {
+//        err::set(err::unsupported_operation, "process already started");
+//        return false;
+//    }
+//
+//    if (cfg.args.empty())
+//    {
+//        err::set(err::invalid_argument, "no arguments were specified");
+//        return false;
+//    }
+//
+//    m_impl = std::make_unique<process_impl>();
+//    if (!m_impl)
+//    {
+//        m_impl = nullptr;
+//        return false;
+//    }
+//
+//    if (!m_impl->start(this, cfg))
+//    {
+//        m_impl = nullptr;
+//        return false;
+//    }
+//
+//    return true;
+//}
+//
+//process::id process::get_pid() const
+//{
+//    return is_valid() ? m_impl->get_pid() : 0;
+//}
+//
+//bool process::is_valid() const
+//{
+//    return m_impl && m_impl->is_valid();
+//}
+//
+//bool process::is_alive() const
+//{
+//    return is_valid() ? m_impl->is_alive() : false;
+//}
+//
+//bool process::is_complete() const
+//{
+//    return is_valid() ? m_impl->is_complete() : false;
+//}
+//
+//bool process::join()
+//{
+//    return is_valid() ? m_impl->join() : false;
+//}
+//
+//bool process::kill(bool force)
+//{
+//    return is_valid() ? m_impl->kill(force) : false;
+//}
+//
+//bool process::get_exit_code(int* exit_code) const
+//{
+//    return (exit_code && is_complete()) ? m_impl->get_exit_code(exit_code) : false;
+//}
+//
+//io_stream& process::get_stdin()  { return m_streams[stdin_index ]; }
+//io_stream& process::get_stdout() { return m_streams[stdout_index]; }
+//io_stream& process::get_stderr() { return m_streams[stderr_index]; }
+//
+/////////////////////////////////////////////////////////////////////////////////
+//// this_process
+/////////////////////////////////////////////////////////////////////////////////
+//
+//namespace this_process {
+//
+//process::id get_pid()
+//{
+//    return get_pid_impl();
+//}
+//
+//process::environment get_environment()
+//{
+//    return get_environment_impl();
+//}
+//
+//std::string get_environment_variable(const std::string& name)
+//{
+//    return get_environment_variable_impl(name);
+//}
+//
+//bool set_environment_variable(const std::string& name, const std::string& value)
+//{
+//    return set_environment_variable_impl(name, value);
+//}
+//
+//bool clear_environment_variable(const std::string& name)
+//{
+//    return clear_environment_variable_impl(name);
+//}
+//
+//io_stream get_stdin()
+//{
+//    return get_stdin_impl();
+//}
+//
+//io_stream get_stdout()
+//{
+//    return get_stdout_impl();
+//}
+//
+//io_stream get_stderr()
+//{
+//    return get_stderr_impl();
+//}
+//
+//} // namespace this_process
+//
+//} // namespace os
+//} // namespace vx

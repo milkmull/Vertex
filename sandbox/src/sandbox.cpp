@@ -1,23 +1,8 @@
-﻿#include <cassert>
-#include <cstring>
-#include <forward_list>
-#include <memory>
-
-#include "vertex/std/hash_set.hpp"
-
-using namespace vx;
+﻿#include "vertex/std/path.hpp"
 
 int main()
 {
-    vx::unordered_set<int> set;
-    set.insert(5);
-
-    const bool x1 = set.contains(5);
-    set.erase(5);
-    const bool x2 = set.contains(5);
-
-    set.clear();
-    set.clear_and_deallocate();
+    vx::path p;
 
     return 0;
 }

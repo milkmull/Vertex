@@ -5,38 +5,35 @@
 
 # Source files for vertex/src/vertex_impl/os
 file(GLOB VX_OS_SOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_handle.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/handle.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_error.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/error.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_filesystem.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/filesystem.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_locale.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/locale.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_mutex.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/mutex.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_process.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/process.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_random.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/random.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_shared_library.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/shared_library.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_system_info.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/system_info.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_thread.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/thread.cpp"
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_time.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/time.cpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_handle.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/handle.cpp"
+    #
+    #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_filesystem.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/filesystem.cpp"
+    #
+    #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_locale.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/locale.cpp"
+    #
+    #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_mutex.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/mutex.cpp"
+    #
+    #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_process.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/process.cpp"
+    #
+    #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_random.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/random.cpp"
+    #
+    #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_shared_library.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/shared_library.cpp"
+    #
+    #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_system_info.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/system_info.cpp"
+    #
+    #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_thread.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/thread.cpp"
+    #
+    #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_time.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/time.cpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_OS_SOURCE_FILES})
@@ -47,8 +44,8 @@ target_sources(Vertex PRIVATE ${VX_OS_SOURCE_FILES})
 
 # Header files for dummy modules
 file(GLOB VX_OS_DUMMY_SOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_error.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_io.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_filesystem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_locale.hpp"
@@ -69,28 +66,33 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
     file(GLOB VX_OS_PLATFORM_SOURCE_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_header.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_tools.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_tools.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_tools.cpp"
 
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_handle.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_error.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_io.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_io.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_filesystem.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_filesystem.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_locale.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_locale.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_mutex.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_process.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_process.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_random.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_random.cpp"
-        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_shared_library.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_system_info.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_system_info.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_system_memory.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_thread.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_time.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_time.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_stream.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_error_code.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_error_format.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_time_helpers.hpp"
+
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_error.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_handle.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_io.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_file.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_filesystem.hpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_filesystem.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_locale.hpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_locale.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_mutex.hpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_process.hpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_process.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_random.hpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_random.cpp"
+        ##"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_shared_library.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_system_info.hpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_system_info.cpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_system_memory.hpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_thread.hpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_time.hpp"
+        #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_time.cpp"
     )
 
     target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_SOURCE_FILES})

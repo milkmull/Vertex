@@ -1,161 +1,161 @@
-#include <iomanip>
-#include <memory>
-#include <sstream>
-
-#include "vertex/os/mutex.hpp"
-#include "vertex/os/time.hpp"
-#include "vertex/std/file.hpp"
-#include "vertex/os/filesystem.hpp"
-#include "vertex/system/profiler.hpp"
-
-namespace vx {
-namespace profile {
-
-class profiler
-{
-public:
-
-    profiler()
-    {}
-    ~profiler()
-    { stop(); }
-
-public:
-
-    bool start(const char* output_file, bool clear_file)
-    {
-        stop();
-
-        const bool exists = os::file_exists(output_file);
-        const auto mode = clear_file ? file::mode::write : file::mode::append;
-        m_file.open(output_file, mode);
-
-        if (m_file.is_open() && (clear_file || !exists))
-        {
-            write_header();
-        }
-
-        os::get_ticks();
-        os::sleep(time::seconds(1));
-
-        return m_file.is_open();
-    }
-
-    void stop()
-    {
-        m_file.close();
-    }
-
-    bool is_enabled() const
-    {
-        return m_file.is_open();
-    }
-
-private:
-
-    void write_header()
-    {
-        // produces a csv where each line is:
-        // name,thread_id,start_time,elapsed_time
-
-        if (m_file.is_open())
-        {
-            std::ostringstream oss;
-
-            oss << "name" << ','
-                << "start_time" << ','
-                << "elapsed_time" << '\n';
-
-            const std::string s = oss.str();
-            m_file.write(s.data(), s.size());
-            m_file.flush();
-        }
-    }
-
-public:
-
-    void record(const result& r)
-    {
-        if (m_file.is_open())
-        {
-            std::ostringstream oss;
-
-            oss << std::setprecision(3) << std::fixed
-                << r.name << ','
-                << r.start.as_nanoseconds() << ','
-                << r.elapsed_time.as_nanoseconds() << '\n';
-
-            const std::string s = oss.str();
-            m_file.write(s.data(), s.size());
-            m_file.flush();
-        }
-    }
-
-private:
-
-    file m_file;
-};
-
-class profiler_wrapper
-{
-public:
-
-    profiler_wrapper() : m_profiler(std::make_unique<profiler>())
-    {}
-
-public:
-
-    bool start(const char* output_file, bool clear_file)
-    {
-        os::lock_guard lock(m_mutex);
-        return m_profiler->start(output_file, clear_file);
-    }
-
-    void stop()
-    {
-        os::lock_guard lock(m_mutex);
-        m_profiler->stop();
-    }
-
-    bool is_enabled() const
-    {
-        os::lock_guard lock(m_mutex);
-        return m_profiler->is_enabled();
-    }
-
-    void record(const result& r)
-    {
-        os::lock_guard lock(m_mutex);
-        m_profiler->record(r);
-    }
-
-private:
-
-    std::unique_ptr<profiler> m_profiler;
-    mutable os::mutex m_mutex;
-};
-
-static profiler_wrapper s_profiler;
-
-bool start(const char* output_file, bool clear_file)
-{
-    return s_profiler.start(output_file, clear_file);
-}
-
-void stop()
-{
-    s_profiler.stop();
-}
-
-bool is_enabled()
-{
-    return s_profiler.is_enabled();
-}
-
-void record(const result& r)
-{
-    s_profiler.record(r);
-}
-
-} // namespace profile
-} // namespace vx
+//#include <iomanip>
+//#include <memory>
+//#include <sstream>
+//
+//#include "vertex/os/mutex.hpp"
+//#include "vertex/os/time.hpp"
+//#include "vertex/std/file.hpp"
+//#include "vertex/os/filesystem.hpp"
+//#include "vertex/system/profiler.hpp"
+//
+//namespace vx {
+//namespace profile {
+//
+//class profiler
+//{
+//public:
+//
+//    profiler()
+//    {}
+//    ~profiler()
+//    { stop(); }
+//
+//public:
+//
+//    bool start(const char* output_file, bool clear_file)
+//    {
+//        stop();
+//
+//        const bool exists = os::file_exists(output_file);
+//        const auto mode = clear_file ? file::mode::write : file::mode::append;
+//        m_file.open(output_file, mode);
+//
+//        if (m_file.is_open() && (clear_file || !exists))
+//        {
+//            write_header();
+//        }
+//
+//        os::get_ticks();
+//        os::sleep(time::seconds(1));
+//
+//        return m_file.is_open();
+//    }
+//
+//    void stop()
+//    {
+//        m_file.close();
+//    }
+//
+//    bool is_enabled() const
+//    {
+//        return m_file.is_open();
+//    }
+//
+//private:
+//
+//    void write_header()
+//    {
+//        // produces a csv where each line is:
+//        // name,thread_id,start_time,elapsed_time
+//
+//        if (m_file.is_open())
+//        {
+//            std::ostringstream oss;
+//
+//            oss << "name" << ','
+//                << "start_time" << ','
+//                << "elapsed_time" << '\n';
+//
+//            const std::string s = oss.str();
+//            m_file.write(s.data(), s.size());
+//            m_file.flush();
+//        }
+//    }
+//
+//public:
+//
+//    void record(const result& r)
+//    {
+//        if (m_file.is_open())
+//        {
+//            std::ostringstream oss;
+//
+//            oss << std::setprecision(3) << std::fixed
+//                << r.name << ','
+//                << r.start.as_nanoseconds() << ','
+//                << r.elapsed_time.as_nanoseconds() << '\n';
+//
+//            const std::string s = oss.str();
+//            m_file.write(s.data(), s.size());
+//            m_file.flush();
+//        }
+//    }
+//
+//private:
+//
+//    file m_file;
+//};
+//
+//class profiler_wrapper
+//{
+//public:
+//
+//    profiler_wrapper() : m_profiler(std::make_unique<profiler>())
+//    {}
+//
+//public:
+//
+//    bool start(const char* output_file, bool clear_file)
+//    {
+//        os::lock_guard lock(m_mutex);
+//        return m_profiler->start(output_file, clear_file);
+//    }
+//
+//    void stop()
+//    {
+//        os::lock_guard lock(m_mutex);
+//        m_profiler->stop();
+//    }
+//
+//    bool is_enabled() const
+//    {
+//        os::lock_guard lock(m_mutex);
+//        return m_profiler->is_enabled();
+//    }
+//
+//    void record(const result& r)
+//    {
+//        os::lock_guard lock(m_mutex);
+//        m_profiler->record(r);
+//    }
+//
+//private:
+//
+//    std::unique_ptr<profiler> m_profiler;
+//    mutable os::mutex m_mutex;
+//};
+//
+//static profiler_wrapper s_profiler;
+//
+//bool start(const char* output_file, bool clear_file)
+//{
+//    return s_profiler.start(output_file, clear_file);
+//}
+//
+//void stop()
+//{
+//    s_profiler.stop();
+//}
+//
+//bool is_enabled()
+//{
+//    return s_profiler.is_enabled();
+//}
+//
+//void record(const result& r)
+//{
+//    s_profiler.record(r);
+//}
+//
+//} // namespace profile
+//} // namespace vx

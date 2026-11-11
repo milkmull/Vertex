@@ -1,85 +1,51 @@
 #pragma once
 
-#include "vertex/std/expected.hpp"
-#include "vertex/std/time/datetime.hpp"
-#include "vertex/std/time/time.hpp"
+#include <cstdint>
+
+#include "vertex/config/os.hpp"
+#include "vertex/std/error.hpp"
 
 namespace vx {
 namespace os {
+
+using nanoseconds = int64_t;
 
 //=============================================================================
 // Current Time
 //=============================================================================
 
-/**
- * @brief Retrieves the current system time.
- *
- * @return The current system time.
- */
-VX_API time::time_point system_time();
+VX_API nanoseconds system_time();
 
 //=============================================================================
 // Ticks
 //=============================================================================
 
-/**
- * @brief Retrieves the current time in terms of "ticks" (elapsed time since
- * the program started).
- *
- * This function provides a high-resolution time measurement, useful for
- * profiling or measuring time intervals. The returned value represents
- * the time elapsed since the program started, in nanoseconds.
- *
- * @return The current time elapsed since the program started, in nanoseconds.
- */
-VX_API time::duration get_ticks();
-
-/**
- * @brief Retrieves the current value of a high-resolution performance counter.
- *
- * The performance counter is typically used for precise time measurements,
- * offering microsecond-level precision.
- *
- * @return The current performance counter value.
- */
 VX_API int64_t get_performance_counter();
-
-/**
- * @brief Retrieves the frequency of the high-resolution performance counter.
- *
- * The frequency represents the number of ticks per second for the performance
- * counter. It is used to convert the performance counter value to actual time
- * units (e.g., seconds).
- *
- * @return The performance counter frequency in ticks per second.
- */
 VX_API int64_t get_performance_frequency();
 
 //=============================================================================
 // Sleep
 //=============================================================================
 
-/**
- * @brief Causes the current thread to sleep until the specified time point.
- *
- * This function pauses the execution of the current thread until the time
- * point `t` is reached.
- *
- * @param t The time point until which the thread should sleep.
- */
-VX_API void sleep(const time::duration& d);
+VX_API void sleep(nanoseconds d);
 
-/**
- * @brief Sleeps with higher timing accuracy than the standard sleep function.
- *
- * This function attempts to reach the target time point more precisely by
- * combining coarse-grained sleeping with short sleeps and final spin-waiting.
- * It compensates for the typical overshoot of OS sleep calls and avoids
- * extended busy-waiting when the remaining time is still large.
- *
- * @param t Absolute time point at which the thread should resume execution.
- */
-VX_API void sleep_precise(const time::duration& d);
+//=============================================================================
+// Datetime
+//=============================================================================
+
+struct datetime_fields
+{
+    int32_t year = 0;               // year
+    int32_t month = 1;              // month [1-12]
+    int32_t day = 1;                // day [1-31]
+    int32_t hour = 0;               // hour [0-23]
+    int32_t minute = 0;             // minute [0-59]
+    int32_t second = 0;             // second [0-59] leap seconds not supported
+    int32_t nanosecond = 0;         // nanosecond [0-999999999]
+    int32_t utc_offset_seconds = 0; // seconds east of utc [-43200-50400]
+};
+
+VX_API success system_time_to_datetime(nanoseconds ns, bool local, datetime_fields& out);
 
 } // namespace os
 } // namespace vx
