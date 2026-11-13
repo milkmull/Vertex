@@ -4,7 +4,7 @@
 #include "vertex/config/assert.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/simd.hpp"
-#include "vertex/config/type_traits.hpp"
+#include "vertex/std/type_traits.hpp"
 
 // These algorithms are part of MSVC library code:
 // https://github.com/microsoft/STL/blob/main/stl/src/vector_algorithms.cpp
@@ -256,7 +256,7 @@ VX_NO_ALIAS size_t VX_STDCALL find_last_not_of_trivial_pos_2(
 template <typename T, typename V>
 T* remove_simd(T* const first, T* const last, const V val) noexcept
 {
-    VX_IF_CONSTEXPR (std::is_pointer<T>::value)
+    VX_IF_CONSTEXPR (traits::is_pointer<T>::value)
     {
     #if defined(VX_ARCH_WORD_BITS_64)
         return reinterpret_cast<T*>(remove_8(first, last, reinterpret_cast<uint64_t>(val)));
@@ -320,7 +320,7 @@ void reverse_simd(void* first, void* last) noexcept
 //=============================================================================
 
 template <typename T>
-struct replace_is_safe : std::bool_constant<std::is_pointer<T>::value || sizeof(T) == 4 || sizeof(T) == 8>
+struct replace_is_safe : traits::bool_constant<traits::is_pointer<T>::value || sizeof(T) == 4 || sizeof(T) == 8>
 {};
 
 template <typename T, typename V1, typename V2>
@@ -330,7 +330,7 @@ void replace_simd(
     const V1 old_val,
     const V2 new_val) noexcept
 {
-    VX_IF_CONSTEXPR (std::is_pointer<T>::value)
+    VX_IF_CONSTEXPR (traits::is_pointer<T>::value)
     {
     #if defined(VX_ARCH_WORD_BITS_64)
         replace_8(first, last, reinterpret_cast<uint64_t>(old_val), reinterpret_cast<uint64_t>(new_val));
@@ -359,7 +359,7 @@ void replace_simd(
 template <typename T, typename V>
 size_t count_simd(T* const first, T* const last, const V val) noexcept
 {
-    VX_IF_CONSTEXPR (std::is_pointer<V>::value || std::is_null_pointer<V>::value)
+    VX_IF_CONSTEXPR (traits::is_pointer<V>::value || traits::is_null_pointer<V>::value)
     {
     #if defined(VX_ARCH_WORD_BITS_64)
         return count_trivial_8(first, last, reinterpret_cast<uint64_t>(val));
@@ -396,7 +396,7 @@ size_t count_simd(T* const first, T* const last, const V val) noexcept
 template <typename T, typename V>
 T* find_simd(T* const first, T* const last, const V val) noexcept
 {
-    VX_IF_CONSTEXPR (std::is_pointer<V>::value || std::is_null_pointer<V>::value)
+    VX_IF_CONSTEXPR (traits::is_pointer<V>::value || traits::is_null_pointer<V>::value)
     {
     #if defined(VX_ARCH_WORD_BITS_64)
         return const_cast<T*>(
@@ -435,7 +435,7 @@ T* find_simd(T* const first, T* const last, const V val) noexcept
 template <typename T, typename V>
 T* find_last_simd(T* const first, T* const last, const V val) noexcept
 {
-    VX_IF_CONSTEXPR (std::is_pointer<V>::value || std::is_null_pointer<V>::value)
+    VX_IF_CONSTEXPR (traits::is_pointer<V>::value || traits::is_null_pointer<V>::value)
     {
     #if defined(VX_ARCH_WORD_BITS_64)
         return const_cast<T*>(

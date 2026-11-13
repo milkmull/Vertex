@@ -1,12 +1,11 @@
 #pragma once
 
-#include <cstring>
-
 #include "vertex/config/assert.hpp"
 #include "vertex/config/simd.hpp"
-#include "vertex/config/type_traits.hpp"
 #include "vertex/std/error/fatal.hpp"
 #include "vertex/std/memory/_priv/memory_base.hpp"
+#include "vertex/std/type_traits.hpp"
+#include "vertex/std/util.hpp"
 
 namespace vx {
 namespace mem {
@@ -296,26 +295,26 @@ inline void deallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexce
 template <typename T, typename... Args>
 void construct_in_place(T* ptr, Args&&... args)
 {
-    VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
+    VX_IF_CONSTEXPR (sizeof...(Args) == 0 && traits::is_trivially_default_constructible<T>::value)
     {
         ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T;
     }
     else
     {
-        ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T(std::forward<Args>(args)...);
+        ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T(vx::forward<Args>(args)...);
     }
 }
 
 template <typename T, typename... Args>
 void construct_in_place_maybe_trivial(T* ptr, Args&&... args)
 {
-    VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
+    VX_IF_CONSTEXPR (sizeof...(Args) == 0 && traits::is_trivially_default_constructible<T>::value)
     {
         ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T;
     }
     else
     {
-        construct_in_place(ptr, std::forward<Args>(args)...);
+        construct_in_place(ptr, vx::forward<Args>(args)...);
     }
 }
 
@@ -339,7 +338,7 @@ VX_ALLOCATOR VX_NO_DISCARD T* construct(Args&&... args)
     }
 
     T* ptr = static_cast<T*>(raw_ptr);
-    construct_in_place(ptr, std::forward<Args>(args)...);
+    construct_in_place(ptr, vx::forward<Args>(args)...);
     return ptr;
 }
 
@@ -350,7 +349,7 @@ VX_ALLOCATOR VX_NO_DISCARD T* construct(Args&&... args)
 template <typename T>
 void destroy_in_place(T* ptr)
 {
-    VX_IF_CONSTEXPR (!std::is_trivially_destructible<T>::value)
+    VX_IF_CONSTEXPR (!traits::is_trivially_destructible<T>::value)
     {
         ptr->~T();
     }

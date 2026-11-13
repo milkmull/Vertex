@@ -1,7 +1,6 @@
 #pragma once
 
 #include "vertex/config/language.hpp"
-#include "vertex/config/util.hpp"
 
 // https://www.boost.org/doc/libs/1_55_0/libs/predef/doc/html/predef/reference/boost_comp_compiler_macros.html
 // https://github.com/boostorg/predef/blob/e1211a4ca467bb6512e99025772ca25afa8d6159/include/boost/predef/compiler.h

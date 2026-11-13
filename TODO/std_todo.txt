@@ -2,9 +2,11 @@ std testing and finishing:
 
 base utils:
 - type traits
-- memory
+x memory
+x allocator
 x utf
 x iterator
+- algorithm
 - char traits
 - char utils
 - error
@@ -15,10 +17,7 @@ tools:
 - expected
 - bit
 - endian
-- algorithm
 - defer
-- char traits
-- char utils
 
 memory:
 - unique ptr
@@ -30,8 +29,7 @@ string:
 - string view
 - cstring view
 - string utils
-- native string
-- string cast
+- temporary string
 
 std:
 - array

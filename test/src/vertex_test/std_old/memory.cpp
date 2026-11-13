@@ -22,6 +22,7 @@
 #include "vertex_test/test.hpp"
 
 using vx::test::movable_int;
+using vx::test::over_aligned;
 
 namespace {
 
@@ -94,12 +95,6 @@ struct tracked
     }
 };
 
-// not trivially default constructible (NSDMI), so zero-arg construction is value-initialized
-struct alignas(64) over_aligned
-{
-    int x = 3;
-};
-
 struct with_default
 {
     int x = 5;
@@ -140,7 +135,7 @@ VX_TEST_CASE(mem_array_helpers)
     VX_STATIC_CHECK(vx::mem::literal_size("") == 0);
     VX_STATIC_CHECK(vx::mem::literal_size(L"abc") == 3);
 
-    const std::size_t max = std::numeric_limits<std::size_t>::max();
+    constexpr std::size_t max = std::numeric_limits<std::size_t>::max();
     VX_STATIC_CHECK(vx::mem::max_array_size<char>() == max);
     VX_STATIC_CHECK(vx::mem::max_array_size<int>() == max / sizeof(int));
     VX_STATIC_CHECK(vx::mem::max_array_size<std::int64_t>() == max / sizeof(std::int64_t));

@@ -18,11 +18,11 @@ class reverse_iterator
 public:
 
     using iterator_type = IT;
-    using iterator_category = typename std::iterator_traits<IT>::iterator_category;
-    using value_type = typename std::iterator_traits<IT>::value_type;
-    using difference_type = typename std::iterator_traits<IT>::difference_type;
-    using pointer = typename std::iterator_traits<IT>::pointer;
-    using reference = typename std::iterator_traits<IT>::reference;
+    using iterator_category = typename traits::iterator_traits<IT>::iterator_category;
+    using value_type = typename traits::iterator_traits<IT>::value_type;
+    using difference_type = typename traits::iterator_traits<IT>::difference_type;
+    using pointer = typename traits::iterator_traits<IT>::pointer;
+    using reference = typename traits::iterator_traits<IT>::reference;
 
     reverse_iterator() = default;
 
@@ -55,7 +55,7 @@ public:
 
     pointer operator->() const
     {
-        return std::addressof(operator*());
+        return vx::addressof(operator*());
     }
 
     reference operator[](difference_type n) const
@@ -196,7 +196,7 @@ public:
     using difference_type = ptrdiff_t;
 
     constexpr explicit back_insert_iterator(T& c) noexcept
-        : m_container(std::addressof(c))
+        : m_container(vx::addressof(c))
     {}
 
     constexpr back_insert_iterator& operator=(const typename T::value_type& v)
@@ -207,7 +207,7 @@ public:
 
     constexpr back_insert_iterator& operator=(typename T::value_type&& v)
     {
-        m_container->push_back(std::move(v));
+        m_container->push_back(vx::move(v));
         return *this;
     }
 
@@ -247,9 +247,9 @@ class move_iterator
 public:
 
     using iterator_type = IT;
-    using iterator_category = typename std::iterator_traits<IT>::iterator_category;
-    using value_type = typename std::iterator_traits<IT>::value_type;
-    using difference_type = typename std::iterator_traits<IT>::difference_type;
+    using iterator_category = typename traits::iterator_traits<IT>::iterator_category;
+    using value_type = typename traits::iterator_traits<IT>::value_type;
+    using difference_type = typename traits::iterator_traits<IT>::difference_type;
     using pointer = IT;
     using reference = value_type&&;
 
@@ -408,7 +408,7 @@ template <typename IT1, typename IT2>
 constexpr bool assert_valid_iterator_range(const IT1& first, const IT2& last)
 {
     VX_IF_CONSTEXPR (
-        (std::is_pointer<IT1>::value && std::is_pointer<IT2>::value) ||
+        (traits::is_pointer<IT1>::value && traits::is_pointer<IT2>::value) ||
         (is_pointer_iterator<IT1>::value && is_pointer_iterator<IT2>::value))
     {
         // transposed pointer range
@@ -431,70 +431,13 @@ constexpr bool assert_valid_iterator_range(const IT1& first, const IT2& last)
 // distance
 //==============================================================================
 
-namespace _priv {
-
-template <typename IT>
-constexpr auto distance_impl(IT first, IT last) -> typename std::iterator_traits<IT>::difference_type
-{
-    using difference_type = typename std::iterator_traits<IT>::difference_type;
-    constexpr bool is_random_access = std::is_same<typename type_traits::iterator_cat<IT>::type, std::random_access_iterator_tag>::value;
-
-    VX_IF_CONSTEXPR (is_random_access)
-    {
-        return last - first;
-    }
-    else
-    {
-        difference_type n = 0;
-
-        for (; first != last; ++first)
-        {
-            ++n;
-        }
-
-        return n;
-    }
-}
-
-} // namespace _priv
-
-template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-constexpr typename std::iterator_traits<IT>::difference_type distance(IT first, IT last)
-{
-    VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
-    return _priv::distance_impl(first, last);
-}
+using std::distance;
 
 //==============================================================================
 // next
 //==============================================================================
 
-namespace _priv {
-
-template <typename IT, VX_REQUIRES(std::is_same<typename type_traits::iterator_cat<IT>::type, std::random_access_iterator_tag>::value)>
-constexpr IT next_impl(IT it, typename std::iterator_traits<IT>::difference_type n)
-{
-    return it + n;
-}
-
-template <typename IT>
-constexpr IT next_impl(IT it, typename std::iterator_traits<IT>::difference_type n)
-{
-    for (; 0 < n; --n)
-    {
-        ++it;
-    }
-
-    return it;
-}
-
-} // namespace _priv
-
-template <typename IT>
-constexpr IT next(IT it, typename std::iterator_traits<IT>::difference_type n = 1)
-{
-    return _priv::next_impl(it, n);
-}
+using std::next;
 
 //==============================================================================
 // iter swap

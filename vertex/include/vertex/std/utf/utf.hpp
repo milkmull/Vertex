@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cstdint>
-#include <limits>
 
 #include "vertex/config/assert.hpp"
 #include "vertex/config/language_config.hpp"
+#include "vertex/std/limits.hpp"
 
 #if defined(max)
     #undef max
@@ -24,7 +24,7 @@ enum : code_point
 
 enum : size_t
 {
-    invalid_trail_count = std::numeric_limits<size_t>::max()
+    invalid_trail_count = vx::numeric_limits<size_t>::max()
 };
 
 /**

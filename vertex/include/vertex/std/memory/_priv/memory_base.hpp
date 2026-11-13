@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstring>
-#include <limits>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/std/limits.hpp"
 
 #if defined(min)
     #undef min
@@ -36,7 +36,7 @@ constexpr size_t literal_size(const T (&)[N]) noexcept
 template <typename T>
 constexpr size_t max_array_size() noexcept
 {
-    return std::numeric_limits<size_t>::max() / sizeof(T);
+    return vx::numeric_limits<size_t>::max() / sizeof(T);
 }
 
 //=========================================================================

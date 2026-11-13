@@ -2,7 +2,8 @@
 
 #include <iterator>
 
-#include "vertex/config/type_traits.hpp"
+#include "vertex/std/type_traits.hpp"
+#include "vertex/std/util.hpp"
 
 namespace vx {
 namespace _priv {
@@ -18,15 +19,15 @@ class reverse_pointer_iterator;
 //==============================================================================
 
 template <typename>
-struct is_pointer_iterator_impl : std::false_type
+struct is_pointer_iterator_impl : traits::false_type
 {};
 
 template <typename Owner, typename T>
-struct is_pointer_iterator_impl<pointer_iterator<Owner, T>> : std::true_type
+struct is_pointer_iterator_impl<pointer_iterator<Owner, T>> : traits::true_type
 {};
 
 template <typename IT>
-struct is_pointer_iterator_impl<reverse_pointer_iterator<IT>> : std::true_type
+struct is_pointer_iterator_impl<reverse_pointer_iterator<IT>> : traits::true_type
 {};
 
 template <typename IT>
@@ -36,11 +37,11 @@ struct is_pointer_iterator : is_pointer_iterator_impl<VX_STRIP_T(IT)>
 //==============================================================================
 
 template <typename>
-struct is_forward_pointer_iterator_impl : std::false_type
+struct is_forward_pointer_iterator_impl : traits::false_type
 {};
 
 template <typename Owner, typename T>
-struct is_forward_pointer_iterator_impl<pointer_iterator<Owner, T>> : std::true_type
+struct is_forward_pointer_iterator_impl<pointer_iterator<Owner, T>> : traits::true_type
 {};
 
 template <typename IT>
@@ -50,11 +51,11 @@ struct is_forward_pointer_iterator : is_forward_pointer_iterator_impl<VX_STRIP_T
 //==============================================================================
 
 template <typename>
-struct is_reverse_pointer_iterator_impl : std::false_type
+struct is_reverse_pointer_iterator_impl : traits::false_type
 {};
 
 template <typename IT>
-struct is_reverse_pointer_iterator_impl<reverse_pointer_iterator<IT>> : std::true_type
+struct is_reverse_pointer_iterator_impl<reverse_pointer_iterator<IT>> : traits::true_type
 {};
 
 template <typename IT>
@@ -64,11 +65,11 @@ struct is_reverse_pointer_iterator : is_reverse_pointer_iterator_impl<VX_STRIP_T
 //==============================================================================
 
 template <typename, typename>
-struct is_my_pointer_iterator_impl : std::false_type
+struct is_my_pointer_iterator_impl : traits::false_type
 {};
 
 template <typename Owner1, typename T, typename Owner2>
-struct is_my_pointer_iterator_impl<pointer_iterator<Owner1, T>, Owner2> : std::is_same<Owner1, Owner2>
+struct is_my_pointer_iterator_impl<pointer_iterator<Owner1, T>, Owner2> : traits::is_same<Owner1, Owner2>
 {};
 
 template <typename IT, typename Owner>
@@ -78,11 +79,11 @@ struct is_my_pointer_iterator : is_my_pointer_iterator_impl<VX_STRIP_T(IT), Owne
 //==============================================================================
 
 template <typename, typename>
-struct is_forward_pointer_iterator_of_impl : std::false_type
+struct is_forward_pointer_iterator_of_impl : traits::false_type
 {};
 
 template <typename Owner, typename T, typename U>
-struct is_forward_pointer_iterator_of_impl<pointer_iterator<Owner, T>, U> : std::is_same<typename std::remove_cv<T>::type, U>
+struct is_forward_pointer_iterator_of_impl<pointer_iterator<Owner, T>, U> : traits::is_same<typename traits::remove_cv<T>::type, U>
 {};
 
 template <typename IT, typename T>
@@ -92,12 +93,12 @@ struct is_forward_pointer_iterator_of : is_forward_pointer_iterator_of_impl<VX_S
 //==============================================================================
 
 template <typename IT1, typename IT2>
-struct is_compatible_pointer_iterator : std::false_type
+struct is_compatible_pointer_iterator : traits::false_type
 {};
 
 template <typename Owner, typename T1, typename T2>
 struct is_compatible_pointer_iterator<pointer_iterator<Owner, T1>, pointer_iterator<Owner, T2>> :
-    std::is_convertible<typename std::remove_cv<T1>::type (*)[], typename std::remove_cv<T2>::type (*)[]>
+    traits::is_convertible<typename traits::remove_cv<T1>::type (*)[], typename traits::remove_cv<T2>::type (*)[]>
 {};
 
 template <typename IT1, typename IT2>
@@ -218,7 +219,7 @@ public:
         : base(p)
     {}
 
-    template <typename U, VX_REQUIRES((std::is_convertible<U*, T*>::value))>
+    template <typename U, VX_REQUIRES((traits::is_convertible<U*, T*>::value))>
     pointer_iterator(const pointer_iterator<Owner, U>& other) noexcept
         : base(other.ptr())
     {}
@@ -327,7 +328,7 @@ public:
 
     pointer operator->() const noexcept
     {
-        return std::addressof(operator*());
+        return vx::addressof(operator*());
     }
 
     reverse_pointer_iterator_base& operator++() noexcept
@@ -404,7 +405,7 @@ public:
         : base(base_it(it.ptr()))
     {}
 
-    template <typename IT2, VX_REQUIRES((std::is_convertible<IT2, IT>::value))>
+    template <typename IT2, VX_REQUIRES((traits::is_convertible<IT2, IT>::value))>
     reverse_pointer_iterator(const reverse_pointer_iterator<IT2>& other) noexcept
         : base(base_it(other.ptr()))
     {}

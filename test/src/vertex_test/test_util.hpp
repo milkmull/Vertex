@@ -345,5 +345,20 @@ public:
     }
 };
 
+//=============================================================================
+// over-aligned type
+//=============================================================================
+
+VX_DISABLE_MSVC_WARNING_PUSH()
+VX_DISABLE_MSVC_WARNING(4324) // padding added from explicit alignment
+
+// not trivially default constructible (NSDMI), so zero-arg construction is value-initialized
+struct alignas(64) over_aligned
+{
+    int x = 3;
+};
+
+VX_DISABLE_WARNING_POP()
+
 } // namespace test
 } // namespace vx

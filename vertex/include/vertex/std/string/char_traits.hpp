@@ -5,11 +5,11 @@
 
 #include "vertex/config/feature_detection.hpp"
 #include "vertex/config/type_traits.hpp"
-#include "vertex/std/_memory/memory_base.hpp"
 #include "vertex/std/_simd/simd_algorithms.hpp"
 #include "vertex/std/algorithm.hpp"
 #include "vertex/std/crypto/fnv1a.hpp"
 #include "vertex/std/hash.hpp"
+#include "vertex/std/memory/_priv/memory_base.hpp"
 
 namespace vx {
 namespace str {

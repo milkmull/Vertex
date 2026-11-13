@@ -3,10 +3,13 @@
 # std Tests
 #--------------------------------------------------------------------
 
-vx_add_test(test_std_utf                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/utf.cpp")
-vx_add_test(test_std_iterator                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/iterator.cpp")
-vx_add_test(test_std_memory                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/memory.cpp")
-vx_add_test(test_std_char                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/char.cpp")
+vx_add_test(test_std_utf                 "std/utf" "${CMAKE_CURRENT_SOURCE_DIR}/utf/utf.cpp")
+vx_add_test(test_std_iterator                 "std/iterator" "${CMAKE_CURRENT_SOURCE_DIR}/iterator/iterator.cpp")
+
+vx_add_test(test_std_memory                 "std/memory" "${CMAKE_CURRENT_SOURCE_DIR}/memory/memory.cpp")
+vx_add_test(test_std_allocator                 "std/memory" "${CMAKE_CURRENT_SOURCE_DIR}/memory/allocator.cpp")
+
+#vx_add_test(test_std_char_traits                 "std/string" "${CMAKE_CURRENT_SOURCE_DIR}/string/char_traits.cpp")
 
 
 

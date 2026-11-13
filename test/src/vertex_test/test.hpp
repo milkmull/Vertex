@@ -167,6 +167,19 @@ inline void check_failed(bool fatal, const char* file, int line, const std::stri
     }
 }
 
+// Non-fatal: records and returns.
+inline void check_failed_soft(const char* file, int line, const std::string& msg)
+{
+    test_runner::instance().record_failure(file, line, msg);
+}
+
+// Fatal: records and always throws. The analyzer knows control never returns.
+VX_NO_RETURN inline void check_failed_fatal(const char* file, int line, const std::string& msg)
+{
+    test_runner::instance().record_failure(file, line, msg);
+    throw test_failure{};
+}
+
 template <typename... Args>
 void message(Args&&... args)
 {
@@ -191,7 +204,7 @@ struct registrar
 #define VX_TEST_CASE(name) \
     static void name(); \
     namespace { \
-    [[maybe_unused]] const ::vx::test::registrar name##_registrar_(#name, name); \
+    VX_MAYBE_UNUSED const ::vx::test::registrar name##_registrar_(#name, name); \
     } \
     static void name()
 
@@ -220,8 +233,19 @@ struct registrar
             ::vx::test::_priv::check_failed(fatal, __FILE__, __LINE__, "Check failed: " #__VA_ARGS__); \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
-#define VX_CHECK(...)      VX_DETAIL_CHECK(true, __VA_ARGS__)  // fatal: aborts the test
-#define VX_SOFT_CHECK(...) VX_DETAIL_CHECK(false, __VA_ARGS__) // records failure, keeps going
+#define VX_CHECK(...) \
+    do \
+    { \
+        if (!(__VA_ARGS__)) \
+            ::vx::test::_priv::check_failed_fatal(__FILE__, __LINE__, "Check failed: " #__VA_ARGS__); \
+    } while (VX_NULL_WHILE_LOOP_CONDITION)
+
+#define VX_SOFT_CHECK(...) \
+    do \
+    { \
+        if (!(__VA_ARGS__)) \
+            ::vx::test::_priv::check_failed_soft(__FILE__, __LINE__, "Check failed: " #__VA_ARGS__); \
+    } while (VX_NULL_WHILE_LOOP_CONDITION)
 
 #define VX_STATIC_CHECK(...) static_assert((__VA_ARGS__), "Static check failed: " #__VA_ARGS__)
 

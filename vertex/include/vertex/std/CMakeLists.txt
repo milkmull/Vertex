@@ -2,7 +2,12 @@
 file(GLOB_RECURSE VX_STD_HEADER_FILES CONFIGURE_DEPENDS
 
     # Base utilities
+    "${CMAKE_CURRENT_SOURCE_DIR}/type_traits.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/limits.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/util.hpp"
+
+    # Algorithm
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/algorithm.hpp"
 
     # Error
     "${CMAKE_CURRENT_SOURCE_DIR}/error/error_defs.hpp"

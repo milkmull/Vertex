@@ -16,7 +16,7 @@ struct default_delete
 
     template <
         typename U,
-        VX_REQUIRES(std::is_convertible<U*, T*>::value)>
+        VX_REQUIRES(traits::is_convertible<U*, T*>::value)>
     default_delete(const default_delete<U>&) noexcept
     {}
 
@@ -37,7 +37,7 @@ struct default_delete<T[]>
 
     template <
         typename U,
-        VX_REQUIRES(std::is_convertible<U (*)[], T (*)[]>::value)>
+        VX_REQUIRES(traits::is_convertible<U (*)[], T (*)[]>::value)>
     default_delete(const default_delete<U[]>&) noexcept
     {}
 

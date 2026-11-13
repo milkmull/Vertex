@@ -1,11 +1,16 @@
 #pragma once
 
 #include <cstdlib>
-#include <utility>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/config/os.hpp"
 #include "vertex/os/error_code.hpp"
 #include "vertex/os/stream.hpp"
+
+// for __fastfail on windows
+#if defined(_MSC_VER)
+    #include <intrin.h>
+#endif
 
 namespace vx {
 namespace err {
@@ -77,15 +82,6 @@ VX_NO_RETURN inline void unreachable() noexcept
 //=============================================================================
 // error macros
 //=============================================================================
-
-#define VX_ERR_PRINT(msg) \
-    ::vx::err::safe_print((msg), ::vx::mem::literal_size(msg))
-
-//========================================
-// fatal errors: format and print directly, bypassing thread-local error
-// state entirely, since the process is about to trap/terminate and there is
-// no caller left to later inspect err::get() / err::get_message().
-//========================================
 
 #if (defined(VX_DEBUG) && VX_DEBUG) || defined(VX_ERR_ENABLE_FATAL_PRINT)
 

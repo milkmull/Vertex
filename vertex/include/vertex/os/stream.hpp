@@ -1,9 +1,6 @@
 #pragma once
 
-#include "vertex/config/flags.hpp"
-#include "vertex/config/os.hpp"
 #include "vertex/os/handle.hpp"
-#include "vertex/os/native_string.hpp"
 #include "vertex/std/error/error_code.hpp"
 
 namespace vx {

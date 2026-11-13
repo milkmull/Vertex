@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-
 #include "vertex/config/os.hpp"
 
 namespace vx {
