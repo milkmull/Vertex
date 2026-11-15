@@ -173,6 +173,10 @@ template <typename T, typename... Types>
 struct is_any_of : disjunction<std::is_same<T, Types>...>
 {};
 
+template <typename T, typename... Types>
+struct is_all_of : conjunction<std::is_same<T, Types>...>
+{};
+
 //==============================================================================
 // 5. type categories
 //==============================================================================

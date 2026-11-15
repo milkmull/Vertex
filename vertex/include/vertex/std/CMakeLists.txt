@@ -7,6 +7,8 @@ file(GLOB_RECURSE VX_STD_HEADER_FILES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/util.hpp"
 
     # Algorithm
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/functional.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/memory_range.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/algorithm.hpp"
 
     # Error

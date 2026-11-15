@@ -1,11 +1,12 @@
 std testing and finishing:
 
 base utils:
-- type traits
+x type traits
 x memory
 x allocator
 x utf
 x iterator
+- hash
 - algorithm
 - char traits
 - char utils

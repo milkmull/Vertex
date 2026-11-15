@@ -4,7 +4,7 @@
 #include <wchar.h>
 
 #include "vertex/config/feature_detection.hpp"
-#include "vertex/config/type_traits.hpp"
+#include "vertex/std/type_traits.hpp"
 #include "vertex/std/_simd/simd_algorithms.hpp"
 #include "vertex/std/algorithm.hpp"
 #include "vertex/std/crypto/fnv1a.hpp"

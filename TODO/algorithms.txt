@@ -1,0 +1,85 @@
+0. Foundations (traits.hpp, util.hpp, functional.hpp)
+
+x less<>, swap, distance, iterator and random_access_iterator traits, value_type
+x greater<>, equal_to<>, identity (a projection functor, useful for sort_by_key)
+x advance, next, prev (tag dispatch or if constexpr)
+x exchange, as_rvalue, forward (your own versions, so you can drop the std::move calls)
+x pair (needed by minmax, equal_range, mismatch)
+x Debug-check macros: VX_ASSERT_VALID_RANGE, VX_ASSERT_SORTED, VX_ASSERT_NO_OVERLAP, VX_ASSERT_STRICT_WEAK (the last one is used by the sort family)
+
+1. Min / max / clamp
+
+x min, max (value, comparator and initializer_list forms), clamp
+x minmax (value and initializer_list)
+x min_element, max_element, minmax_element
+
+2. Memory and range primitives
+
+x construct, construct_maybe_trivial, destroy
+x fill, fill_uninitialized
+x copy, move, copy_or_move and their _uninitialized variants
+x copy_backward, move_backward, copy_or_move_backward
+x relocate, shift_forward, shift_backward and their _uninitialized variants
+x swap (count form, plus the iterator form that is effectively swap_ranges), iter_swap
+x fill_n, copy_n, move_n, destroy_n, copy_uninitialized_n
+
+3. Non-modifying queries
+
+x compare (three-way), lexicographical_compare
+x find, find_if, find_if_not
+x count, count_if
+x any_of, all_of, none_of
+x equal (reuse the memcmp dispatch from compare), mismatch
+x for_each, for_each_n
+x search, adjacent_find, find_first_of, find_end
+- is_permutation
+
+4. Modifying sequence operations
+
+x reverse (with SIMD path), rotate
+x transform (unary and binary), generate, generate_n
+x replace, replace_if
+x remove, remove_if, unique (plus predicate forms)
+x remove_copy, remove_copy_if, unique_copy, copy_if
+x reverse_copy, rotate_copy
+x shuffle (takes a caller-supplied RNG)
+
+5. Partitioning
+
+- is_partitioned, partition_point
+- partition
+- stable_partition (needs a temp buffer; share the strategy with stable_sort)
+
+6. Heap and sorting
+
+- Internal: sift_up, sift_down, insertion_sort, unguarded_insertion_sort, median_of_3
+- make_heap, push_heap, pop_heap, sort_heap
+- is_sorted
+- partial_sort (heap-based)
+- nth_element (introselect, with a heap fallback)
+- sort (pdqsort or introsort, with insertion sort below about 16 elements)
+- merge, inplace_merge
+- stable_sort (merge sort with a buffer; benefits from inplace_merge)
+
+7. Binary search
+
+- lower_bound, upper_bound, equal_range, binary_search
+Write lower_bound first, since partition_point and the other three build on it.
+
+8. Set operations on sorted ranges
+
+- set_union, set_intersection, set_difference
+
+9. Permutations
+
+- next_permutation, prev_permutation. I listed prev_permutation in both Tier 2 and Tier 3 last time. It’s a trivial mirror of next_permutation, so do both or neither.
+
+10. Numeric (<numeric>)
+
+- accumulate, iota, inner_product, partial_sum
+- reduce, transform_reduce, inclusive_scan, exclusive_scan (no execution policies)
+
+11. Engine extras (non-standard)
+
+- erase_unordered, contains, find_index
+- sort_by_key, radix_sort (integer and float keys), lower_bound_by_key
