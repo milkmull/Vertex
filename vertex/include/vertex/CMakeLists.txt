@@ -1,4 +1,5 @@
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/config")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/cpu")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/os")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/std")
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/system")

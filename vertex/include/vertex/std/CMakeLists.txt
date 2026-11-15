@@ -6,10 +6,29 @@ file(GLOB_RECURSE VX_STD_HEADER_FILES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/limits.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/util.hpp"
 
+    # Bit
+    "${CMAKE_CURRENT_SOURCE_DIR}/bit/bit.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/bit/endian.hpp"
+
     # Algorithm
-    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/functional.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/memory_range.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/algorithm.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/_priv/range_helpers.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/_priv/temp_buffer.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/minmax.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/lifetime.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/fill.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/copy_move.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/compare.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/search.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/transform.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/mutate.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/binary_search.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/partition.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/heap.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/sort.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/merge.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/set_ops.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/permutation.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithm/numeric.hpp"
 
     # Error
     "${CMAKE_CURRENT_SOURCE_DIR}/error/error_defs.hpp"
