@@ -358,7 +358,7 @@ struct alignas(64) over_aligned
     int x = 3;
 };
 
-VX_DISABLE_WARNING_POP()
+VX_DISABLE_MSVC_WARNING_POP()
 
 } // namespace test
 } // namespace vx

@@ -1,8 +1,6 @@
-﻿#include "vertex/std/path.hpp"
+﻿#include <atomic>
 
 int main()
 {
-    vx::path p;
-
     return 0;
 }

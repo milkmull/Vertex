@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vertex/std/_simd/simd_algorithms.hpp"
+#include "vertex/std/algorithm/_priv/range_helpers.hpp"
 #include "vertex/std/iterator/iterator.hpp"
 #include "vertex/std/memory/_priv/memory_core.hpp"
 #include "vertex/std/type_traits.hpp"

@@ -1,10 +1,8 @@
 #pragma once
 
-#include "vertex/std/_simd/simd_algorithms.hpp"
 #include "vertex/std/algorithm/functional.hpp"
 #include "vertex/std/iterator/iterator.hpp"
 #include "vertex/std/type_traits.hpp"
-#include "vertex/std/util.hpp"
 
 #ifdef min
     #undef min
@@ -14,7 +12,24 @@
 #endif
 
 namespace vx {
-namespace range {
+
+//=========================================================================
+// Result type
+//=========================================================================
+
+// Shared by the value and range APIs:
+//   minmax_result<const T&>  -> references to values   (vx::minmax)
+//   minmax_result<IT>        -> iterators / pointers   (vx::range::minmax)
+template <typename T>
+struct minmax_result
+{
+    T min;
+    T max;
+};
+
+//=========================================================================
+// Scalar: min / max / minmax / clamp (two values)
+//=========================================================================
 
 template <typename T>
 constexpr const T& min(const T& a, const T& b) noexcept(noexcept(b < a))
@@ -41,22 +56,15 @@ constexpr const T& max(const T& a, const T& b, Compare comp) noexcept(noexcept(c
 }
 
 template <typename T>
-struct minmax_result
+constexpr minmax_result<const T&> minmax(const T& a, const T& b) noexcept(noexcept(b < a))
 {
-    const T& min;
-    const T& max;
-};
-
-template <typename T>
-constexpr minmax_result<T> minmax(const T& a, const T& b) noexcept(noexcept(b < a))
-{
-    return (b < a) ? minmax_result<T>{ b, a } : minmax_result<T>{ a, b };
+    return (b < a) ? minmax_result<const T&>{ b, a } : minmax_result<const T&>{ a, b };
 }
 
 template <typename T, typename Compare>
-constexpr minmax_result<T> minmax(const T& a, const T& b, Compare comp) noexcept(noexcept(comp(b, a)))
+constexpr minmax_result<const T&> minmax(const T& a, const T& b, Compare comp) noexcept(noexcept(comp(b, a)))
 {
-    return comp(b, a) ? minmax_result<T>{ b, a } : minmax_result<T>{ a, b };
+    return comp(b, a) ? minmax_result<const T&>{ b, a } : minmax_result<const T&>{ a, b };
 }
 
 template <typename T>
@@ -66,7 +74,7 @@ constexpr const T& clamp(const T& value, const T& low, const T& high) noexcept(n
 }
 
 template <typename T, typename Compare>
-constexpr const T& clamp(const T& value, const T& low, const T& high, Compare comp)
+constexpr const T& clamp(const T& value, const T& low, const T& high, Compare comp) noexcept(noexcept(comp(value, low)) && noexcept(comp(high, value)))
 {
     return comp(value, low) ? low : (comp(high, value) ? high : value);
 }
@@ -74,14 +82,17 @@ constexpr const T& clamp(const T& value, const T& low, const T& high, Compare co
 namespace range {
 
 //=========================================================================
-// extrema over ranges
+// Iterator-based: min / max / minmax
+// (return iterators; `last` if the range is empty)
 //=========================================================================
+
+// ---- min ----------------------------------------------------------------
 
 // Returns the first smallest element, or last if the range is empty.
 // (Starts at `first`, so the first iteration compares an element with itself:
 // one extra comparison, but no empty-range branch and no deref of `last`.)
 template <typename IT, typename Compare, VX_REQUIRES(traits::is_iterator<IT>::value)>
-constexpr IT min_element(IT first, IT last, Compare comp)
+constexpr IT min(IT first, IT last, Compare comp)
 {
     VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
     IT result = first;
@@ -98,44 +109,16 @@ constexpr IT min_element(IT first, IT last, Compare comp)
 }
 
 template <typename IT, VX_REQUIRES(traits::is_iterator<IT>::value)>
-constexpr IT min_element(IT first, IT last)
+constexpr IT min(IT first, IT last)
 {
-    return range::min_element(first, last, vx::less<>{});
+    return range::min(first, last, vx::less<>{});
 }
 
-// pointer + count: returns ptr + count if the range is empty
-template <typename T, typename Compare>
-constexpr const T* min_element(const T* ptr, size_t count, Compare comp)
-{
-    return range::min_element(ptr, ptr + count, comp);
-}
-
-template <typename T>
-constexpr const T* min_element(const T* ptr, size_t count)
-{
-    return range::min_element(ptr, ptr + count, vx::less<>{});
-}
-
-// value of the smallest element. The range must not be empty.
-template <typename T, typename Compare>
-constexpr const T& min(const T* ptr, size_t count, Compare comp)
-{
-    VX_ASSERT(count != 0);
-    return *range::min_element(ptr, ptr + count, comp);
-}
-
-template <typename T>
-constexpr const T& min(const T* ptr, size_t count)
-{
-    VX_ASSERT(count != 0);
-    return *range::min_element(ptr, ptr + count, vx::less<>{});
-}
-
-//=========================================================================
+// ---- max ----------------------------------------------------------------
 
 // Returns the first largest element, or last if the range is empty.
 template <typename IT, typename Compare, VX_REQUIRES(traits::is_iterator<IT>::value)>
-constexpr IT max_element(IT first, IT last, Compare comp)
+constexpr IT max(IT first, IT last, Compare comp)
 {
     VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
     IT result = first;
@@ -152,50 +135,18 @@ constexpr IT max_element(IT first, IT last, Compare comp)
 }
 
 template <typename IT, VX_REQUIRES(traits::is_iterator<IT>::value)>
-constexpr IT max_element(IT first, IT last)
+constexpr IT max(IT first, IT last)
 {
-    return range::max_element(first, last, vx::less<>{});
+    return range::max(first, last, vx::less<>{});
 }
 
-template <typename T, typename Compare>
-constexpr const T* max_element(const T* ptr, size_t count, Compare comp)
-{
-    return range::max_element(ptr, ptr + count, comp);
-}
-
-template <typename T>
-constexpr const T* max_element(const T* ptr, size_t count)
-{
-    return range::max_element(ptr, ptr + count, vx::less<>{});
-}
-
-template <typename T, typename Compare>
-constexpr const T& max(const T* ptr, size_t count, Compare comp)
-{
-    VX_ASSERT(count != 0);
-    return *range::max_element(ptr, ptr + count, comp);
-}
-
-template <typename T>
-constexpr const T& max(const T* ptr, size_t count)
-{
-    VX_ASSERT(count != 0);
-    return *range::max_element(ptr, ptr + count, vx::less<>{});
-}
-
-//=========================================================================
-
-template <typename IT>
-struct minmax_element_result
-{
-    IT min;
-    IT max;
-};
+// ---- minmax -------------------------------------------------------------
 
 // First smallest, LAST largest (same as std::minmax_element).
+// Returns {last, last} if the range is empty.
 // Processes elements in pairs: ~1.5 comparisons per element.
 template <typename IT, typename Compare, VX_REQUIRES(traits::is_iterator<IT>::value)>
-constexpr minmax_element_result<IT> minmax_element(IT first, IT last, Compare comp)
+constexpr minmax_result<IT> minmax(IT first, IT last, Compare comp)
 {
     VX_PRIV_ASSERT_VALID_ITER_RANGE(first, last);
 
@@ -277,81 +228,51 @@ constexpr minmax_element_result<IT> minmax_element(IT first, IT last, Compare co
 }
 
 template <typename IT, VX_REQUIRES(traits::is_iterator<IT>::value)>
-constexpr minmax_element_result<IT> minmax_element(IT first, IT last)
+constexpr minmax_result<IT> minmax(IT first, IT last)
 {
-    return range::minmax_element(first, last, vx::less<>{});
-}
-
-// pointer + count: returns {ptr + count, ptr + count} if the range is empty
-template <typename T, typename Compare>
-constexpr minmax_element_result<const T*> minmax_element(const T* ptr, size_t count, Compare comp)
-{
-    return range::minmax_element(ptr, ptr + count, comp);
-}
-
-template <typename T>
-constexpr minmax_element_result<const T*> minmax_element(const T* ptr, size_t count)
-{
-    return range::minmax_element(ptr, ptr + count, vx::less<>{});
-}
-
-// References to the smallest and largest elements. The range must not be empty.
-template <typename T, typename Compare>
-constexpr minmax_result<T> minmax(const T* ptr, size_t count, Compare comp)
-{
-    VX_ASSERT(count != 0);
-    const minmax_element_result<const T*> r = range::minmax_element(ptr, ptr + count, comp);
-    return { *r.min, *r.max };
-}
-
-template <typename T>
-constexpr minmax_result<T> minmax(const T* ptr, size_t count)
-{
-    return range::minmax(ptr, count, vx::less<>{});
+    return range::minmax(first, last, vx::less<>{});
 }
 
 //=========================================================================
-// min / max / minmax for initializer_list (value forms, non-empty)
+// Pointer + count
+// (return pointers; ptr + count if the range is empty)
 //=========================================================================
 
 template <typename T, typename Compare>
-constexpr T min(std::initializer_list<T> il, Compare comp)
+constexpr const T* min(const T* ptr, size_t count, Compare comp)
 {
-    VX_ASSERT(il.size() != 0);
-    return *range::min_element(il.begin(), il.end(), comp);
+    return range::min(ptr, ptr + count, comp);
 }
 
 template <typename T>
-constexpr T min(std::initializer_list<T> il)
+constexpr const T* min(const T* ptr, size_t count)
 {
-    return vx::min(il, vx::less<>{});
+    return range::min(ptr, ptr + count, vx::less<>{});
 }
 
 template <typename T, typename Compare>
-constexpr T max(std::initializer_list<T> il, Compare comp)
+constexpr const T* max(const T* ptr, size_t count, Compare comp)
 {
-    VX_ASSERT(il.size() != 0);
-    return *range::max_element(il.begin(), il.end(), comp);
+    return range::max(ptr, ptr + count, comp);
 }
 
 template <typename T>
-constexpr T max(std::initializer_list<T> il)
+constexpr const T* max(const T* ptr, size_t count)
 {
-    return vx::max(il, vx::less<>{});
+    return range::max(ptr, ptr + count, vx::less<>{});
 }
 
 template <typename T, typename Compare>
-constexpr vx::pair<T, T> minmax(std::initializer_list<T> il, Compare comp)
+constexpr minmax_result<const T*> minmax(const T* ptr, size_t count, Compare comp)
 {
-    VX_ASSERT(il.size() != 0);
-    const auto r = range::minmax_element(il.begin(), il.end(), comp);
-    return vx::pair<T, T>(*r.min, *r.max);
+    return range::minmax(ptr, ptr + count, comp);
 }
 
 template <typename T>
-constexpr vx::pair<T, T> minmax(std::initializer_list<T> il)
+constexpr minmax_result<const T*> minmax(const T* ptr, size_t count)
 {
-    return vx::minmax(il, vx::less<>{});
+    return range::minmax(ptr, ptr + count, vx::less<>{});
 }
 
+} // namespace range
 } // namespace vx

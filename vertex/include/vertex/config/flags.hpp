@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/config/language_config.hpp"
+#include "vertex/config/warnings.hpp"
 
 //=============================================================================
 // scoped flag enum

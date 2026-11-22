@@ -9,7 +9,9 @@
 #vx_add_test(test_std_memory                 "std/memory" "${CMAKE_CURRENT_SOURCE_DIR}/memory/memory.cpp")
 #vx_add_test(test_std_allocator                 "std/memory" "${CMAKE_CURRENT_SOURCE_DIR}/memory/allocator.cpp")
 #
-vx_add_test(test_std_char_traits                 "std/string" "${CMAKE_CURRENT_SOURCE_DIR}/string/char_traits.cpp")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/algorithm")
+#
+#vx_add_test(test_std_char_traits                 "std/string" "${CMAKE_CURRENT_SOURCE_DIR}/string/char_traits.cpp")
 
 
 

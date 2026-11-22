@@ -1,17 +1,55 @@
 #pragma once
 
+// Platform detection, derived from Boost.Predef
+// (https://github.com/boostorg/predef), Copyright Rene Rivera et al.
+// Distributed under the Boost Software License, Version 1.0.
+// (See http://www.boost.org/LICENSE_1_0.txt)
+//
+// Every VX_PLATFORM_* macro is either undefined (not detected) or defined to a
+// version number (VX_VERSION_NUMBER_AVAILABLE when no version can be
+// determined). Use `#if defined(VX_PLATFORM_X)` or `#if VX_PLATFORM_X`.
+//
+// A platform is a refinement of an OS (device vs. simulator, UWP vs. desktop,
+// ...). The OS macros come from os.hpp, so VX_OS_DISABLE_DETECTION also
+// switches off every OS-based platform below.
+//
+// Tags:
+//   VX_PLATFORM_ANDROID
+//   VX_PLATFORM_{IOS,TVOS,WATCHOS,VISIONOS}_{DEVICE,SIMULATOR}
+//   VX_PLATFORM_MINGW        any MinGW. Set together with one of:
+//   VX_PLATFORM_MINGW64      64-bit targets (__MINGW64__)
+//   VX_PLATFORM_MINGW32      32-bit targets only. A 32-bit mingw-w64 build
+//                            lands here, because it does not define __MINGW64__.
+//   VX_PLATFORM_WINDOWS_{DESKTOP,UWP,PHONE,SYSTEM,SERVER,STORE,RUNTIME}
+//                            from WINAPI_FAMILY. RUNTIME means phone or store;
+//                            UWP and STORE are both set for WINAPI_FAMILY_APP.
+//   VX_PLATFORM_WINDOWS_SDK_VERSION
+//                            Windows SDK build (VX_VERSION_NUMBER(0, 0, build)),
+//                            or VX_VERSION_NUMBER_NOT_AVAILABLE when there is
+//                            no ntverp.h (MinGW, WinCE, Wine).
+//   VX_PLATFORM_UNKNOWN      no tag above was set. This is normal on plain
+//                            Linux or macOS and is not an error.
+//
+// Notes:
+//   - Mac Catalyst is an iOS build (see os.hpp) and is reported as
+//     VX_PLATFORM_IOS_DEVICE.
+//   - Xbox GDK (WINAPI_FAMILY_GAMES) has no tag.
+//
+// Define VX_PLATFORM_DISABLE_DETECTION before including this header to skip
+// all detection (VX_PLATFORM_UNKNOWN is then defined).
+//
+// Requires from version_number.hpp:
+//   VX_VERSION_NUMBER, VX_VERSION_NUMBER_AVAILABLE,
+//   VX_VERSION_NUMBER_NOT_AVAILABLE
+
 #include "vertex/config/os.hpp"
 #include "vertex/config/version_number.hpp"
 
-// https://github.com/VXorg/predef/tree/e1211a4ca467bb6512e99025772ca25afa8d6159/include/VX/predef/platform
-
-#if !defined(VX_PLATFORM_DUMMY)
+#if !defined(VX_PLATFORM_DISABLE_DETECTION)
 
 //=============================================================================
 // android
 //=============================================================================
-
-// https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/android.h
 
     #if defined(__ANDROID__)
 
@@ -21,96 +59,95 @@
     #endif // android
 
 //=============================================================================
-// ios
+// ios, tvos, watchos, visionos (simulator vs. device)
 //=============================================================================
 
-// https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/ios.h
+// The OS macros come from os.hpp. TARGET_OS_SIMULATOR covers every Apple OS;
+// TARGET_IPHONE_SIMULATOR is the legacy iOS-only form for old SDKs.
 
-    #if defined(VX_OS_IOS)
-
-    // Detect version
+    #if defined(VX_OS_IOS) || defined(VX_OS_TVOS) || defined(VX_OS_WATCHOS) || defined(VX_OS_VISIONOS)
 
         #include <TargetConditionals.h>
 
-        #if (defined(TARGET_OS_SIMULATOR) && (TARGET_OS_SIMULATOR == 1) || \
-            defined(TARGET_IPHONE_SIMULATOR) && (TARGET_IPHONE_SIMULATOR == 1))
+        #if ((defined(TARGET_OS_SIMULATOR) && (TARGET_OS_SIMULATOR == 1)) || \
+            (defined(TARGET_IPHONE_SIMULATOR) && (TARGET_IPHONE_SIMULATOR == 1)))
 
-            #define VX_PLATFORM_IOS_SIMULATOR VX_VERSION_NUMBER_AVAILABLE
-
-        #else
-
-            #define VX_PLATFORM_IOS_DEVICE VX_VERSION_NUMBER_AVAILABLE
+            #define VX_PRIV_APPLE_SIMULATOR
 
         #endif
 
-    // Cleanup
+        #if defined(VX_OS_IOS)
 
+            #if defined(VX_PRIV_APPLE_SIMULATOR)
+                #define VX_PLATFORM_IOS_SIMULATOR VX_VERSION_NUMBER_AVAILABLE
+            #else
+                #define VX_PLATFORM_IOS_DEVICE VX_VERSION_NUMBER_AVAILABLE
+            #endif
+
+        #elif defined(VX_OS_TVOS)
+
+            #if defined(VX_PRIV_APPLE_SIMULATOR)
+                #define VX_PLATFORM_TVOS_SIMULATOR VX_VERSION_NUMBER_AVAILABLE
+            #else
+                #define VX_PLATFORM_TVOS_DEVICE VX_VERSION_NUMBER_AVAILABLE
+            #endif
+
+        #elif defined(VX_OS_WATCHOS)
+
+            #if defined(VX_PRIV_APPLE_SIMULATOR)
+                #define VX_PLATFORM_WATCHOS_SIMULATOR VX_VERSION_NUMBER_AVAILABLE
+            #else
+                #define VX_PLATFORM_WATCHOS_DEVICE VX_VERSION_NUMBER_AVAILABLE
+            #endif
+
+        #else // visionOS
+
+            #if defined(VX_PRIV_APPLE_SIMULATOR)
+                #define VX_PLATFORM_VISIONOS_SIMULATOR VX_VERSION_NUMBER_AVAILABLE
+            #else
+                #define VX_PLATFORM_VISIONOS_DEVICE VX_VERSION_NUMBER_AVAILABLE
+            #endif
+
+        #endif
+
+        #undef VX_PRIV_APPLE_SIMULATOR
         #define VX_PRIV_PLATFORM_DETECTED
 
-    #endif // ios
+    #endif // apple mobile
 
 //=============================================================================
 // mingw
 //=============================================================================
 
-// https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/mingw.h
-// https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/mingw32.h
-// https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/mingw64.h
+// mingw-w64 defines __MINGW32__ on both 32- and 64-bit targets, and also
+// __MINGW64__ on 64-bit targets. __MINGW64__ therefore takes priority.
+// VX_PLATFORM_MINGW is the general tag covering both variants.
 
     #if defined(__MINGW32__) || defined(__MINGW64__)
 
         #include <_mingw.h>
 
-    // MINGW32
-
-        #if defined(__MINGW32__)
-
-            #if defined(__MINGW32_VERSION_MAJOR) && defined(__MINGW32_VERSION_MINOR)
-                #define VX_PLATFORM_MINGW32_VERSION VX_VERSION_NUMBER(__MINGW32_VERSION_MAJOR, __MINGW32_VERSION_MINOR, 0)
-            #else
-                #define VX_PLATFORM_MINGW32_VERSION VX_VERSION_NUMBER_AVAILABLE
-            #endif
-
-            #if defined(VX_PRIV_PLATFORM_DETECTED)
-                #define VX_PLATFORM_MINGW32_EMULATED VX_PLATFORM_MINGW32_VERSION
-            #else
-                #define VX_PLATFORM_MINGW32 VX_PLATFORM_MINGW32_VERSION
-                #define VX_PRIV_PLATFORM_DETECTED
-            #endif
-
-            #undef VX_PLATFORM_MINGW32_VERSION
-
-        #endif // __MINGW32__
-
-    // MINGW64
+        #define VX_PLATFORM_MINGW VX_VERSION_NUMBER_AVAILABLE
 
         #if defined(__MINGW64__)
 
             #if defined(__MINGW64_VERSION_MAJOR) && defined(__MINGW64_VERSION_MINOR)
-                #define VX_PLATFORM_MINGW64_VERSION VX_VERSION_NUMBER(__MINGW64_VERSION_MAJOR, __MINGW64_VERSION_MINOR, 0)
+                #define VX_PLATFORM_MINGW64 VX_VERSION_NUMBER(__MINGW64_VERSION_MAJOR, __MINGW64_VERSION_MINOR, 0)
             #else
-                #define VX_PLATFORM_MINGW64_VERSION VX_VERSION_NUMBER_AVAILABLE
+                #define VX_PLATFORM_MINGW64 VX_VERSION_NUMBER_AVAILABLE
             #endif
 
-            #if defined(VX_PRIV_PLATFORM_DETECTED)
-                #define VX_PLATFORM_MINGW64_EMULATED VX_PLATFORM_MINGW64_VERSION
+        #else // __MINGW32__ only
+
+            #if defined(__MINGW32_VERSION_MAJOR) && defined(__MINGW32_VERSION_MINOR)
+                #define VX_PLATFORM_MINGW32 VX_VERSION_NUMBER(__MINGW32_VERSION_MAJOR, __MINGW32_VERSION_MINOR, 0)
             #else
-                #define VX_PLATFORM_MINGW64 VX_PLATFORM_MINGW64_VERSION
-                #define VX_PRIV_PLATFORM_DETECTED
+                #define VX_PLATFORM_MINGW32 VX_VERSION_NUMBER_AVAILABLE
             #endif
 
-            #undef VX_PLATFORM_MINGW64_VERSION
-
-        #endif // __MINGW64__
-
-    // General MinGW tag (used for grouping both variants)
-
-        #if defined(VX_PRIV_PLATFORM_DETECTED)
-            #define VX_PLATFORM_MINGW_EMULATED VX_PRIV_COMPILER_MSVC_DETECTION
-        #else
-            #define VX_PLATFORM_MINGW VX_PRIV_COMPILER_MSVC_DETECTION
-            #define VX_PRIV_PLATFORM_DETECTED
         #endif
+
+        #define VX_PRIV_PLATFORM_DETECTED
 
     #endif // mingw
 
@@ -120,8 +157,7 @@
 
     #if defined(VX_OS_WINDOWS)
 
-        //========================================
-        // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/windows_uwp.h
+    // Windows SDK version
 
         // MinGW (32-bit), WinCE, and wineg++ don't have a ntverp.h header
         #if !defined(__MINGW32__) && !defined(_WIN32_WCE) && !defined(__WINE__)
@@ -129,98 +165,107 @@
             #include <ntverp.h>
             #define VX_PLATFORM_WINDOWS_SDK_VERSION VX_VERSION_NUMBER(0, 0, VER_PRODUCTBUILD)
 
+        #else
+
+            #define VX_PLATFORM_WINDOWS_SDK_VERSION VX_VERSION_NUMBER_NOT_AVAILABLE
+
         #endif
 
-        // 9200 is Windows SDK 8.0 from ntverp.h which introduced family support
+    // WINAPI_FAMILY support
+
+        // 9200 is Windows SDK 8.0 from ntverp.h, which introduced family support
         #if ((VX_PLATFORM_WINDOWS_SDK_VERSION >= VX_VERSION_NUMBER(0, 0, 9200)) || \
-            (defined(__MINGW64__) && __MINGW64_VERSION_MAJOR >= 3))
+            (defined(__MINGW64__) && defined(__MINGW64_VERSION_MAJOR) && (__MINGW64_VERSION_MAJOR >= 3)))
+
+            #include <winapifamily.h>
+            #define VX_PRIV_WINAPI_FAMILY_SUPPORT
+
+        #endif
+
+    // UWP
+
+        #if defined(VX_PRIV_WINAPI_FAMILY_SUPPORT) && defined(WINAPI_FAMILY_APP) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)
 
             #define VX_PLATFORM_WINDOWS_UWP VX_VERSION_NUMBER_AVAILABLE
-            #include <winapifamily.h> // Windows SDK
             #define VX_PRIV_PLATFORM_DETECTED
 
-        #endif
+        #endif // uwp
 
-    //========================================
-    // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/windows_desktop.h
+    // Desktop
 
-        #if ((defined(WINAPI_FAMILY_DESKTOP_APP) && WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP) || !VX_PLATFORM_WINDOWS_UWP)
+        #if (defined(VX_PRIV_WINAPI_FAMILY_SUPPORT) && defined(WINAPI_FAMILY_DESKTOP_APP) && (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP)) || \
+            !defined(VX_PRIV_WINAPI_FAMILY_SUPPORT)
 
-            #define VX_PLATFORM_WINDOWS_DESKTOP
+            #define VX_PLATFORM_WINDOWS_DESKTOP VX_VERSION_NUMBER_AVAILABLE
             #define VX_PRIV_PLATFORM_DETECTED
 
         #endif // desktop
 
-    //========================================
-    // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/windows_phone.h
+    // Phone
 
-        #if ((defined(WINAPI_FAMILY_PHONE_APP) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP))
+        #if defined(VX_PRIV_WINAPI_FAMILY_SUPPORT) && defined(WINAPI_FAMILY_PHONE_APP) && (WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)
 
-            #define VX_PLATFORM_WINDOWS_PHONE
+            #define VX_PLATFORM_WINDOWS_PHONE VX_VERSION_NUMBER_AVAILABLE
             #define VX_PRIV_PLATFORM_DETECTED
 
         #endif // phone
 
-    //========================================
-    // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/windows_system.h
+    // System
 
-        #if ((defined(WINAPI_FAMILY_SYSTEM) && WINAPI_FAMILY == WINAPI_FAMILY_SYSTEM))
+        #if defined(VX_PRIV_WINAPI_FAMILY_SUPPORT) && defined(WINAPI_FAMILY_SYSTEM) && (WINAPI_FAMILY == WINAPI_FAMILY_SYSTEM)
 
-            #define VX_PLATFORM_WINDOWS_SYSTEM
+            #define VX_PLATFORM_WINDOWS_SYSTEM VX_VERSION_NUMBER_AVAILABLE
             #define VX_PRIV_PLATFORM_DETECTED
 
         #endif // system
 
-    //========================================
-    // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/windows_server.h
+    // Server
 
-        #if ((defined(WINAPI_FAMILY_SERVER) && WINAPI_FAMILY == WINAPI_FAMILY_SERVER))
+        #if defined(VX_PRIV_WINAPI_FAMILY_SUPPORT) && defined(WINAPI_FAMILY_SERVER) && (WINAPI_FAMILY == WINAPI_FAMILY_SERVER)
 
-            #define VX_PLATFORM_WINDOWS_SERVER
+            #define VX_PLATFORM_WINDOWS_SERVER VX_VERSION_NUMBER_AVAILABLE
             #define VX_PRIV_PLATFORM_DETECTED
 
         #endif // server
 
-    //========================================
-    // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/windows_store.h
+    // Store
 
-        #if ((defined(WINAPI_FAMILY_PC_APP) && WINAPI_FAMILY == WINAPI_FAMILY_PC_APP) || \
-            (defined(WINAPI_FAMILY_APP) && WINAPI_FAMILY == WINAPI_FAMILY_APP))
+        #if defined(VX_PRIV_WINAPI_FAMILY_SUPPORT) && \
+            ((defined(WINAPI_FAMILY_PC_APP) && (WINAPI_FAMILY == WINAPI_FAMILY_PC_APP)) || \
+                (defined(WINAPI_FAMILY_APP) && (WINAPI_FAMILY == WINAPI_FAMILY_APP)))
 
-            #define VX_PLATFORM_WINDOWS_STORE
+            #define VX_PLATFORM_WINDOWS_STORE VX_VERSION_NUMBER_AVAILABLE
             #define VX_PRIV_PLATFORM_DETECTED
 
         #endif // store
 
-    //========================================
-    // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/platform/windows_runtime.h
+    // Runtime (phone or store)
 
-        #if (VX_PLATFORM_WINDOWS_PHONE || VX_PLATFORM_WINDOWS_STORE)
+        #if defined(VX_PLATFORM_WINDOWS_PHONE) || defined(VX_PLATFORM_WINDOWS_STORE)
 
-            #define VX_PLATFORM_WINDOWS_RUNTIME
+            #define VX_PLATFORM_WINDOWS_RUNTIME VX_VERSION_NUMBER_AVAILABLE
             #define VX_PRIV_PLATFORM_DETECTED
 
         #endif // runtime
 
-    //========================================
+    // Cleanup
+
+        #undef VX_PRIV_WINAPI_FAMILY_SUPPORT
 
     #endif // windows
 
-#endif // VX_DUMMY_PLATFORM
+#endif // !VX_PLATFORM_DISABLE_DETECTION
 
 //=============================================================================
-// dummy
+// unknown
 //=============================================================================
 
-#if !defined(VX_PRIV_OS_DETECTED)
-    #define VX_PLATFORM_DUMMY VX_VERSION_NUMBER_AVAILABLE
-    #define VX_PRIV_PLATFORM_DETECTED
+#if !defined(VX_PRIV_PLATFORM_DETECTED)
+    #define VX_PLATFORM_UNKNOWN VX_VERSION_NUMBER_AVAILABLE
 #endif
 
 //=============================================================================
 // cleanup
 //=============================================================================
 
-#if defined(VX_PRIV_PLATFORM_DETECTED)
-    #undef VX_PRIV_PLATFORM_DETECTED
-#endif
+#undef VX_PRIV_PLATFORM_DETECTED
